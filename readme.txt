@@ -16,12 +16,12 @@ kolektor 144Wp cca 36ks 6*6 rozmìr 960x960 napìtí 18V 		40ks cena cca 1300
 - solání èlánky + kabely, ebay 5x5" 125x125mm, 2,7W/èlánek nominální napìtí 0,55 - 0,6V/èlánek 
 https://www.ebay.com/itm/2-8W-125MM-Monocrystalline-Solar-Cells-5x5-A-Grade-For-DIY-Solar-Panels/113344175030?hash=item1a63d6dbb6:m:m1efJgrAq3WPJkaR0fac6-Q:rk:6:pf:0
 https://www.ebay.com/itm/40Pcs-125MM-Monocrystalline-Silicon-Solar-Cells-For-DIY-Solar-Panels/302911830537?hash=item4686f3ba09:g:skYAAOSw8hhan8Zm
-kolektor 132Wp cca 49ks 7*7 rozmìr 875*875 napìtí 25V, proud 5,3A 		50ks cena cca 1069 
+kolektor 100Wp cca 36ks 6*6 rozmìr 800*800 napìtí 18V, proud 5,5A 		50ks cena cca 1069 
 
 pro 4 panely zapojené paralelnì:
-napìtí 25V
-proud 5,3*4=21A  mìl by staèit vodiè o prùøezu 2,5
-výkon 4x132Wp=528Wp
+napìtí 18V
+proud 5,5*4=22A  mìl by staèit vodiè o prùøezu 2,5
+výkon 4x100Wp=400Wp
 
 - alu profil https://www.alupa.cz/hlinik/hlinikovy-u-profil-nepr-11x25x13x18/pro-2YS0000101.html 225,-
 - sklo 690/m2 panel cca 1m2 - 690,-
