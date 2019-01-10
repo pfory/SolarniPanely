@@ -17,6 +17,7 @@ kolektor 144Wp cca 36ks 6*6 rozmìr 960x960 napìtí 18V 		40ks cena cca 1300
 https://www.ebay.com/itm/2-8W-125MM-Monocrystalline-Solar-Cells-5x5-A-Grade-For-DIY-Solar-Panels/113344175030?hash=item1a63d6dbb6:m:m1efJgrAq3WPJkaR0fac6-Q:rk:6:pf:0
 https://www.ebay.com/itm/40Pcs-125MM-Monocrystalline-Silicon-Solar-Cells-For-DIY-Solar-Panels/302911830537?hash=item4686f3ba09:g:skYAAOSw8hhan8Zm
 kolektor 100Wp cca 36ks 6*6 rozmìr 800*800 napìtí 18V, proud 5,5A 		50ks cena cca 1069 
+9*4 1150*500
 
 pro 4 panely zapojené paralelnì:
 napìtí 18V
@@ -52,12 +53,12 @@ Jeden 100W kolektor by mìl za rok vyrobit 80kWh tj. pøi cenì 6Kè/kWh je cca 480,
 Jeden 144W kolektor by mìl za rok vyrobit 115kWh tj. pøi cenì 6Kè/kWh je cca 700,- za rok - návratnost kolektoru 3,5 roku
 
 Cenu kolektoru
-èlánky 1300,-       50 èlánkù 1385,-
+èlánky 770,-       50 èlánkù 1069,-
 sklo 690,-
 alu profil 225,-
 silikon 50,-
 drobný materiál 100,-   propojovací pásek 10m 55,-
 
-celkem 2365
+celkem 1800,-
 
 - regulátor 460,-
