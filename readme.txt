@@ -12,9 +12,9 @@ https://www.ebay.com/itm/2-8W-125MM-Monocrystalline-Solar-Cells-5x5-A-Grade-For-
 https://www.ebay.com/itm/40Pcs-125MM-Monocrystalline-Silicon-Solar-Cells-For-DIY-Solar-Panels/302911830537?hash=item4686f3ba09:g:skYAAOSw8hhan8Zm
 kolektor 100Wp cca 36ks 9*4 napìtí 18V, proud 5,5A 		50ks cena cca 944,- 
 
-4*125+3*10 =500+30  =530mm   +2*12,5+2*19    = 530+25+38 =593mm   
+4*125+3*10 =500+30  =530mm   +2*10  +2*19    = 530+20+38 =588mm     590   
 
-9*125+8*1 =1125+8 =1133    +2*12,5+2*19    = 1133+25+38=1196mm
+9*125+8*1 =1125+8 =1133    +2*10    +2*19    = 1133+20+38=1191mm    1190
                     èlánky  mezera rámeèek
                     
 svrchní sklo  4mm cca 60x120=233 Kè nebo svrchní sklo extra èiré 4mm cca 60x120=380 tj + 147,-
@@ -22,8 +22,11 @@ spodní sklo   3mm cca 60x120=181 Kè
 
 sklo celkem 414 Kè
 
-rámeèek alu profil 25x25x3 60/m
-123+123+58,5+58,5=3,7m = 222,-
+rámeèek alu profil U 40x25x3 90/m
+125+125+62+62=3,75m = 337,-
+
+profil na 2 panely 987 + 140 doprava = 1127
+1 panel 560,-
 
 pro 4 panely zapojené paralelnì:
 napìtí 18V
@@ -61,10 +64,30 @@ Jeden 144W kolektor by mìl za rok vyrobit 115kWh tj. pøi cenì 6Kè/kWh je cca 700
 Cenu kolektoru
 èlánky 944
 sklo 414
-alu profil 222,-
+alu profil 560,-
 silikon 50,-
 drobný materiál 100,-
 
-celkem 1730,-
+celkem 2068,-
 
 - regulátor 460,-
+
+
+profil 40x25x3 - 1250
+profil 40x25x3 - 620
+
+var.1
+1250-25-25=1200  1200 okraj 1200-1133=67/2=   33mm 
+620+25+25=670    620  okraj 620-530=90/2=     45mm
+sklo 1190x660
+
+nebo
+
+var.2
+1250+25+25=1300  1250 okraj 1250-1133=117/2=  58mmm
+620-25-25=570    570  okraj 570-530=40/2=     20mm
+sklo 1240x560
+
+èlánky 530x1133
+125*9=1125+8*1=1133
+125*4=500+3*10=530
