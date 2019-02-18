@@ -28,6 +28,10 @@ rámeèek alu profil U 40x25x3 90/m
 profil na 2 panely 987 + 140 doprava = 1127
 1 panel 560,-
 
+rám 670x1250
+sklo 670-2x5=660
+1250-2x5=1240
+
 pro 4 panely zapojené paralelnì:
 napìtí 18V
 proud 5,5*4=22A  mìl by staèit vodiè o prùøezu 2,5
