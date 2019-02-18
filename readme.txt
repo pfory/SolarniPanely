@@ -62,13 +62,13 @@ Jeden 100W kolektor by mìl za rok vyrobit 80kWh tj. pøi cenì 6Kè/kWh je cca 480,
 Jeden 144W kolektor by mìl za rok vyrobit 115kWh tj. pøi cenì 6Kè/kWh je cca 700,- za rok - návratnost kolektoru 3,5 roku
 
 Cenu kolektoru
-èlánky 944
-sklo 414
-alu profil 560,-
-silikon 50,-
-drobný materiál 100,-
+èlánky 967
+sklo 782
+alu profil 350,-
+silikon 70,-
+tištìné díly + šrouby 50,-
 
-celkem 2068,-
+celkem 2219,-
 
 - regulátor 460,-
 
