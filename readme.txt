@@ -29,8 +29,11 @@ profil na 2 panely 987 + 140 doprava = 1127
 1 panel 560,-
 
 rám 670x1250
-sklo 670-2x5=660
-1250-2x5=1240
+sklo 670-2x10=650
+1250-2x10=1230
+
+profil pro uchycení na støechu - https://www.ehlinik.cz/al-profil-solar-40x40/pro-2EV0000101.html
+délka 2x67 + 2x67 = 4x67 = 268 + mezery 3x2 + kraje 2x5 = 268 + 16 = 284
 
 pro 4 panely zapojené paralelnì:
 napìtí 18V
