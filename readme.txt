@@ -56,7 +56,6 @@ Náøadí
 - klíèe
 
 Jeden 100W kolektor by mìl za rok vyrobit 80kWh tj. pøi cenì 6Kè/kWh je cca 480,- za rok
-Jeden 144W kolektor by mìl za rok vyrobit 115kWh tj. pøi cenì 6Kè/kWh je cca 700,- za rok - návratnost kolektoru 3,5 roku
 
 Cenu kolektoru
 èlánky 996,-
@@ -75,3 +74,17 @@ profil 40x25x3 - 620
 sklo 4mm 65*123
 sklo 3mm 65*123
 celkem 782,-
+
+
+ROZVOD
+ze støechy svést kabelem k baterii do ložnice
+12V do rozvadìèe a pøes spínací relé do stávajícího rozvodu 12V
+
+potøebuji
+relé 12V - objednáno ebay
+kabely 4mm - zmìøit
+mìøiè proudu 50A objednán ebay + ESP8266
+
+pozdìji
+dokoupit panely
+pøes invertor 230V do rozvadìèe
