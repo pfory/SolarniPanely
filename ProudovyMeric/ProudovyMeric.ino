@@ -143,7 +143,7 @@ void setup() {
   } 
   
   //setup timers
-  timer.every(5000, sendDataHA);
+  timer.every(30000, sendDataHA);
   //timer.every(sendStatDelay, sendStatisticHA);
   ticker.detach();
   //keep LED on
