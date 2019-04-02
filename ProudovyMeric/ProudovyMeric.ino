@@ -24,9 +24,10 @@ char                  static_gw[16]         = "192.168.1.1";
 char                  static_sn[16]         = "255.255.255.0";
 
 #define LEDPIN                               D4
+#define CHAROUT                              D7
 
 
-float cutOffLimit = 1.00;// reading cutt off current. 1.00 is 1 Amper
+float cutOffLimit = 10.0;// reading cutt off current. 1.00 is 1 Amper
 
 /*
           "ACS758LCB-050B",// for model use 0
@@ -112,6 +113,7 @@ void setup() {
   
   pinMode(BUILTIN_LED, OUTPUT);
   pinMode(LEDPIN, OUTPUT);
+  pinMode(CHAROUT, INPUT);
 
   ticker.attach(1, tick);
   
@@ -178,6 +180,10 @@ bool sendDataHA(void *) {
   Serial.print("V, I: ");
   Serial.print(current,2); // print the current with 2 decimal places
   Serial.println("A");
+  
+  Serial.print("Charger output :");
+  Serial.println(digitalRead(CHAROUT));
+  
   digitalWrite(BUILTIN_LED, LOW);
   DEBUG_PRINTLN(F(" - I am sending data to HA"));
   
@@ -185,6 +191,7 @@ bool sendDataHA(void *) {
   SenderClass sender;
  
   sender.add("current", current);
+  sender.add("chargerOUT", digitalRead(CHAROUT));
   
   DEBUG_PRINTLN(F("Calling MQTT"));
 
