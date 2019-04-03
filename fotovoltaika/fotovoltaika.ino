@@ -13,8 +13,37 @@ uint16_t              mqtt_port             = 1883;
 #include <Ticker.h>
 Ticker ticker;
 
-#define AUTOCONNECTNAME   "MereniProudu"
+#define ota
+#ifdef ota
+#define HOSTNAMEOTA   "fotovoltaika"
+#endif
+
+#define AUTOCONNECTNAME   HOSTNAMEOTA
 #define AUTOCONNECTPWD    "password"
+
+#ifdef verbose
+  #define DEBUG_PRINT(x)                     Serial.print (x)
+  #define DEBUG_PRINT2(x,y)                  Serial.print (x,y)
+  #define DEBUG_PRINTDEC(x)                  Serial.print (x, DEC)
+  #define DEBUG_PRINTLN(x)                   Serial.println (x)
+  #define DEBUG_PRINTF(x, y)                 Serial.printf (x, y)
+  #define PORTSPEED 115200             
+  #define DEBUG_WRITE(x)                     Serial.write (x)
+  #define DEBUG_PRINTHEX(x)                  Serial.print (x, HEX)
+  #define SERIAL_BEGIN                       Serial.begin(PORTSPEED)
+#else
+  #define DEBUG_PRINT(x)
+  #define DEBUG_PRINT2(x,y)
+  #define DEBUG_PRINTDEC(x)
+  #define DEBUG_PRINTLN(x)
+  #define DEBUG_PRINTF(x, y)
+  #define DEBUG_WRITE(x)
+#endif 
+
+
+#ifdef ota
+#include <ArduinoOTA.h>
+#endif
 
 char                  mqtt_username[40]     = "datel";
 char                  mqtt_key[20]          = "hanka12";
@@ -103,13 +132,13 @@ void tick()
 void setup() {
   //Robojax.com ACS758 Current Sensor 
   Serial.begin(115200);// initialize serial monitor
-  Serial.println("ACS758 Current Sensor");
-  Serial.print("cutOff ");
-  Serial.println(cutOff);
-  Serial.print("QOV ");
-  Serial.println(QOV);
-  Serial.print("Factor ");
-  Serial.println(FACTOR);
+  DEBUG_PRINTLN("ACS758 Current Sensor");
+  DEBUG_PRINT("cutOff ");
+  DEBUG_PRINTLN(cutOff);
+  DEBUG_PRINT("QOV ");
+  DEBUG_PRINTLN(QOV);
+  DEBUG_PRINT("Factor ");
+  DEBUG_PRINTLN(FACTOR);
   
   pinMode(BUILTIN_LED, OUTPUT);
   pinMode(LEDPIN, OUTPUT);
@@ -144,6 +173,49 @@ void setup() {
     delay(5000);
   } 
   
+  #ifdef ota
+  //OTA
+  // Port defaults to 8266
+  // ArduinoOTA.setPort(8266);
+
+  // Hostname defaults to esp8266-[ChipID]
+  ArduinoOTA.setHostname(HOSTNAMEOTA);
+
+  // No authentication by default
+  // ArduinoOTA.setPassword("admin");
+
+  // Password can be set with it's md5 value as well
+  // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
+  // ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
+
+  ArduinoOTA.onStart([]() {
+    // String type;
+    // if (ArduinoOTA.getCommand() == U_FLASH)
+      // type = "sketch";
+    // else // U_SPIFFS
+      // type = "filesystem";
+
+    // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+    //DEBUG_PRINTLN("Start updating " + type);
+    DEBUG_PRINTLN("Start updating ");
+  });
+  ArduinoOTA.onEnd([]() {
+   DEBUG_PRINTLN("\nEnd");
+  });
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    DEBUG_PRINTF("Progress: %u%%\r", (progress / (total / 100)));
+  });
+  ArduinoOTA.onError([](ota_error_t error) {
+    DEBUG_PRINTF("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) DEBUG_PRINTLN("Auth Failed");
+    else if (error == OTA_BEGIN_ERROR) DEBUG_PRINTLN("Begin Failed");
+    else if (error == OTA_CONNECT_ERROR) DEBUG_PRINTLN("Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR) DEBUG_PRINTLN("Receive Failed");
+    else if (error == OTA_END_ERROR) DEBUG_PRINTLN("End Failed");
+  });
+  ArduinoOTA.begin();
+#endif
+  
   //setup timers
   timer.every(30000, sendDataHA);
   //timer.every(sendStatDelay, sendStatisticHA);
@@ -156,33 +228,35 @@ void setup() {
 
 void loop() {
   timer.tick(); // tick the timer
+#ifdef ota
+  ArduinoOTA.handle();
+#endif
 }
 
 
 bool sendDataHA(void *) {
-  Serial.print("Point ");
-  Serial.print(analogRead(VIN));
-  Serial.print("  ");
-  float voltage_raw = (3.3 / 1024.0) * (analogRead(VIN) - 59);// Read the voltage from sensor
+  DEBUG_PRINT("Point ");
+  DEBUG_PRINT(analogRead(VIN));
+  DEBUG_PRINT("  ");
+  float voltage_raw = (3.3 / 1024.0) * (analogRead(VIN));// Read the voltage from sensor
   //float voltage_raw = analogRead(VIN);// Read the voltage from sensor
-  Serial.print(" RAW voltage ");
-  Serial.print(voltage_raw);
-  voltage =  voltage_raw - QOV + 0.007 ;// 0.007 is a value to make voltage zero when there is no current
-  Serial.print(" voltage ");
-  Serial.print(fabs(voltage),3);
+  DEBUG_PRINT(" RAW voltage ");
+  DEBUG_PRINT(voltage_raw);
+  voltage =  voltage_raw - QOV - 0.184 ;// 0.007 is a value to make voltage zero when there is no current
+
   float current = voltage / FACTOR;
   if(fabs(voltage) <= cutOff ) {  //> 0.04
     current = 0;
-    Serial.print(" zero current ");
+    DEBUG_PRINT(" zero current ");
   }
-  Serial.print(" V: ");
-  Serial.print(voltage,3);// print voltage with 3 decimal places
-  Serial.print("V, I: ");
-  Serial.print(current,2); // print the current with 2 decimal places
-  Serial.println("A");
+  DEBUG_PRINT(" V: ");
+  DEBUG_PRINT2(voltage,3);// print voltage with 3 decimal places
+  DEBUG_PRINT("V, I: ");
+  DEBUG_PRINT2(current,2); // print the current with 2 decimal places
+  DEBUG_PRINTLN("A");
   
-  Serial.print("Charger output :");
-  Serial.println(digitalRead(CHAROUT));
+  DEBUG_PRINT("Charger output :");
+  DEBUG_PRINTLN(digitalRead(CHAROUT));
   
   digitalWrite(BUILTIN_LED, LOW);
   DEBUG_PRINTLN(F(" - I am sending data to HA"));
