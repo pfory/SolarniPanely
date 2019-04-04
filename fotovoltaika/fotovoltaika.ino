@@ -56,7 +56,7 @@ char                  static_sn[16]         = "255.255.255.0";
 #define CHAROUT                              D7
 
 
-float cutOffLimit = 10.0;// reading cutt off current. 1.00 is 1 Amper
+float cutOffLimit = 1.0;// reading cutt off current. 1.00 is 1 Amper
 
 /*
           "ACS758LCB-050B",// for model use 0
@@ -101,7 +101,7 @@ float quiescent_Output_voltage [] ={
           0.12,// for ACS758ECB-200U            
           };
 const float FACTOR = sensitivity[model]/1000;// set sensitivity for selected model 0.04
-const float QOV =   quiescent_Output_voltage [model] * VCC;// set quiescent Output voltage for selected model 0.5*5 = 2.5
+const float QOV =   quiescent_Output_voltage[model] * VCC;// set quiescent Output voltage for selected model 0.5*5 = 2.5
 float voltage;// internal variable for voltage
 float cutOff = FACTOR/cutOffLimit;// convert current cut off to mV 0.04
 
@@ -238,7 +238,7 @@ bool sendDataHA(void *) {
   DEBUG_PRINT("Point ");
   DEBUG_PRINT(analogRead(VIN));
   DEBUG_PRINT("  ");
-  float voltage_raw = (3.3 / 1024.0) * (analogRead(VIN));// Read the voltage from sensor
+  float voltage_raw = (3.3 / 1023.0) * (analogRead(VIN));// Read the voltage from sensor
   //float voltage_raw = analogRead(VIN);// Read the voltage from sensor
   DEBUG_PRINT(" RAW voltage ");
   DEBUG_PRINT(voltage_raw);
