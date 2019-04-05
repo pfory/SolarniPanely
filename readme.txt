@@ -73,6 +73,17 @@ tištìné díly + šrouby 50,-
 
 celkem 2248,-
 
+
+Eko verze s EVA
+èlánky 780,-
+alu profil 30x20x2 50,7 bez DPH - 3m = 184,-
+alu profil 40x20x2 55,9         - 3m = 203,-
+doprava 140,-
+sklo 4mm cca 115x55 = 380,-
+EVA 1000x500*0,4 1m 181,- = 362,-
+
+celkem 780+200+400+362=1742,-
+
 - regulátor 460,-
 
 profil 40x25x3 - 1250
@@ -84,14 +95,14 @@ celkem 782,-
 
 
 ROZVOD
-ze støechy svést kabelem k baterii do ložnice
+ze støechy svést kabelem do dílny
+v dílnì bude baterie, mìniè, regulátor a UPS
+230 z mìnièe protáhnout do rozvadìèe a propojit s rozvodem UPS
 12V do rozvadìèe a pøes spínací relé do stávajícího rozvodu 12V
 
 potøebuji
-relé 12V - objednáno ebay
 kabely 4mm - zmìøit
-mìøiè proudu 50A objednán ebay + ESP8266
+mìøiè proudu 50A
 
 pozdìji
-dokoupit panely
-pøes invertor 230V do rozvadìèe
+dokoupit panely 2 x 100Wp
