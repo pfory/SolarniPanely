@@ -13,6 +13,14 @@ uint16_t              mqtt_port             = 1883;
 #include <Ticker.h>
 Ticker ticker;
 
+//SW name & version
+#define     VERSION                       "0.1"
+#define     SW_NAME                       "Fotovoltaika"
+
+#define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
+#define SENDSTAT_DELAY                       60000 //poslani statistiky kazdou minutu
+
+
 #define ota
 #ifdef ota
 #define HOSTNAMEOTA   "fotovoltaika"
@@ -40,6 +48,8 @@ Ticker ticker;
   #define DEBUG_WRITE(x)
 #endif 
 
+
+uint32_t heartBeat                          = 0;
 
 #ifdef ota
 #include <ArduinoOTA.h>
@@ -130,9 +140,11 @@ void tick()
 
 
 void setup() {
-  //Robojax.com ACS758 Current Sensor 
-  Serial.begin(115200);// initialize serial monitor
-  DEBUG_PRINTLN("ACS758 Current Sensor");
+  SERIAL_BEGIN;
+  DEBUG_PRINT(F(SW_NAME));
+  DEBUG_PRINT(F(" "));
+  DEBUG_PRINTLN(F(VERSION));
+
   DEBUG_PRINT("cutOff ");
   DEBUG_PRINTLN(cutOff);
   DEBUG_PRINT("QOV ");
@@ -217,7 +229,10 @@ void setup() {
 #endif
   
   //setup timers
-  timer.every(30000, sendDataHA);
+  timer.every(SEND_DELAY, sendDataHA);
+  timer.every(SENDSTAT_DELAY, sendStatisticHA);
+  sendStatisticHA;
+
   //timer.every(sendStatDelay, sendStatisticHA);
   ticker.detach();
   //keep LED on
@@ -269,6 +284,23 @@ bool sendDataHA(void *) {
   
   DEBUG_PRINTLN(F("Calling MQTT"));
 
+  sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
+  digitalWrite(BUILTIN_LED, HIGH);
+  return true;
+}
+
+bool sendStatisticHA(void *) {
+  digitalWrite(BUILTIN_LED, LOW);
+  //printSystemTime();
+  DEBUG_PRINTLN(F(" - I am sending statistic to HA"));
+
+  SenderClass sender;
+  sender.add("VersionSWFotovoltaika", VERSION);
+  sender.add("HeartBeat", heartBeat++);
+  sender.add("RSSI", WiFi.RSSI());
+  
+  DEBUG_PRINTLN(F("Calling MQTT"));
+  
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
   digitalWrite(BUILTIN_LED, HIGH);
   return true;
