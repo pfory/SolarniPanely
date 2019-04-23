@@ -1,5 +1,5 @@
 #define VIN A0 // define the Arduino pin A0 as voltage input (V in)
-const float VCC   = 5.0;// supply voltage 5V or 3.3V. If using PCB, set to 5V only.
+const float VCC   = 4.80;// supply voltage 5V or 3.3V. If using PCB, set to 5V only.
 const int model = 0;   // enter the model (see below)
 
 char                  mqtt_server[40]       = "192.168.1.56";
