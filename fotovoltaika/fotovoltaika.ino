@@ -1,5 +1,5 @@
 #define VIN A0 // define the Arduino pin A0 as voltage input (V in)
-const float VCC   = 5.0;// supply voltage 5V or 3.3V. If using PCB, set to 5V only.
+const float VCC   = 4.85;// supply voltage 5V or 3.3V. If using PCB, set to 5V only.
 const int model = 0;   // enter the model (see below)
 
 char                  mqtt_server[40]       = "192.168.1.56";
@@ -218,7 +218,7 @@ void setup() {
   
   //setup timers
   timer.every(30000, sendDataHA);
-  //timer.every(sendStatDelay, sendStatisticHA);
+  timer.every(sendStatDelay, sendStatisticHA);
   ticker.detach();
   //keep LED on
   digitalWrite(BUILTIN_LED, HIGH);
@@ -242,7 +242,7 @@ bool sendDataHA(void *) {
   //float voltage_raw = analogRead(VIN);// Read the voltage from sensor
   DEBUG_PRINT(" RAW voltage ");
   DEBUG_PRINT(voltage_raw);
-  voltage =  voltage_raw - QOV - 0.184 ;// 0.007 is a value to make voltage zero when there is no current
+  voltage =  voltage_raw - QOV - 0.007 ;// 0.007 is a value to make voltage zero when there is no current
 
   float current = voltage / FACTOR;
   if(fabs(voltage) <= cutOff ) {  //> 0.04
