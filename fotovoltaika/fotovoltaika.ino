@@ -1,5 +1,5 @@
 #define VIN A0 // define the Arduino pin A0 as voltage input (V in)
-const float VCC   = 4.85;// supply voltage 5V or 3.3V. If using PCB, set to 5V only.
+const float VCC   = 4.8;// supply voltage 5V or 3.3V. If using PCB, set to 5V only.
 const int model = 0;   // enter the model (see below)
 
 char                  mqtt_server[40]       = "192.168.1.56";
@@ -12,6 +12,14 @@ uint16_t              mqtt_port             = 1883;
 //for LED status
 #include <Ticker.h>
 Ticker ticker;
+
+//SW name & version
+#define     VERSION                       "0.11"
+#define     SW_NAME                       "Fotovoltaika"
+
+#define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
+#define SENDSTAT_DELAY                       60000 //poslani statistiky kazdou minutu
+
 
 #define ota
 #ifdef ota
@@ -40,6 +48,8 @@ Ticker ticker;
   #define DEBUG_WRITE(x)
 #endif 
 
+
+uint32_t heartBeat                          = 0;
 
 #ifdef ota
 #include <ArduinoOTA.h>
@@ -130,9 +140,11 @@ void tick()
 
 
 void setup() {
-  //Robojax.com ACS758 Current Sensor 
-  Serial.begin(115200);// initialize serial monitor
-  DEBUG_PRINTLN("ACS758 Current Sensor");
+  SERIAL_BEGIN;
+  DEBUG_PRINT(F(SW_NAME));
+  DEBUG_PRINT(F(" "));
+  DEBUG_PRINTLN(F(VERSION));
+
   DEBUG_PRINT("cutOff ");
   DEBUG_PRINTLN(cutOff);
   DEBUG_PRINT("QOV ");
@@ -217,8 +229,10 @@ void setup() {
 #endif
   
   //setup timers
-  timer.every(30000, sendDataHA);
-  timer.every(sendStatDelay, sendStatisticHA);
+  timer.every(SEND_DELAY, sendDataHA);
+  timer.every(SENDSTAT_DELAY, sendStatisticHA);
+  sendStatisticHA;
+
   ticker.detach();
   //keep LED on
   digitalWrite(BUILTIN_LED, HIGH);
@@ -269,6 +283,23 @@ bool sendDataHA(void *) {
   
   DEBUG_PRINTLN(F("Calling MQTT"));
 
+  sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
+  digitalWrite(BUILTIN_LED, HIGH);
+  return true;
+}
+
+bool sendStatisticHA(void *) {
+  digitalWrite(BUILTIN_LED, LOW);
+  //printSystemTime();
+  DEBUG_PRINTLN(F(" - I am sending statistic to HA"));
+
+  SenderClass sender;
+  sender.add("VersionSWFotovoltaika", VERSION);
+  sender.add("HeartBeat", heartBeat++);
+  sender.add("RSSI", WiFi.RSSI());
+  
+  DEBUG_PRINTLN(F("Calling MQTT"));
+  
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
   digitalWrite(BUILTIN_LED, HIGH);
   return true;
