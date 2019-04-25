@@ -1,5 +1,5 @@
 #define VIN A0 // define the Arduino pin A0 as voltage input (V in)
-const float VCC   = 4.8;// supply voltage 5V or 3.3V. If using PCB, set to 5V only.
+const float VCC   = 5.0;// supply voltage 5V or 3.3V. If using PCB, set to 5V only.
 const int model = 0;   // enter the model (see below)
 
 char                  mqtt_server[40]       = "192.168.1.56";
@@ -14,7 +14,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                       "0.11"
+#define     VERSION                       "0.12"
 #define     SW_NAME                       "Fotovoltaika"
 
 #define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
@@ -259,7 +259,7 @@ bool sendDataHA(void *) {
   voltage =  voltage_raw - QOV - 0.007 ;// 0.007 is a value to make voltage zero when there is no current
 
   float current = voltage / FACTOR;
-  if(fabs(voltage) <= cutOff ) {  //> 0.04
+  if(fabs(voltage) <= cutOff ) {  //< 0.04
     current = 0;
     DEBUG_PRINT(" zero current ");
   }
@@ -277,6 +277,9 @@ bool sendDataHA(void *) {
   
 //Adafruit_MQTT_Subscribe restart                = Adafruit_MQTT_Subscribe(&mqtt, MQTTBASE "restart");
   SenderClass sender;
+
+  sender.add("voltage", voltage);
+  sender.add("voltage_raw", voltage_raw);
  
   sender.add("current", current);
   sender.add("chargerOUT", digitalRead(CHAROUT));
