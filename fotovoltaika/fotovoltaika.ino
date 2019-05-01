@@ -256,7 +256,7 @@ bool sendDataHA(void *) {
   //float voltage_raw = analogRead(VIN);// Read the voltage from sensor
   DEBUG_PRINT(" RAW voltage ");
   DEBUG_PRINT(voltage_raw);
-  voltage =  voltage_raw - 2.5; // 0.007 is a value to make voltage zero when there is no current
+  voltage =  voltage_raw - 2.57; // 0.007 is a value to make voltage zero when there is no current
 
   float current = voltage / FACTOR;
   if(fabs(voltage) <= cutOff ) {  //< 0.04
