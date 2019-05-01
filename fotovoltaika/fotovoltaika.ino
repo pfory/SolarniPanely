@@ -1,5 +1,5 @@
 #define VIN A0 // define the Arduino pin A0 as voltage input (V in)
-const float VCC   = 5.0;// supply voltage 5V or 3.3V. If using PCB, set to 5V only.
+const float VCC = 5.0;// supply voltage 5V or 3.3V. If using PCB, set to 5V only.
 const int model = 0;   // enter the model (see below)
 
 char                  mqtt_server[40]       = "192.168.1.56";
@@ -14,7 +14,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                       "0.12"
+#define     VERSION                       "0.13"
 #define     SW_NAME                       "Fotovoltaika"
 
 #define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
@@ -256,7 +256,7 @@ bool sendDataHA(void *) {
   //float voltage_raw = analogRead(VIN);// Read the voltage from sensor
   DEBUG_PRINT(" RAW voltage ");
   DEBUG_PRINT(voltage_raw);
-  voltage =  voltage_raw - QOV - 0.007 ;// 0.007 is a value to make voltage zero when there is no current
+  voltage =  voltage_raw - 2.5; // 0.007 is a value to make voltage zero when there is no current
 
   float current = voltage / FACTOR;
   if(fabs(voltage) <= cutOff ) {  //< 0.04
