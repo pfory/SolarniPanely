@@ -120,6 +120,17 @@ const float QOV =   quiescent_Output_voltage[model] * VCC;// set quiescent Outpu
 float voltage;// internal variable for voltage
 float cutOff = FACTOR/cutOffLimit;// convert current cut off to mV 0.04
 
+
+//mereni napeti
+int16_t adcRegInMin      = 0; //vystup z panelu, rozsah 0-20V
+int16_t adcRegOutMin     = 0; //vystup z regulatoru, rozsah 0-15V
+int16_t adcAcuMin        = 0; //vystup z regulatoru, rozsah 0-15V
+int16_t adc12VMin        = 0; //vystup z regulatoru, rozsah 0-15V
+int16_t adcRegInMax      = 0; //vystup z panelu, rozsah 0-20V
+int16_t adcRegOutMax     = 0; //vystup z regulatoru, rozsah 0-15V
+int16_t adcAcuMax        = 0; //vystup z regulatoru, rozsah 0-15V
+int16_t adc12VMax        = 0; //vystup z regulatoru, rozsah 0-15V
+
 //gets called when WiFiManager enters configuration mode
 void configModeCallback (WiFiManager *myWiFiManager) {
   DEBUG_PRINTLN("Entered config mode");
@@ -273,14 +284,22 @@ void loop() {
 }
 
 bool readADC(void *) {
-  int16_t adc;
+  int16_t adc[4];
   for (byte i=0; i<4; i++) {
-    adc = ads.readADC_SingleEnded(i);
+    adc[i] = ads.readADC_SingleEnded(i);
     DEBUG_PRINT("AIN");
     DEBUG_PRINT(i);
     DEBUG_PRINT(": ");
-    DEBUG_PRINTLN(adc);
+    DEBUG_PRINTLN(adc[i]);
   }
+  adcRegInMin    = min(adc[0], adcRegInMin);
+  adcRegOutMin   = min(adc[1], adcRegOutMin); 
+  adcAcuMin      = min(adc[2], adcAcuMin);
+  adc12VMin      = min(adc[3], adc12VMin);
+  adcRegInMax    = max(adc[0], adcRegInMax);
+  adcRegOutMax   = max(adc[1], adcRegOutMax); 
+  adcAcuMax      = max(adc[2], adcAcuMax);
+  adc12VMax      = max(adc[3], adc12VMax);
   return true;
 }
 
@@ -319,6 +338,15 @@ bool sendDataHA(void *) {
  
   sender.add("current", current);
   sender.add("chargerOUT", digitalRead(CHAROUT));
+
+  sender.add("adcRegInMin", adcRegInMin);
+  sender.add("adcRegOutMin", adcRegOutMin);
+  sender.add("adcAcuMin", adcAcuMin);
+  sender.add("adc12VMin", adc12VMin);
+  sender.add("adcRegInMax", adcRegInMax);
+  sender.add("adcRegOutMax", adcRegOutMax);
+  sender.add("adcAcuMax", adcAcuMax);
+  sender.add("adc12VMax", adc12VMax);
   
   DEBUG_PRINTLN(F("Calling MQTT"));
 
