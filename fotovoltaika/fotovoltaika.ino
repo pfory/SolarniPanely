@@ -2,9 +2,10 @@
 const float VCC = 5.0;// supply voltage 5V or 3.3V. If using PCB, set to 5V only.
 const int model = 0;   // enter the model (see below)
 
+#include <Wire.h>
 #include <Adafruit_ADS1015.h>
-// Adafruit_ADS1115 ads;  /* Use this for the 16-bit version */
-Adafruit_ADS1015 ads;     /* Use thi for the 12-bit version */
+Adafruit_ADS1115 ads;  /* Use this for the 16-bit version */
+//Adafruit_ADS1015 ads;     /* Use thi for the 12-bit version */
 
 char                  mqtt_server[40]       = "192.168.1.56";
 uint16_t              mqtt_port             = 1883;
@@ -25,6 +26,8 @@ Ticker ticker;
 #define SENDSTAT_DELAY                       60000 //poslani statistiky kazdou minutu
 #define READADC_DELAY                        1000  //cteni ADC
 
+#define MAX                                  32767
+#define MIN                                  -32767
 
 #define ota
 #ifdef ota
@@ -122,10 +125,10 @@ float cutOff = FACTOR/cutOffLimit;// convert current cut off to mV 0.04
 
 
 //mereni napeti
-int16_t adcRegInMin      = 0; //vystup z panelu, rozsah 0-20V
-int16_t adcRegOutMin     = 0; //vystup z regulatoru, rozsah 0-15V
-int16_t adcAcuMin        = 0; //vystup z regulatoru, rozsah 0-15V
-int16_t adc12VMin        = 0; //vystup z regulatoru, rozsah 0-15V
+int16_t adcRegInMin      = MAX; //vystup z panelu, rozsah 0-20V
+int16_t adcRegOutMin     = MAX; //vystup z regulatoru, rozsah 0-15V
+int16_t adcAcuMin        = MAX; //vystup z regulatoru, rozsah 0-15V
+int16_t adc12VMin        = MAX; //vystup z regulatoru, rozsah 0-15V
 int16_t adcRegInMax      = 0; //vystup z panelu, rozsah 0-20V
 int16_t adcRegOutMax     = 0; //vystup z regulatoru, rozsah 0-15V
 int16_t adcAcuMax        = 0; //vystup z regulatoru, rozsah 0-15V
@@ -244,7 +247,9 @@ void setup() {
   ArduinoOTA.begin();
 #endif
 
-  DEBUG_PRINTLN("Getting single-ended readings from AIN0..3");
+  //DEBUG_PRINTLN("Getting single-ended readings from AIN0..3");
+  //DEBUG_PRINTLN("ADC Range: +/- 6.144V (1 bit = 3mV/ADS1015, 0.1875mV/ADS1115)");
+  DEBUG_PRINTLN("Getting differential reading from AIN0 (P) and AIN1 (N)");
   DEBUG_PRINTLN("ADC Range: +/- 6.144V (1 bit = 3mV/ADS1015, 0.1875mV/ADS1115)");
   
   // The ADC input range (or gain) can be changed via the following
@@ -253,16 +258,14 @@ void setup() {
   // Setting these values incorrectly may destroy your ADC!
   //                                                                ADS1015  ADS1115
   //                                                                -------  -------
-  // ads.setGain(GAIN_TWOTHIRDS);  // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
-  // ads.setGain(GAIN_ONE);        // 1x gain   +/- 4.096V  1 bit = 2mV      0.125mV
-  // ads.setGain(GAIN_TWO);        // 2x gain   +/- 2.048V  1 bit = 1mV      0.0625mV
-  // ads.setGain(GAIN_FOUR);       // 4x gain   +/- 1.024V  1 bit = 0.5mV    0.03125mV
-  // ads.setGain(GAIN_EIGHT);      // 8x gain   +/- 0.512V  1 bit = 0.25mV   0.015625mV
-  // ads.setGain(GAIN_SIXTEEN);    // 16x gain  +/- 0.256V  1 bit = 0.125mV  0.0078125mV
-  
+  ads.setGain(GAIN_TWOTHIRDS);        // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
+  //ads.setGain(GAIN_ONE);            // 1x gain   +/- 4.096V  1 bit = 2mV      0.125mV
+  // ads.setGain(GAIN_TWO);           // 2x gain   +/- 2.048V  1 bit = 1mV      0.0625mV
+  // ads.setGain(GAIN_FOUR);          // 4x gain   +/- 1.024V  1 bit = 0.5mV    0.03125mV
+  // ads.setGain(GAIN_EIGHT);         // 8x gain   +/- 0.512V  1 bit = 0.25mV   0.015625mV
+  // ads.setGain(GAIN_SIXTEEN);       // 16x gain  +/- 0.256V  1 bit = 0.125mV  0.0078125mV
   ads.begin();
-
-  
+   
   //setup timers
   timer.every(SEND_DELAY, sendDataHA);
   timer.every(SENDSTAT_DELAY, sendStatisticHA);
@@ -284,22 +287,28 @@ void loop() {
 }
 
 bool readADC(void *) {
-  int16_t adc[4];
-  for (byte i=0; i<4; i++) {
-    adc[i] = ads.readADC_SingleEnded(i);
-    DEBUG_PRINT("AIN");
-    DEBUG_PRINT(i);
-    DEBUG_PRINT(": ");
-    DEBUG_PRINTLN(adc[i]);
-  }
-  adcRegInMin    = min(adc[0], adcRegInMin);
-  adcRegOutMin   = min(adc[1], adcRegOutMin); 
-  adcAcuMin      = min(adc[2], adcAcuMin);
-  adc12VMin      = min(adc[3], adc12VMin);
-  adcRegInMax    = max(adc[0], adcRegInMax);
-  adcRegOutMax   = max(adc[1], adcRegOutMax); 
-  adcAcuMax      = max(adc[2], adcAcuMax);
-  adc12VMax      = max(adc[3], adc12VMax);
+  int16_t adc;
+  // int16_t adc[4];
+  // for (byte i=0; i<4; i++) {
+    // adc[i] = ads.readADC_SingleEnded(i);
+    // DEBUG_PRINT("AIN");
+    // DEBUG_PRINT(i);
+    // DEBUG_PRINT(": ");
+    // DEBUG_PRINTLN(adc[i]);
+  // }
+
+  // adcRegInMin    = min(adc[0], adcRegInMin);
+  // adcRegOutMin   = min(adc[1], adcRegOutMin); 
+  // adcAcuMin      = min(adc[2], adcAcuMin);
+  // adc12VMin      = min(adc[3], adc12VMin);
+  // adcRegInMax    = max(adc[0], adcRegInMax);
+  // adcRegOutMax   = max(adc[1], adcRegOutMax); 
+  // adcAcuMax      = max(adc[2], adcAcuMax);
+  // adc12VMax      = max(adc[3], adc12VMax);
+  adc = ads.readADC_Differential_0_1();
+  adcRegOutMin   = min(adc, adcRegOutMin); 
+  adcRegOutMax   = max(adc, adcRegOutMax); 
+
   return true;
 }
 
@@ -347,6 +356,17 @@ bool sendDataHA(void *) {
   sender.add("adcRegOutMax", adcRegOutMax);
   sender.add("adcAcuMax", adcAcuMax);
   sender.add("adc12VMax", adc12VMax);
+  
+  adcRegInMin   = MAX;
+  adcRegOutMin  = MAX;
+  adcAcuMin     = MAX;   
+  adc12VMin     = MAX;   
+  adcRegInMax   = 0; 
+  adcRegOutMax  = 0;
+  adcAcuMax     = 0;   
+  adc12VMax     = 0;   
+  
+  
   
   DEBUG_PRINTLN(F("Calling MQTT"));
 
