@@ -2,10 +2,22 @@
 const float VCC = 5.0;// supply voltage 5V or 3.3V. If using PCB, set to 5V only.
 const int model = 0;   // enter the model (see below)
 
+
+/*HW
+  mereni proudu na regulatoru
+    - vstup z FW panelu, cidlo s ACS758LCB-050B +-50A
+    - akumulator, cidlo s ACS712 +-20A
+    - vystup, cidlo s ACS712 +-5A
+    vsechna cidla jsou pripojena na vstupy AD prevodniku s ADS1115, vystup I2C SDA - D2, SCL - D1
+  mereni napeti na regulatoru, spolecny je + pol, proti zemi je max na vstupu z panelu tj.20V
+
+*/
+
+
 #include <Wire.h>
 #include <Adafruit_ADS1015.h>
-Adafruit_ADS1115 ads;  /* Use this for the 16-bit version */
-//Adafruit_ADS1015 ads;     /* Use thi for the 12-bit version */
+Adafruit_ADS1115 ads1(0x48);  //ADDR to GND
+Adafruit_ADS1115 ads2(0x49);  //ADDR to 5V
 
 char                  mqtt_server[40]       = "192.168.1.56";
 uint16_t              mqtt_port             = 1883;
@@ -19,8 +31,8 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                       "0.13"
-#define     SW_NAME                       "Fotovoltaika"
+#define     VERSION                          "0.14"
+#define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
 #define SENDSTAT_DELAY                       60000 //poslani statistiky kazdou minutu
@@ -74,65 +86,71 @@ char                  static_sn[16]         = "255.255.255.0";
 #define CHAROUT                              D7
 
 
-float cutOffLimit = 1.0;// reading cutt off current. 1.00 is 1 Amper
+// float cutOffLimit = 1.0;// reading cutt off current. 1.00 is 1 Amper
 
-/*
-          "ACS758LCB-050B",// for model use 0
-          "ACS758LCB-050U",// for model use 1
-          "ACS758LCB-100B",// for model use 2
-          "ACS758LCB-100U",// for model use 3
-          "ACS758KCB-150B",// for model use 4
-          "ACS758KCB-150U",// for model use 5
-          "ACS758ECB-200B",// for model use 6
-          "ACS758ECB-200U"// for model use  7   
-sensitivity array is holding the sensitivy of the  ACS758
-current sensors. Do not change.          
-*/
-float sensitivity[] ={
-          40.0,// for ACS758LCB-050B
-          60.0,// for ACS758LCB-050U
-          20.0,// for ACS758LCB-100B
-          40.0,// for ACS758LCB-100U
-          13.3,// for ACS758KCB-150B
-          16.7,// for ACS758KCB-150U
-          10.0,// for ACS758ECB-200B
-          20.0,// for ACS758ECB-200U     
-         }; 
+// /*
+          // "ACS758LCB-050B",// for model use 0
+          // "ACS758LCB-050U",// for model use 1
+          // "ACS758LCB-100B",// for model use 2
+          // "ACS758LCB-100U",// for model use 3
+          // "ACS758KCB-150B",// for model use 4
+          // "ACS758KCB-150U",// for model use 5
+          // "ACS758ECB-200B",// for model use 6
+          // "ACS758ECB-200U"// for model use  7   
+// sensitivity array is holding the sensitivy of the  ACS758
+// current sensors. Do not change.          
+// */
+// float sensitivity[] ={
+          // 40.0,// for ACS758LCB-050B
+          // 60.0,// for ACS758LCB-050U
+          // 20.0,// for ACS758LCB-100B
+          // 40.0,// for ACS758LCB-100U
+          // 13.3,// for ACS758KCB-150B
+          // 16.7,// for ACS758KCB-150U
+          // 10.0,// for ACS758ECB-200B
+          // 20.0,// for ACS758ECB-200U     
+         // }; 
 
-/*         
- *   quiescent Output voltage is factor for VCC that appears at output       
- *   when the current is zero. 
- *   for Bidirectional sensor it is 0.5 x VCC
- *   for Unidirectional sensor it is 0.12 x VCC
- *   for model ACS758LCB-050B, the B at the end represents Bidirectional (polarity doesn't matter)
- *   for model ACS758LCB-100U, the U at the end represents Unidirectional (polarity must match)
- *    Do not change.
- */
-float quiescent_Output_voltage [] ={
-          0.5,// for ACS758LCB-050B
-          0.12,// for ACS758LCB-050U
-          0.5,// for ACS758LCB-100B
-          0.12,// for ACS758LCB-100U
-          0.5,// for ACS758KCB-150B
-          0.12,// for ACS758KCB-150U
-          0.5,// for ACS758ECB-200B
-          0.12,// for ACS758ECB-200U            
-          };
-const float FACTOR = sensitivity[model]/1000;// set sensitivity for selected model 0.04
-const float QOV =   quiescent_Output_voltage[model] * VCC;// set quiescent Output voltage for selected model 0.5*5 = 2.5
-float voltage;// internal variable for voltage
-float cutOff = FACTOR/cutOffLimit;// convert current cut off to mV 0.04
+// /*         
+ // *   quiescent Output voltage is factor for VCC that appears at output       
+ // *   when the current is zero. 
+ // *   for Bidirectional sensor it is 0.5 x VCC
+ // *   for Unidirectional sensor it is 0.12 x VCC
+ // *   for model ACS758LCB-050B, the B at the end represents Bidirectional (polarity doesn't matter)
+ // *   for model ACS758LCB-100U, the U at the end represents Unidirectional (polarity must match)
+ // *    Do not change.
+ // */
+// float quiescent_Output_voltage [] ={
+          // 0.5,// for ACS758LCB-050B
+          // 0.12,// for ACS758LCB-050U
+          // 0.5,// for ACS758LCB-100B
+          // 0.12,// for ACS758LCB-100U
+          // 0.5,// for ACS758KCB-150B
+          // 0.12,// for ACS758KCB-150U
+          // 0.5,// for ACS758ECB-200B
+          // 0.12,// for ACS758ECB-200U            
+          // };
+// const float FACTOR = sensitivity[model]/1000;// set sensitivity for selected model 0.04
+// const float QOV =   quiescent_Output_voltage[model] * VCC;// set quiescent Output voltage for selected model 0.5*5 = 2.5
+// float voltage;// internal variable for voltage
+// float cutOff = FACTOR/cutOffLimit;// convert current cut off to mV 0.04
 
 
 //mereni napeti
-int16_t adcRegInMin      = MAX; //vystup z panelu, rozsah 0-20V
-int16_t adcRegOutMin     = MAX; //vystup z regulatoru, rozsah 0-15V
-int16_t adcAcuMin        = MAX; //vystup z regulatoru, rozsah 0-15V
-int16_t adc12VMin        = MAX; //vystup z regulatoru, rozsah 0-15V
-int16_t adcRegInMax      = 0; //vystup z panelu, rozsah 0-20V
-int16_t adcRegOutMax     = 0; //vystup z regulatoru, rozsah 0-15V
-int16_t adcAcuMax        = 0; //vystup z regulatoru, rozsah 0-15V
-int16_t adc12VMax        = 0; //vystup z regulatoru, rozsah 0-15V
+int16_t voltageRegInMin      = MAX; //vystup z panelu, rozsah 0-20V
+int16_t voltageRegOutMin     = MAX; //vystup z regulatoru, rozsah 0-15V
+int16_t voltageAcuMin        = MAX; //vystup z regulatoru, rozsah 0-15V
+int16_t voltage12VMin        = MAX; //vystup z regulatoru, rozsah 0-15V
+int16_t voltageRegInMax      = 0; //vystup z panelu, rozsah 0-20V
+int16_t voltageRegOutMax     = 0; //vystup z regulatoru, rozsah 0-15V
+int16_t voltageAcuMax        = 0; //vystup z regulatoru, rozsah 0-15V
+int16_t voltage12VMax        = 0; //vystup z regulatoru, rozsah 0-15V
+
+//mereni proudu
+uint16_t currentRegIn;
+uint16_t currentAcu;
+uint16_t currentRegOut;
+
 
 //gets called when WiFiManager enters configuration mode
 void configModeCallback (WiFiManager *myWiFiManager) {
@@ -164,12 +182,12 @@ void setup() {
   DEBUG_PRINT(F(" "));
   DEBUG_PRINTLN(F(VERSION));
 
-  DEBUG_PRINT("cutOff ");
-  DEBUG_PRINTLN(cutOff);
-  DEBUG_PRINT("QOV ");
-  DEBUG_PRINTLN(QOV);
-  DEBUG_PRINT("Factor ");
-  DEBUG_PRINTLN(FACTOR);
+  // DEBUG_PRINT("cutOff ");
+  // DEBUG_PRINTLN(cutOff);
+  // DEBUG_PRINT("QOV ");
+  // DEBUG_PRINTLN(QOV);
+  // DEBUG_PRINT("Factor ");
+  // DEBUG_PRINTLN(FACTOR);
   
   pinMode(BUILTIN_LED, OUTPUT);
   pinMode(LEDPIN, OUTPUT);
@@ -247,25 +265,22 @@ void setup() {
   ArduinoOTA.begin();
 #endif
 
-  //DEBUG_PRINTLN("Getting single-ended readings from AIN0..3");
-  //DEBUG_PRINTLN("ADC Range: +/- 6.144V (1 bit = 3mV/ADS1015, 0.1875mV/ADS1115)");
-  DEBUG_PRINTLN("Getting differential reading from AIN0 (P) and AIN1 (N)");
-  DEBUG_PRINTLN("ADC Range: +/- 6.144V (1 bit = 3mV/ADS1015, 0.1875mV/ADS1115)");
-  
   // The ADC input range (or gain) can be changed via the following
   // functions, but be careful never to exceed VDD +0.3V max, or to
   // exceed the upper and lower limits if you adjust the input range!
   // Setting these values incorrectly may destroy your ADC!
   //                                                                ADS1015  ADS1115
   //                                                                -------  -------
-  ads.setGain(GAIN_TWOTHIRDS);        // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
-  //ads.setGain(GAIN_ONE);            // 1x gain   +/- 4.096V  1 bit = 2mV      0.125mV
-  // ads.setGain(GAIN_TWO);           // 2x gain   +/- 2.048V  1 bit = 1mV      0.0625mV
-  // ads.setGain(GAIN_FOUR);          // 4x gain   +/- 1.024V  1 bit = 0.5mV    0.03125mV
-  // ads.setGain(GAIN_EIGHT);         // 8x gain   +/- 0.512V  1 bit = 0.25mV   0.015625mV
-  // ads.setGain(GAIN_SIXTEEN);       // 16x gain  +/- 0.256V  1 bit = 0.125mV  0.0078125mV
-  ads.begin();
-   
+  ads1.setGain(GAIN_TWOTHIRDS);        // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
+  ads2.setGain(GAIN_TWOTHIRDS);        // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
+  // ads.setGain(GAIN_ONE);            // 1x gain   +/- 4.096V  1 bit = 2mV      0.125mV
+  // ads.setGain(GAIN_TWO);            // 2x gain   +/- 2.048V  1 bit = 1mV      0.0625mV
+  // ads.setGain(GAIN_FOUR);           // 4x gain   +/- 1.024V  1 bit = 0.5mV    0.03125mV
+  // ads.setGain(GAIN_EIGHT);          // 8x gain   +/- 0.512V  1 bit = 0.25mV   0.015625mV
+  // ads.setGain(GAIN_SIXTEEN);        // 16x gain  +/- 0.256V  1 bit = 0.125mV  0.0078125mV
+  ads1.begin();
+  ads2.begin();
+  
   //setup timers
   timer.every(SEND_DELAY, sendDataHA);
   timer.every(SENDSTAT_DELAY, sendStatisticHA);
@@ -287,86 +302,88 @@ void loop() {
 }
 
 bool readADC(void *) {
-  int16_t adc;
-  // int16_t adc[4];
-  // for (byte i=0; i<4; i++) {
-    // adc[i] = ads.readADC_SingleEnded(i);
-    // DEBUG_PRINT("AIN");
-    // DEBUG_PRINT(i);
-    // DEBUG_PRINT(": ");
-    // DEBUG_PRINTLN(adc[i]);
-  // }
+  int16_t voltage = ads1.readADC_Differential_0_1();
+  voltageRegOutMin   = min(voltage, voltageRegOutMin); 
+  voltageRegOutMax   = max(voltage, voltageRegOutMax); 
+  // voltage = ads1.readADC_Differential_2_3();
+  // voltageRegInMin    = min(voltage, voltageRegInMin);
+  // voltageRegOutMin   = min(voltage, voltageRegOutMin); 
+  // voltageAcuMin      = min(voltage, voltageAcuMin);
+  // voltage12VMin      = min(voltage, voltage12VMin);
+  // voltageRegInMax    = max(voltage, voltageRegInMax);
+  // voltageRegOutMax   = max(voltage, voltageRegOutMax); 
+  // voltageAcuMax      = max(voltage, voltageAcuMax);
+  // voltage12VMax      = max(voltage, voltage12VMax);
 
-  // adcRegInMin    = min(adc[0], adcRegInMin);
-  // adcRegOutMin   = min(adc[1], adcRegOutMin); 
-  // adcAcuMin      = min(adc[2], adcAcuMin);
-  // adc12VMin      = min(adc[3], adc12VMin);
-  // adcRegInMax    = max(adc[0], adcRegInMax);
-  // adcRegOutMax   = max(adc[1], adcRegOutMax); 
-  // adcAcuMax      = max(adc[2], adcAcuMax);
-  // adc12VMax      = max(adc[3], adc12VMax);
-  adc = ads.readADC_Differential_0_1();
-  adcRegOutMin   = min(adc, adcRegOutMin); 
-  adcRegOutMax   = max(adc, adcRegOutMax); 
+  uint16_t current = ads2.readADC_SingleEnded(0);
+  currentRegIn = current;
+  current = ads2.readADC_SingleEnded(1);
+  currentAcu = current;
+  current = ads2.readADC_SingleEnded(2);
+  currentRegOut = current;
 
   return true;
 }
 
 bool sendDataHA(void *) {
-  DEBUG_PRINT("Point ");
-  DEBUG_PRINT(analogRead(VIN));
-  DEBUG_PRINT("  ");
-  float voltage_raw = (3.3 / 1023.0) * (analogRead(VIN));// Read the voltage from sensor
-  //float voltage_raw = analogRead(VIN);// Read the voltage from sensor
-  DEBUG_PRINT(" RAW voltage ");
-  DEBUG_PRINT(voltage_raw);
-  voltage =  voltage_raw - 2.57; // 0.007 is a value to make voltage zero when there is no current
+  // DEBUG_PRINT("Point ");
+  // DEBUG_PRINT(analogRead(VIN));
+  // DEBUG_PRINT("  ");
+  // float voltage_raw = (3.3 / 1023.0) * (analogRead(VIN));// Read the voltage from sensor
+  // //float voltage_raw = analogRead(VIN);// Read the voltage from sensor
+  // DEBUG_PRINT(" RAW voltage ");
+  // DEBUG_PRINT(voltage_raw);
+  // voltage =  voltage_raw - 2.57; // 0.007 is a value to make voltage zero when there is no current
 
-  float current = voltage / FACTOR;
-  if(fabs(voltage) <= cutOff ) {  //< 0.04
-    current = 0;
-    DEBUG_PRINT(" zero current ");
-  }
-  DEBUG_PRINT(" V: ");
-  DEBUG_PRINT2(voltage,3);// print voltage with 3 decimal places
-  DEBUG_PRINT("V, I: ");
-  DEBUG_PRINT2(current,2); // print the current with 2 decimal places
-  DEBUG_PRINTLN("A");
+  // float current = voltage / FACTOR;
+  // if(fabs(voltage) <= cutOff ) {  //< 0.04
+    // current = 0;
+    // DEBUG_PRINT(" zero current ");
+  // }
+  // DEBUG_PRINT(" V: ");
+  // DEBUG_PRINT2(voltage,3);// print voltage with 3 decimal places
+  // DEBUG_PRINT("V, I: ");
+  // DEBUG_PRINT2(current,2); // print the current with 2 decimal places
+  // DEBUG_PRINTLN("A");
   
-  DEBUG_PRINT("Charger output :");
-  DEBUG_PRINTLN(digitalRead(CHAROUT));
+  // DEBUG_PRINT("Charger output :");
+  // DEBUG_PRINTLN(digitalRead(CHAROUT));
   
-  digitalWrite(BUILTIN_LED, LOW);
-  DEBUG_PRINTLN(F(" - I am sending data to HA"));
+  // digitalWrite(BUILTIN_LED, LOW);
+  // DEBUG_PRINTLN(F(" - I am sending data to HA"));
   
-//Adafruit_MQTT_Subscribe restart                = Adafruit_MQTT_Subscribe(&mqtt, MQTTBASE "restart");
-  SenderClass sender;
+// //Adafruit_MQTT_Subscribe restart                = Adafruit_MQTT_Subscribe(&mqtt, MQTTBASE "restart");
 
-  sender.add("voltage", voltage);
-  sender.add("voltage_raw", voltage_raw);
+  // sender.add("voltage", voltage);
+  // sender.add("voltage_raw", voltage_raw);
  
-  sender.add("current", current);
+  // sender.add("current", current);
+  
+  SenderClass sender;
+  
   sender.add("chargerOUT", digitalRead(CHAROUT));
 
-  sender.add("adcRegInMin", adcRegInMin);
-  sender.add("adcRegOutMin", adcRegOutMin);
-  sender.add("adcAcuMin", adcAcuMin);
-  sender.add("adc12VMin", adc12VMin);
-  sender.add("adcRegInMax", adcRegInMax);
-  sender.add("adcRegOutMax", adcRegOutMax);
-  sender.add("adcAcuMax", adcAcuMax);
-  sender.add("adc12VMax", adc12VMax);
+  sender.add("voltageRegInMin", voltageRegInMin);
+  sender.add("voltageRegInMax", voltageRegInMax);
+  sender.add("voltageRegOutMin", voltageRegOutMin);
+  sender.add("voltageRegOutMax", voltageRegOutMax);
+  sender.add("voltageAcuMin", voltageAcuMin);
+  sender.add("voltageAcuMax", voltageAcuMax);
+  sender.add("voltage12VMin", voltage12VMin);
+  sender.add("voltage12VMax", voltage12VMax);
+
+  sender.add("currentRegIn", currentRegIn);
+  sender.add("currentRegOut", currentRegOut);
+  sender.add("currentAcu", currentAcu);
   
-  adcRegInMin   = MAX;
-  adcRegOutMin  = MAX;
-  adcAcuMin     = MAX;   
-  adc12VMin     = MAX;   
-  adcRegInMax   = 0; 
-  adcRegOutMax  = 0;
-  adcAcuMax     = 0;   
-  adc12VMax     = 0;   
-  
-  
+  voltageRegInMin   = MAX;
+  voltageRegOutMin  = MAX;
+  voltageAcuMin     = MAX;   
+  voltage12VMin     = MAX;   
+  voltageRegInMax   = 0; 
+  voltageRegOutMax  = 0;
+  voltageAcuMax     = 0;   
+  voltage12VMax     = 0;   
   
   DEBUG_PRINTLN(F("Calling MQTT"));
 
