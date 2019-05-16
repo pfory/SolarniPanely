@@ -324,53 +324,19 @@ bool readADC(void *) {
   // voltageAcuMax      = max(voltage, voltageAcuMax);
   // voltage12VMax      = max(voltage, voltage12VMax);
 
-  uint16_t current = ads2.readADC_SingleEnded(0);
+  uint16_t current = ads1.readADC_SingleEnded(0);
   currentRegIn = current;
-  current = ads2.readADC_SingleEnded(1);
+  current = ads1.readADC_SingleEnded(1);
   currentAcu = current;
-  current = ads2.readADC_SingleEnded(2);
+  current = ads1.readADC_SingleEnded(2);
   currentRegOut = current;
 
   return true;
 }
 
-<<<<<<< HEAD
 void readCurrent() {
-  DEBUG_PRINT("Point ");
-  DEBUG_PRINT(analogRead(VIN));
-  DEBUG_PRINT("  ");
-  float voltage_raw = (3.3 / 1023.0) * (analogRead(VIN));// Read the voltage from sensor
-  //float voltage_raw = analogRead(VIN);// Read the voltage from sensor
-  DEBUG_PRINT(" RAW voltage ");
-  DEBUG_PRINT(voltage_raw);
-  voltage =  voltage_raw - 2.57; // 0.007 is a value to make voltage zero when there is no current
-
-  currentIN = voltage / FACTOR;
-  if(fabs(voltage) <= cutOff ) {  //< 0.04
-    currentIN = 0;
-    DEBUG_PRINT(" zero current ");
-  }
-  DEBUG_PRINT(" V: ");
-  DEBUG_PRINT2(voltage,3);// print voltage with 3 decimal places
-  DEBUG_PRINT("V, I: ");
-  DEBUG_PRINT2(currentIN,2); // print the current with 2 decimal places
-  DEBUG_PRINTLN("A");
-
-
-  napeti = (analogRead(CHAROUT) * 5000.0) / 1023.0;
-  proud = (napeti - offset) / konstanta;
-
-
-
-}
-
-bool sendDataHA(void *) {
-  readCurrent();
   
-  DEBUG_PRINT("Charger input :");
-  DEBUG_PRINTLN(digitalRead(CHARIN));
-=======
-bool sendDataHA(void *) {
+
   // DEBUG_PRINT("Point ");
   // DEBUG_PRINT(analogRead(VIN));
   // DEBUG_PRINT("  ");
@@ -378,22 +344,31 @@ bool sendDataHA(void *) {
   // //float voltage_raw = analogRead(VIN);// Read the voltage from sensor
   // DEBUG_PRINT(" RAW voltage ");
   // DEBUG_PRINT(voltage_raw);
-  // voltage =  voltage_raw - 2.57; // 0.007 is a value to make voltage zero when there is no current
+  // float voltage =  voltage_raw - 2.57; // 0.007 is a value to make voltage zero when there is no current
 
-  // float current = voltage / FACTOR;
+  // currentIN = voltage / FACTOR;
   // if(fabs(voltage) <= cutOff ) {  //< 0.04
-    // current = 0;
+    // currentIN = 0;
     // DEBUG_PRINT(" zero current ");
   // }
   // DEBUG_PRINT(" V: ");
   // DEBUG_PRINT2(voltage,3);// print voltage with 3 decimal places
   // DEBUG_PRINT("V, I: ");
-  // DEBUG_PRINT2(current,2); // print the current with 2 decimal places
+  // DEBUG_PRINT2(currentIN,2); // print the current with 2 decimal places
   // DEBUG_PRINTLN("A");
-  
-  // DEBUG_PRINT("Charger output :");
-  // DEBUG_PRINTLN(digitalRead(CHAROUT));
->>>>>>> d14ce03f3b12256353668d891f4bbaf4f4f88989
+
+
+  // napeti = (analogRead(CHAROUT) * 5000.0) / 1023.0;
+  // proud = (napeti - offset) / konstanta;
+}
+
+bool sendDataHA(void *) {
+  //readCurrent();
+  digitalWrite(BUILTIN_LED, LOW);
+  SenderClass sender;
+
+  DEBUG_PRINT("Charger input :");
+  DEBUG_PRINTLN(digitalRead(CHARIN));
   
   // digitalWrite(BUILTIN_LED, LOW);
   // DEBUG_PRINTLN(F(" - I am sending data to HA"));
@@ -403,26 +378,22 @@ bool sendDataHA(void *) {
   // sender.add("voltage", voltage);
   // sender.add("voltage_raw", voltage_raw);
  
-<<<<<<< HEAD
-  sender.add("currentIN", currentIN);
+  sender.add("currentRegIn", currentRegIn);
+  sender.add("currentAcu", currentAcu);
+  sender.add("currentRegOut", currentRegOut);
   
   //stav vystupu
   sender.add("chargerOUT", digitalRead(CHARIN));
 
   //napeti na regulatoru
-  sender.add("adcRegInMin", adcRegInMin);
-  sender.add("adcRegOutMin", adcRegOutMin);
-  sender.add("adcAcuMin", adcAcuMin);
-  sender.add("adc12VMin", adc12VMin);
-  sender.add("adcRegInMax", adcRegInMax);
-  sender.add("adcRegOutMax", adcRegOutMax);
-  sender.add("adcAcuMax", adcAcuMax);
-  sender.add("adc12VMax", adc12VMax);
-=======
-  // sender.add("current", current);
->>>>>>> d14ce03f3b12256353668d891f4bbaf4f4f88989
-  
-  SenderClass sender;
+  // sender.add("adcRegInMin", adcRegInMin);
+  // sender.add("adcRegOutMin", adcRegOutMin);
+  // sender.add("adcAcuMin", adcAcuMin);
+  // sender.add("adc12VMin", adc12VMin);
+  // sender.add("adcRegInMax", adcRegInMax);
+  // sender.add("adcRegOutMax", adcRegOutMax);
+  // sender.add("adcAcuMax", adcAcuMax);
+  // sender.add("adc12VMax", adc12VMax);
   
   sender.add("chargerOUT", digitalRead(CHAROUT));
 
