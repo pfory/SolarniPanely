@@ -71,8 +71,9 @@ char                  static_gw[16]         = "192.168.1.1";
 char                  static_sn[16]         = "255.255.255.0";
 
 #define LEDPIN                               D4
-#define CHAROUT                              D7
-
+#define CHARIN                               D7
+#define CHAROUT                              D6
+#define CHARACCU                             D5
 
 float cutOffLimit = 1.0;// reading cutt off current. 1.00 is 1 Amper
 
@@ -134,6 +135,12 @@ int16_t adcRegOutMax     = 0; //vystup z regulatoru, rozsah 0-15V
 int16_t adcAcuMax        = 0; //vystup z regulatoru, rozsah 0-15V
 int16_t adc12VMax        = 0; //vystup z regulatoru, rozsah 0-15V
 
+// konstanta pro přepočet naměřeného napětí na proud
+// použijte 100 pro 20A verzi
+int konstanta            = 185;
+// proměnná pro nastavení offsetu, polovina Vcc
+int offset               = 2500;
+
 //gets called when WiFiManager enters configuration mode
 void configModeCallback (WiFiManager *myWiFiManager) {
   DEBUG_PRINTLN("Entered config mode");
@@ -174,6 +181,8 @@ void setup() {
   pinMode(BUILTIN_LED, OUTPUT);
   pinMode(LEDPIN, OUTPUT);
   pinMode(CHAROUT, INPUT);
+  pinMode(CHARIN, INPUT);
+  pinMode(CHARACCU, INPUT);
 
   ticker.attach(1, tick);
   
@@ -312,7 +321,7 @@ bool readADC(void *) {
   return true;
 }
 
-bool sendDataHA(void *) {
+void readCurrent() {
   DEBUG_PRINT("Point ");
   DEBUG_PRINT(analogRead(VIN));
   DEBUG_PRINT("  ");
@@ -322,19 +331,30 @@ bool sendDataHA(void *) {
   DEBUG_PRINT(voltage_raw);
   voltage =  voltage_raw - 2.57; // 0.007 is a value to make voltage zero when there is no current
 
-  float current = voltage / FACTOR;
+  currentIN = voltage / FACTOR;
   if(fabs(voltage) <= cutOff ) {  //< 0.04
-    current = 0;
+    currentIN = 0;
     DEBUG_PRINT(" zero current ");
   }
   DEBUG_PRINT(" V: ");
   DEBUG_PRINT2(voltage,3);// print voltage with 3 decimal places
   DEBUG_PRINT("V, I: ");
-  DEBUG_PRINT2(current,2); // print the current with 2 decimal places
+  DEBUG_PRINT2(currentIN,2); // print the current with 2 decimal places
   DEBUG_PRINTLN("A");
+
+
+  napeti = (analogRead(CHAROUT) * 5000.0) / 1023.0;
+  proud = (napeti - offset) / konstanta;
+
+
+
+}
+
+bool sendDataHA(void *) {
+  readCurrent();
   
-  DEBUG_PRINT("Charger output :");
-  DEBUG_PRINTLN(digitalRead(CHAROUT));
+  DEBUG_PRINT("Charger input :");
+  DEBUG_PRINTLN(digitalRead(CHARIN));
   
   digitalWrite(BUILTIN_LED, LOW);
   DEBUG_PRINTLN(F(" - I am sending data to HA"));
@@ -345,9 +365,12 @@ bool sendDataHA(void *) {
   sender.add("voltage", voltage);
   sender.add("voltage_raw", voltage_raw);
  
-  sender.add("current", current);
-  sender.add("chargerOUT", digitalRead(CHAROUT));
+  sender.add("currentIN", currentIN);
+  
+  //stav vystupu
+  sender.add("chargerOUT", digitalRead(CHARIN));
 
+  //napeti na regulatoru
   sender.add("adcRegInMin", adcRegInMin);
   sender.add("adcRegOutMin", adcRegOutMin);
   sender.add("adcAcuMin", adcAcuMin);
