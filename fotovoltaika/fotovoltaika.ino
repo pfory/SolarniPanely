@@ -31,7 +31,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.14"
+#define     VERSION                          "0.15"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
@@ -83,8 +83,8 @@ char                  static_gw[16]         = "192.168.1.1";
 char                  static_sn[16]         = "255.255.255.0";
 
 #define LEDPIN                               D4
-#define CHARIN                               D7
-#define CHAROUT                              D6
+#define CHAROUT                              D7
+#define CHARIN                               D6
 #define CHARACCU                             D5
 
 // float cutOffLimit = 1.0;// reading cutt off current. 1.00 is 1 Amper
@@ -378,13 +378,10 @@ bool sendDataHA(void *) {
   // sender.add("voltage", voltage);
   // sender.add("voltage_raw", voltage_raw);
  
-  sender.add("currentRegIn", currentRegIn);
-  sender.add("currentAcu", currentAcu);
-  sender.add("currentRegOut", currentRegOut);
+  sender.add("currentRegIn",       currentRegIn);
+  sender.add("currentAcu",         currentAcu);
+  sender.add("currentRegOut",      currentRegOut);
   
-  //stav vystupu
-  sender.add("chargerOUT", digitalRead(CHARIN));
-
   //napeti na regulatoru
   // sender.add("adcRegInMin", adcRegInMin);
   // sender.add("adcRegOutMin", adcRegOutMin);
@@ -395,20 +392,20 @@ bool sendDataHA(void *) {
   // sender.add("adcAcuMax", adcAcuMax);
   // sender.add("adc12VMax", adc12VMax);
   
-  sender.add("chargerOUT", digitalRead(CHAROUT));
+  sender.add("chargerOUT",        digitalRead(CHAROUT));
 
-  sender.add("voltageRegInMin", voltageRegInMin);
-  sender.add("voltageRegInMax", voltageRegInMax);
-  sender.add("voltageRegOutMin", voltageRegOutMin);
-  sender.add("voltageRegOutMax", voltageRegOutMax);
-  sender.add("voltageAcuMin", voltageAcuMin);
-  sender.add("voltageAcuMax", voltageAcuMax);
-  sender.add("voltage12VMin", voltage12VMin);
-  sender.add("voltage12VMax", voltage12VMax);
+  sender.add("voltageRegInMin",   voltageRegInMin);
+  sender.add("voltageRegInMax",   voltageRegInMax);
+  sender.add("voltageRegOutMin",  voltageRegOutMin);
+  sender.add("voltageRegOutMax",  voltageRegOutMax);
+  sender.add("voltageAcuMin",     voltageAcuMin);
+  sender.add("voltageAcuMax",     voltageAcuMax);
+  sender.add("voltage12VMin",     voltage12VMin);
+  sender.add("voltage12VMax",     voltage12VMax);
 
-  sender.add("currentRegIn", currentRegIn);
-  sender.add("currentRegOut", currentRegOut);
-  sender.add("currentAcu", currentAcu);
+  sender.add("currentRegIn",      currentRegIn);
+  sender.add("currentRegOut",     currentRegOut);
+  sender.add("currentAcu",        currentAcu);
   
   voltageRegInMin   = MAX;
   voltageRegOutMin  = MAX;
