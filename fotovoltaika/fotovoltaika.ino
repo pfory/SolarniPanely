@@ -84,8 +84,6 @@ char                  static_sn[16]         = "255.255.255.0";
 
 #define LEDPIN                               D4
 #define CHAROUT                              D7
-#define CHARIN                               D6
-#define CHARACCU                             D5
 
 // float cutOffLimit = 1.0;// reading cutt off current. 1.00 is 1 Amper
 
@@ -199,8 +197,6 @@ void setup() {
   pinMode(BUILTIN_LED, OUTPUT);
   pinMode(LEDPIN, OUTPUT);
   pinMode(CHAROUT, INPUT);
-  pinMode(CHARIN, INPUT);
-  pinMode(CHARACCU, INPUT);
 
   ticker.attach(1, tick);
   
@@ -367,9 +363,6 @@ bool sendDataHA(void *) {
   digitalWrite(BUILTIN_LED, LOW);
   SenderClass sender;
 
-  DEBUG_PRINT("Charger input :");
-  DEBUG_PRINTLN(digitalRead(CHARIN));
-  
   // digitalWrite(BUILTIN_LED, LOW);
   // DEBUG_PRINTLN(F(" - I am sending data to HA"));
   
