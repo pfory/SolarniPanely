@@ -31,10 +31,10 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.15"
+#define     VERSION                          "0.16"
 #define     SW_NAME                          "Fotovoltaika"
 
-#define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
+#define SEND_DELAY                           5000  //prodleva mezi poslanim dat v ms
 #define SENDSTAT_DELAY                       60000 //poslani statistiky kazdou minutu
 #define READADC_DELAY                        1000  //cteni ADC
 
