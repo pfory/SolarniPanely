@@ -68,6 +68,7 @@ Ticker ticker;
   #define DEBUG_WRITE(x)
 #endif 
 
+ADC_MODE(ADC_VCC);
 
 uint32_t heartBeat                          = 0;
 
@@ -423,6 +424,7 @@ bool sendStatisticHA(void *) {
 
   SenderClass sender;
   sender.add("VersionSWFotovoltaika", VERSION);
+  sender.add("Napeti",  ESP.getVcc());
   sender.add("HeartBeat", heartBeat++);
   sender.add("RSSI", WiFi.RSSI());
   
