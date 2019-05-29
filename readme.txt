@@ -1,81 +1,81 @@
 Odkazy
 http://pavelrichter.net/category/projekty/fotovoltaika/
 http://blog.chupasweb.net/archives/494
-https://www.youtube.com/watch?v=ouLa4Ftu3O8¨
+https://www.youtube.com/watch?v=ouLa4Ftu3O8Â¨
 
 Popis
-Solární panel z jednotlivıch solárních èlánkù. Ukládání pøebyteèné energije do baterie, pouít autobaterii, pozdìji nahradit nìèím lepším. Vyrobenou energii mìnit na 230V a napájet spotøebièe
+SolÃ¡rnÃ­ panel z jednotlivÃ½ch solÃ¡rnÃ­ch ÄlÃ¡nkÅ¯. UklÃ¡dÃ¡nÃ­ pÅ™ebyteÄnÃ© energie do baterie, pouÅ¾Ã­t autobaterii, pozdÄ›ji nahradit nÄ›ÄÃ­m lepÅ¡Ã­m. Vyrobenou energii mÄ›nit na 230V a napÃ¡jet spotÅ™ebiÄe
 
-Co potøebuji
-- solání èlánky + kabely, ebay 5x5" 125x125mm, 2,7W/èlánek nominální napìtí 0,55 - 0,6V/èlánek 
+Co potÅ™ebuji
+- solÃ¡nÃ­ ÄlÃ¡nky + kabely, ebay 5x5" 125x125mm, 2,7W/ÄlÃ¡nek nominÃ¡lnÃ­ napÄ›tÃ­ 0,55 - 0,6V/ÄlÃ¡nek 
 https://www.ebay.com/itm/2-8W-125MM-Monocrystalline-Solar-Cells-5x5-A-Grade-For-DIY-Solar-Panels/113344175030?hash=item1a63d6dbb6:m:m1efJgrAq3WPJkaR0fac6-Q:rk:6:pf:0
 https://www.ebay.com/itm/40Pcs-125MM-Monocrystalline-Silicon-Solar-Cells-For-DIY-Solar-Panels/302911830537?hash=item4686f3ba09:g:skYAAOSw8hhan8Zm
-kolektor 100Wp cca 36ks 9*4 napìtí 18V, proud 5,5A 		50ks cena cca 1383,- 
-36 èlánkù 996,-
+kolektor 100Wp cca 36ks 9*4 napÄ›tÃ­ 18V, proud 5,5A 		50ks cena cca 1383,- 
+36 ÄlÃ¡nkÅ¯ 996,-
 
 4*125+3*10 =500+30  =530mm   +2*10  +2*19    = 530+20+38 =588mm     590   
 
 9*125+8*1 =1125+8 =1133    +2*10    +2*19    = 1133+20+38=1191mm    1190
-                    èlánky  mezera rámeèek
+                    ÄlÃ¡nky  mezera rÃ¡meÄek
                     
 
-rámeèek alu profil U 40x25x3 90/m
+rÃ¡meÄek alu profil U 40x25x3 90/m
 125+125+62+62=3,75m = 337,-
 
 profil na 2 panely 987 + 140 doprava = 1127
 1 panel 560,-
 
-rám 670x1250
+rÃ¡m 670x1250
 sklo 670-2x10=650
 1250-2x10=1230
 
-profil pro uchycení na støechu - https://www.ehlinik.cz/al-profil-solar-40x40/pro-2EV0000101.html
-délka 2x67 + 2x67 = 4x67 = 268 + mezery 3x2 + kraje 2x5 = 268 + 16 = 284
+profil pro uchycenÃ­ na stÅ™echu - https://www.ehlinik.cz/al-profil-solar-40x40/pro-2EV0000101.html
+dÃ©lka 2x67 + 2x67 = 4x67 = 268 + mezery 3x2 + kraje 2x5 = 268 + 16 = 284
 
-pro 4 panely zapojené paralelnì:
-napìtí 18V
-proud 5,5*4=22A  mìl by staèit vodiè o prùøezu 2,5
-vıkon 4x100Wp=400Wp
+pro 4 panely zapojenÃ© paralelnÄ›:
+napÄ›tÃ­ 18V
+proud 5,5*4=22A  mÄ›l by staÄit vodiÄ o prÅ¯Å™ezu 2,5
+vÃ½kon 4x100Wp=400Wp
 
 - alu profil https://www.alupa.cz/hlinik/hlinikovy-u-profil-nepr-11x25x13x18/pro-2YS0000101.html 225,-
 - sklo 690/m2 panel cca 1m2 - 690,-
 - silikon
-- regulátor	400,- https://www.ebay.co.uk/itm/10-50A-12-24V-PWM-LCD-Automatic-Solar-Panel-Charger-Controller-Battery-Regulator/122717669692?_trkparms=aid%3D555018%26algo%3DPL.SIM%26ao%3D1%26asc%3D20140122125356%26meid%3Da21eef7c86044d88986fb21765aa5a55%26pid%3D100005%26rk%3D2%26rkt%3D12%26mehot%3Dpp%26sd%3D302957473646%26itm%3D122717669692&_trksid=p2047675.c100005.m1851
+- regulÃ¡tor	400,- https://www.ebay.co.uk/itm/10-50A-12-24V-PWM-LCD-Automatic-Solar-Panel-Charger-Controller-Battery-Regulator/122717669692?_trkparms=aid%3D555018%26algo%3DPL.SIM%26ao%3D1%26asc%3D20140122125356%26meid%3Da21eef7c86044d88986fb21765aa5a55%26pid%3D100005%26rk%3D2%26rkt%3D12%26mehot%3Dpp%26sd%3D302957473646%26itm%3D122717669692&_trksid=p2047675.c100005.m1851
 - baterie	autobaterie
-- mìniè 230V
+- mÄ›niÄ 230V
 - kabely
 - diody
 - konektory
-- cín
-- lepicí páska
-- štìtec
-- nùky
+- cÃ­n
+- lepicÃ­ pÃ¡ska
+- Å¡tÄ›tec
+- nÅ¯Å¾ky
 - ....
 
-Náøadí
-- pájka
-- svìrák
+NÃ¡Å™adÃ­
+- pÃ¡jka
+- svÄ›rÃ¡k
 - pila
-- pilník
-- šroubovák
+- pilnÃ­k
+- Å¡roubovÃ¡k
 - kladivo
-- kleštì
-- klíèe
+- kleÅ¡tÄ›
+- klÃ­Äe
 
-Jeden 100W kolektor by mìl za rok vyrobit 80kWh tj. pøi cenì 6Kè/kWh je cca 480,- za rok
+Jeden 100W kolektor by mÄ›l za rok vyrobit 80kWh tj. pÅ™i cenÄ› 6KÄ/kWh je cca 480,- za rok
 
 Cenu kolektoru
-èlánky 996,-
+ÄlÃ¡nky 996,-
 sklo 782,-
 alu profil 350,-
 silikon 70,-
-tištìné díly + šrouby 50,-
+tiÅ¡tÄ›nÃ© dÃ­ly + Å¡rouby 50,-
 
 celkem 2248,-
 
 
 Eko verze s EVA
-èlánky 780,-
+ÄlÃ¡nky 780,-
 alu profil 30x20x2 50,7 bez DPH - 3m = 184,-
 alu profil 40x20x2 55,9         - 3m = 203,-
 doprava 140,-
@@ -84,7 +84,7 @@ EVA 1000x500*0,4 1m 181,- = 362,-
 
 celkem 780+200+400+362=1742,-
 
-- regulátor 460,-
+- regulÃ¡tor 460,-
 
 profil 40x25x3 - 1250
 profil 40x25x3 - 620
@@ -95,14 +95,14 @@ celkem 782,-
 
 
 ROZVOD
-ze støechy svést kabelem do dílny
-v dílnì bude baterie, mìniè, regulátor a UPS
-230 z mìnièe protáhnout do rozvadìèe a propojit s rozvodem UPS
-12V do rozvadìèe a pøes spínací relé do stávajícího rozvodu 12V
+ze stÅ™echy svÃ©st kabelem do dÃ­lny
+v dÃ­lnÄ› bude baterie, mÄ›niÄ, regulÃ¡tor a UPS
+230 z mÄ›niÄe protÃ¡hnout do rozvadÄ›Äe a propojit s rozvodem UPS
+12V do rozvadÄ›Äe a pÅ™es spÃ­nacÃ­ relÃ© do stÃ¡vajÃ­cÃ­ho rozvodu 12V
 
-potøebuji
-kabely 4mm - zmìøit
-mìøiè proudu 50A
+potÅ™ebuji
+kabely 4mm - zmÄ›Å™it
+mÄ›Å™iÄ proudu 50A
 
-pozdìji
+pozdÄ›ji
 dokoupit panely 2 x 100Wp
