@@ -1,4 +1,3 @@
-#define VIN A0 // define the Arduino pin A0 as voltage input (V in)
 const float VCC = 5.0;// supply voltage 5V or 3.3V. If using PCB, set to 5V only.
 const int model = 0;   // enter the model (see below)
 
@@ -16,6 +15,8 @@ const int model = 0;   // enter the model (see below)
 
 #include <Wire.h>
 #include <Adafruit_ADS1015.h>
+#include <Adafruit_INA219.h>
+
 Adafruit_ADS1115 ads1(0x48);  //ADDR to GND
 Adafruit_ADS1115 ads2(0x49);  //ADDR to 5V
 
@@ -31,7 +32,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.16"
+#define     VERSION                          "0.2"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           5000  //prodleva mezi poslanim dat v ms
@@ -83,8 +84,11 @@ char                  static_ip[16]         = "192.168.1.116";
 char                  static_gw[16]         = "192.168.1.1";
 char                  static_sn[16]         = "255.255.255.0";
 
+#define VIN                                  A0 // define the Arduino pin A0 as voltage input (V in)
 #define LEDPIN                               D4
 #define CHAROUT                              D7
+//SDA                                        D2
+//SCL                                        D1
 
 // float cutOffLimit = 1.0;// reading cutt off current. 1.00 is 1 Amper
 
@@ -151,6 +155,13 @@ uint16_t currentRegIn;
 uint16_t currentAcu;
 uint16_t currentRegOut;
 
+Adafruit_INA219 ina219;
+
+float                 shuntvoltage           = 0;
+float                 busvoltage             = 0;
+float                 current_mA             = 0;
+float                 loadvoltage            = 0;
+float                 power_mW               = 0;
 
 // konstanta pro přepočet naměřeného napětí na proud
 // použijte 100 pro 20A verzi
@@ -287,6 +298,15 @@ void setup() {
   ads1.begin();
   ads2.begin();
   
+    // Initialize the INA219.
+  // By default the initialization will use the largest range (32V, 2A).  However
+  // you can call a setCalibration function to change this range (see comments).
+  ina219.begin();
+  // To use a slightly lower 32V, 1A range (higher precision on amps):
+  ina219.setCalibration_32V_1A();
+  // Or to use a lower 16V, 400mA range (higher precision on volts and amps):
+  //ina219.setCalibration_16V_400mA();
+  
   //setup timers
   timer.every(SEND_DELAY, sendDataHA);
   timer.every(SENDSTAT_DELAY, sendStatisticHA);
@@ -327,6 +347,8 @@ bool readADC(void *) {
   currentAcu = current;
   current = ads1.readADC_SingleEnded(2);
   currentRegOut = current;
+  
+  readINA();
 
   return true;
 }
@@ -357,6 +379,22 @@ void readCurrent() {
 
   // napeti = (analogRead(CHAROUT) * 5000.0) / 1023.0;
   // proud = (napeti - offset) / konstanta;
+}
+
+
+void readINA(void) {
+  shuntvoltage = ina219.getShuntVoltage_mV();
+  busvoltage = ina219.getBusVoltage_V();
+  current_mA = ina219.getCurrent_mA();
+  power_mW = ina219.getPower_mW();
+  loadvoltage = busvoltage + (shuntvoltage / 1000);
+  
+  Serial.print("Bus Voltage:   "); Serial.print(busvoltage); Serial.println(" V");
+  Serial.print("Shunt Voltage: "); Serial.print(shuntvoltage); Serial.println(" mV");
+  Serial.print("Load Voltage:  "); Serial.print(loadvoltage); Serial.println(" V");
+  Serial.print("Current:       "); Serial.print(current_mA); Serial.println(" mA");
+  Serial.print("Power:         "); Serial.print(power_mW); Serial.println(" mW");
+  Serial.println("");
 }
 
 bool sendDataHA(void *) {
@@ -400,6 +438,12 @@ bool sendDataHA(void *) {
   sender.add("currentRegIn",      currentRegIn);
   sender.add("currentRegOut",     currentRegOut);
   sender.add("currentAcu",        currentAcu);
+  
+  sender.add("busVoltage", busvoltage);
+  sender.add("shuntVoltage", shuntvoltage);
+  sender.add("loadVoltage", loadvoltage);
+  sender.add("current", current_mA);
+  sender.add("power", power_mW);
   
   voltageRegInMin   = MAX;
   voltageRegOutMin  = MAX;
