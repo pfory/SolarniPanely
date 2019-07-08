@@ -32,12 +32,15 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.2"
+#define     VERSION                          "0.21"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           5000  //prodleva mezi poslanim dat v ms
 #define SENDSTAT_DELAY                       60000 //poslani statistiky kazdou minutu
 #define READADC_DELAY                        1000  //cteni ADC
+
+#define DELAY_AFTER_ON                       300000 //interval sepnuti vystupniho rele 5 minut
+unsigned long lastOffOn                      = 0; //zamezuje cyklickemu zapinani a vypinani rele
 
 #define MAX                                  32767
 #define MIN                                  -32767
@@ -85,10 +88,13 @@ char                  static_gw[16]         = "192.168.1.1";
 char                  static_sn[16]         = "255.255.255.0";
 
 #define VIN                                  A0 // define the Arduino pin A0 as voltage input (V in)
-#define LEDPIN                               D4
-#define CHAROUT                              D7
+#define LED2PIN                              D3 //stav rele
+#define LED1PIN                              D4 //
+#define CHAROUT                              D7 //vystup z regulatoru
+#define RELAYPIN                             D8 //pin rele
 //SDA                                        D2
 //SCL                                        D1
+
 
 // float cutOffLimit = 1.0;// reading cutt off current. 1.00 is 1 Amper
 
@@ -189,7 +195,7 @@ void tick()
   //toggle state
   int state = digitalRead(BUILTIN_LED);  // get the current state of GPIO1 pin
   digitalWrite(BUILTIN_LED, !state);     // set pin to the opposite state
-  digitalWrite(LEDPIN, !state);          // set pin to the opposite state
+  digitalWrite(LED1PIN, !state);          // set pin to the opposite state
 }
 
 
@@ -207,8 +213,10 @@ void setup() {
   // DEBUG_PRINTLN(FACTOR);
   
   pinMode(BUILTIN_LED, OUTPUT);
-  pinMode(LEDPIN, OUTPUT);
+  pinMode(LED1PIN, OUTPUT);
+  pinMode(LED2PIN, OUTPUT);
   pinMode(CHAROUT, INPUT);
+  pinMode(RELAYPIN, OUTPUT);
 
   ticker.attach(1, tick);
   
@@ -316,7 +324,7 @@ void setup() {
   ticker.detach();
   //keep LED on
   digitalWrite(BUILTIN_LED, HIGH);
-  digitalWrite(LEDPIN, HIGH);
+  digitalWrite(LED1PIN, HIGH);
 
 }
 
@@ -325,6 +333,19 @@ void loop() {
 #ifdef ota
   ArduinoOTA.handle();
 #endif
+}
+
+void relay() {
+  if (digitalRead(CHAROUT)==HIGH) {
+    if (millis() - DELAY_AFTER_ON > lastOffOn) {
+      digitalWrite(RELAYPIN, HIGH);
+      digitalWrite(LED2PIN, HIGH);
+    }
+  }else{
+    digitalWrite(RELAYPIN, LOW);
+    digitalWrite(LED2PIN, LOW);
+    lastOffOn = millis();
+  }
 }
 
 bool readADC(void *) {
@@ -349,6 +370,8 @@ bool readADC(void *) {
   currentRegOut = current;
   
   readINA();
+
+  relay();
 
   return true;
 }
