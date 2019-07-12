@@ -24,6 +24,9 @@ const int model = 0;   // enter the model (see below)
 Adafruit_ADS1115 ads1(0x48);  //ADDR to GND
 Adafruit_ADS1115 ads2(0x49);  //ADDR to 5V
 
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(LCDADDRESS,LCDCOLS,LCDROWS);  // set the LCD
+
 char                  mqtt_server[40]       = "192.168.1.56";
 uint16_t              mqtt_port             = 1883;
 #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
@@ -96,6 +99,7 @@ char                  static_sn[16]         = "255.255.255.0";
 #define LED1PIN                              D4 //
 #define CHAROUT                              D7 //vystup z regulatoru
 #define RELAYPIN                             D8 //pin rele
+#define PIRPIN                               D6 //pin pir sensoru
 //SDA                                        D2
 //SCL                                        D1
 
@@ -165,12 +169,22 @@ void setup() {
   // DEBUG_PRINTLN(QOV);
   // DEBUG_PRINT("Factor ");
   // DEBUG_PRINTLN(FACTOR);
+
+  lcd.init();               // initialize the lcd 
+  lcd.backlight();
+  //lcd.begin();               // initialize the lcd 
+  lcd.home();                   
+  lcd.print(SW_NAME);  
+  PRINT_SPACE
+  lcd.print(VERSION);
+
   
   pinMode(BUILTIN_LED, OUTPUT);
   pinMode(LED1PIN, OUTPUT);
   pinMode(LED2PIN, OUTPUT);
   pinMode(CHAROUT, INPUT);
   pinMode(RELAYPIN, OUTPUT);
+  pinMode(PIRPIN, INPUT);
 
   ticker.attach(1, tick);
   
@@ -287,6 +301,12 @@ void loop() {
 #ifdef ota
   ArduinoOTA.handle();
 #endif
+
+  if (digitalRead(PIRPIN)==1) {
+    lcd.backlight();
+  } else {
+    lcd.noBacklight();
+  }
 }
 
 void relay() {
