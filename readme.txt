@@ -1,4 +1,4 @@
-Odkazy
+﻿Odkazy
 http://pavelrichter.net/category/projekty/fotovoltaika/
 http://blog.chupasweb.net/archives/494
 https://www.youtube.com/watch?v=ouLa4Ftu3O8¨
@@ -89,20 +89,25 @@ celkem 780+200+400+362=1742,-
 profil 40x25x3 - 1250
 profil 40x25x3 - 620
 
+1.panel
 sklo 4mm 65*123
 sklo 3mm 65*123
 celkem 782,-
 
+2.panel
+sklo 4mm 
+sklo 3mm 
+celkem 782,-
+
 
 ROZVOD
-ze střechy svést kabelem do dílny
-v dílně bude baterie, měnič, regulátor a UPS
-230 z měniče protáhnout do rozvaděče a propojit s rozvodem UPS
-12V do rozvaděče a přes spínací relé do stávajícího rozvodu 12V
-
-potřebuji
-kabely 4mm - změřit
-měřič proudu 50A
+ze střechy kabelem 4mm do dílny
+v dílně baterie, měnič, regulátor a UPS
+230 z měniče přes spínací relé do rozvodu UPS
+12V přes spínací relé do stávajícího rozvodu 12V
 
 později
 dokoupit panely 2 x 100Wp
+
+první panel na střeše jaro 2019
+druhý panel na střeše od 16.7.2019
