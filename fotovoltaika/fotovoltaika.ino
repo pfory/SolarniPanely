@@ -1,7 +1,3 @@
-const float VCC = 5.0;// supply voltage 5V or 3.3V. If using PCB, set to 5V only.
-const int model = 0;   // enter the model (see below)
-
-
 /*HW
   mereni proudu na regulatoru
     - vstup z FW panelu, cidlo s ACS758LCB-050B +-50A
@@ -10,8 +6,16 @@ const int model = 0;   // enter the model (see below)
     vsechna cidla jsou pripojena na vstupy AD prevodniku s ADS1115, vystup I2C SDA - D2, SCL - D1
   mereni napeti na regulatoru, spolecny je + pol, proti zemi je max na vstupu z panelu tj.20V
 
+  náhrada
+  INA3221 - 3x proudový a napěťový sensor na sběrnici I2C
+  
+  display - 20x4
+  ESP8266 - Wemos
+  
 */
 
+const float VCC = 5.0;// supply voltage 5V or 3.3V. If using PCB, set to 5V only.
+const int model = 0;   // enter the model (see below)
 
 #include <Wire.h>
 #include <Adafruit_ADS1015.h>
@@ -19,6 +23,9 @@ const int model = 0;   // enter the model (see below)
 
 Adafruit_ADS1115 ads1(0x48);  //ADDR to GND
 Adafruit_ADS1115 ads2(0x49);  //ADDR to 5V
+
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(LCDADDRESS,LCDCOLS,LCDROWS);  // set the LCD
 
 char                  mqtt_server[40]       = "192.168.1.56";
 uint16_t              mqtt_port             = 1883;
@@ -92,58 +99,9 @@ char                  static_sn[16]         = "255.255.255.0";
 #define LED1PIN                              D4 //
 #define CHAROUT                              D7 //vystup z regulatoru
 #define RELAYPIN                             D8 //pin rele
+#define PIRPIN                               D6 //pin pir sensoru
 //SDA                                        D2
 //SCL                                        D1
-
-
-// float cutOffLimit = 1.0;// reading cutt off current. 1.00 is 1 Amper
-
-// /*
-          // "ACS758LCB-050B",// for model use 0
-          // "ACS758LCB-050U",// for model use 1
-          // "ACS758LCB-100B",// for model use 2
-          // "ACS758LCB-100U",// for model use 3
-          // "ACS758KCB-150B",// for model use 4
-          // "ACS758KCB-150U",// for model use 5
-          // "ACS758ECB-200B",// for model use 6
-          // "ACS758ECB-200U"// for model use  7   
-// sensitivity array is holding the sensitivy of the  ACS758
-// current sensors. Do not change.          
-// */
-// float sensitivity[] ={
-          // 40.0,// for ACS758LCB-050B
-          // 60.0,// for ACS758LCB-050U
-          // 20.0,// for ACS758LCB-100B
-          // 40.0,// for ACS758LCB-100U
-          // 13.3,// for ACS758KCB-150B
-          // 16.7,// for ACS758KCB-150U
-          // 10.0,// for ACS758ECB-200B
-          // 20.0,// for ACS758ECB-200U     
-         // }; 
-
-// /*         
- // *   quiescent Output voltage is factor for VCC that appears at output       
- // *   when the current is zero. 
- // *   for Bidirectional sensor it is 0.5 x VCC
- // *   for Unidirectional sensor it is 0.12 x VCC
- // *   for model ACS758LCB-050B, the B at the end represents Bidirectional (polarity doesn't matter)
- // *   for model ACS758LCB-100U, the U at the end represents Unidirectional (polarity must match)
- // *    Do not change.
- // */
-// float quiescent_Output_voltage [] ={
-          // 0.5,// for ACS758LCB-050B
-          // 0.12,// for ACS758LCB-050U
-          // 0.5,// for ACS758LCB-100B
-          // 0.12,// for ACS758LCB-100U
-          // 0.5,// for ACS758KCB-150B
-          // 0.12,// for ACS758KCB-150U
-          // 0.5,// for ACS758ECB-200B
-          // 0.12,// for ACS758ECB-200U            
-          // };
-// const float FACTOR = sensitivity[model]/1000;// set sensitivity for selected model 0.04
-// const float QOV =   quiescent_Output_voltage[model] * VCC;// set quiescent Output voltage for selected model 0.5*5 = 2.5
-// float voltage;// internal variable for voltage
-// float cutOff = FACTOR/cutOffLimit;// convert current cut off to mV 0.04
 
 
 //mereni napeti
@@ -211,12 +169,22 @@ void setup() {
   // DEBUG_PRINTLN(QOV);
   // DEBUG_PRINT("Factor ");
   // DEBUG_PRINTLN(FACTOR);
+
+  lcd.init();               // initialize the lcd 
+  lcd.backlight();
+  //lcd.begin();               // initialize the lcd 
+  lcd.home();                   
+  lcd.print(SW_NAME);  
+  PRINT_SPACE
+  lcd.print(VERSION);
+
   
   pinMode(BUILTIN_LED, OUTPUT);
   pinMode(LED1PIN, OUTPUT);
   pinMode(LED2PIN, OUTPUT);
   pinMode(CHAROUT, INPUT);
   pinMode(RELAYPIN, OUTPUT);
+  pinMode(PIRPIN, INPUT);
 
   ticker.attach(1, tick);
   
@@ -333,6 +301,12 @@ void loop() {
 #ifdef ota
   ArduinoOTA.handle();
 #endif
+
+  if (digitalRead(PIRPIN)==1) {
+    lcd.backlight();
+  } else {
+    lcd.noBacklight();
+  }
 }
 
 void relay() {
@@ -376,35 +350,6 @@ bool readADC(void *) {
   return true;
 }
 
-void readCurrent() {
-  
-
-  // DEBUG_PRINT("Point ");
-  // DEBUG_PRINT(analogRead(VIN));
-  // DEBUG_PRINT("  ");
-  // float voltage_raw = (3.3 / 1023.0) * (analogRead(VIN));// Read the voltage from sensor
-  // //float voltage_raw = analogRead(VIN);// Read the voltage from sensor
-  // DEBUG_PRINT(" RAW voltage ");
-  // DEBUG_PRINT(voltage_raw);
-  // float voltage =  voltage_raw - 2.57; // 0.007 is a value to make voltage zero when there is no current
-
-  // currentIN = voltage / FACTOR;
-  // if(fabs(voltage) <= cutOff ) {  //< 0.04
-    // currentIN = 0;
-    // DEBUG_PRINT(" zero current ");
-  // }
-  // DEBUG_PRINT(" V: ");
-  // DEBUG_PRINT2(voltage,3);// print voltage with 3 decimal places
-  // DEBUG_PRINT("V, I: ");
-  // DEBUG_PRINT2(currentIN,2); // print the current with 2 decimal places
-  // DEBUG_PRINTLN("A");
-
-
-  // napeti = (analogRead(CHAROUT) * 5000.0) / 1023.0;
-  // proud = (napeti - offset) / konstanta;
-}
-
-
 void readINA(void) {
   shuntvoltage = ina219.getShuntVoltage_mV();
   busvoltage = ina219.getBusVoltage_V();
@@ -421,7 +366,6 @@ void readINA(void) {
 }
 
 bool sendDataHA(void *) {
-  //readCurrent();
   digitalWrite(BUILTIN_LED, LOW);
   SenderClass sender;
 
