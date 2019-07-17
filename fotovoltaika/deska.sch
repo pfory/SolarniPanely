@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="9.4.1">
+<eagle version="9.3.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -4452,8 +4452,8 @@ Grid 5.08 mm&lt;p&gt;
 <part name="SL3" library="con-amp-quick" library_urn="urn:adsk.eagle:library:125" deviceset="M04" device="" package3d_urn="urn:adsk.eagle:package:5958/1"/>
 <part name="SL4" library="con-amp-quick" library_urn="urn:adsk.eagle:library:125" deviceset="M04" device="" package3d_urn="urn:adsk.eagle:package:5958/1"/>
 <part name="SUPPLY" library="con-wago-508" deviceset="W237-02P" device=""/>
-<part name="R1" library="rcl" deviceset="R-EU_" device="0207/10" override_package3d_urn="urn:adsk.eagle:package:11209799/2" override_package_urn="urn:adsk.eagle:footprint:11209800/1" value="10k"/>
-<part name="R2" library="rcl" deviceset="R-EU_" device="0207/10" override_package3d_urn="urn:adsk.eagle:package:11209793/2" override_package_urn="urn:adsk.eagle:footprint:11209794/1" value="2k7"/>
+<part name="R1" library="rcl" deviceset="R-EU_" device="0207/10" value="10k"/>
+<part name="R2" library="rcl" deviceset="R-EU_" device="0207/10" value="2k2"/>
 <part name="GND1" library="supply1" deviceset="GND" device=""/>
 <part name="CHARGER" library="con-wago-508" deviceset="W237-02P" device=""/>
 <part name="LED" library="con-amp-quick" library_urn="urn:adsk.eagle:library:125" deviceset="M02" device="" package3d_urn="urn:adsk.eagle:package:5956/1"/>
@@ -4830,11 +4830,6 @@ will not be understood (or retained) with this version.
 Since Version 8.3, EAGLE supports the association of 3D packages
 with devices in libraries, schematics, and board files. Those 3D
 packages will not be understood (or retained) with this version.
-</note>
-<note version="9.4" severity="warning">
-Since Version 9.4, EAGLE supports the overriding of 3D packages
-in schematics and board files. Those overridden 3d packages
-will not be understood (or retained) with this version.
 </note>
 </compatibility>
 </eagle>
