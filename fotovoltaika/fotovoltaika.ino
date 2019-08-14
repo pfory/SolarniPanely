@@ -14,35 +14,61 @@
   
 */
 
-const float VCC = 5.0;// supply voltage 5V or 3.3V. If using PCB, set to 5V only.
-const int model = 0;   // enter the model (see below)
-
-#include <Wire.h>
-#include <Adafruit_ADS1015.h>
-#include <Adafruit_INA219.h>
-
-Adafruit_ADS1115 ads1(0x48);  //ADDR to GND
-Adafruit_ADS1115 ads2(0x49);  //ADDR to 5V
-
-#include <LiquidCrystal_I2C.h>
-LiquidCrystal_I2C lcd(LCDADDRESS,LCDCOLS,LCDROWS);  // set the LCD
-
-char                  mqtt_server[40]       = "192.168.1.56";
-uint16_t              mqtt_port             = 1883;
 #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
 #include <Ticker.h>
 #include "Sender.h"
+#include <Wire.h>
+#include <Adafruit_ADS1015.h>
+#include <Adafruit_INA219.h>
+
+
+#define time
+#ifdef time
+#include <TimeLib.h>
+#include <Timezone.h>
+WiFiUDP EthernetUdp;
+static const char     ntpServerName[]       = "tik.cesnet.cz";
+//const int timeZone = 2;     // Central European Time
+//Central European Time (Frankfurt, Paris)
+TimeChangeRule        CEST                  = {"CEST", Last, Sun, Mar, 2, 120};     //Central European Summer Time
+TimeChangeRule        CET                   = {"CET", Last, Sun, Oct, 3, 60};       //Central European Standard Time
+Timezone CE(CEST, CET);
+unsigned int          localPort             = 8888;  // local port to listen for UDP packets
+time_t getNtpTime();
+#define TIMEX   0
+#define TIMEY   3
+#endif
+
+
+const float VCC = 5.0;// supply voltage 5V or 3.3V. If using PCB, set to 5V only.
+const int model = 0;   // enter the model (see below)
+
+Adafruit_ADS1115 ads1(0x48);  //ADDR to GND
+Adafruit_ADS1115 ads2(0x49);  //ADDR to 5V
+
+#define LCDADDRESS  0x27
+#define LCDCOLS     20
+#define LCDROWS     4
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(LCDADDRESS,LCDCOLS,LCDROWS);  // set the LCD
+#define PRINT_SPACE  lcd.print(" ");
+volatile bool showDoubleDot                 = false;
+unsigned int display                        = 0;
+#define DISPLAY_MAIN                         0
+
+
+char                  mqtt_server[40]       = "192.168.1.56";
+uint16_t              mqtt_port             = 1883;
 
 //for LED status
-#include <Ticker.h>
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.21"
+#define     VERSION                          "0.24"
 #define     SW_NAME                          "Fotovoltaika"
 
-#define SEND_DELAY                           5000  //prodleva mezi poslanim dat v ms
+#define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
 #define SENDSTAT_DELAY                       60000 //poslani statistiky kazdou minutu
 #define READADC_DELAY                        1000  //cteni ADC
 
@@ -89,8 +115,14 @@ uint32_t heartBeat                          = 0;
 
 char                  mqtt_username[40]     = "datel";
 char                  mqtt_key[20]          = "hanka12";
+//#define test
+#ifdef test
+char                  mqtt_base[60]         = "/home/SolarMereniTest";
+char                  static_ip[16]         = "192.168.1.117";
+#else
 char                  mqtt_base[60]         = "/home/SolarMereni";
 char                  static_ip[16]         = "192.168.1.116";
+#endif
 char                  static_gw[16]         = "192.168.1.1";
 char                  static_sn[16]         = "255.255.255.0";
 
@@ -119,13 +151,20 @@ uint16_t currentRegIn;
 uint16_t currentAcu;
 uint16_t currentRegOut;
 
-Adafruit_INA219 ina219;
+Adafruit_INA219 ina219_1; //output
+Adafruit_INA219 ina219_2(0x41); //batery
 
-float                 shuntvoltage           = 0;
-float                 busvoltage             = 0;
-float                 current_mA             = 0;
-float                 loadvoltage            = 0;
-float                 power_mW               = 0;
+float                 shuntvoltage_1           = 0;
+float                 busvoltage_1             = 0;
+float                 current_mA_1             = 0;
+float                 loadvoltage_1            = 0;
+float                 power_mW_1               = 0;
+float                 shuntvoltage_2           = 0;
+float                 busvoltage_2             = 0;
+float                 current_mA_2             = 0;
+float                 loadvoltage_2            = 0;
+float                 power_mW_2               = 0;
+
 
 // konstanta pro přepočet naměřeného napětí na proud
 // použijte 100 pro 20A verzi
@@ -215,6 +254,19 @@ void setup() {
     delay(5000);
   } 
   
+#ifdef time
+  DEBUG_PRINTLN("Setup TIME");
+  EthernetUdp.begin(localPort);
+  DEBUG_PRINT("Local port: ");
+  DEBUG_PRINTLN(EthernetUdp.localPort());
+  DEBUG_PRINTLN("waiting for sync");
+  setSyncProvider(getNtpTime);
+  setSyncInterval(300);
+  
+  printSystemTime();
+#endif
+
+  
   #ifdef ota
   //OTA
   // Port defaults to 8266
@@ -277,9 +329,11 @@ void setup() {
     // Initialize the INA219.
   // By default the initialization will use the largest range (32V, 2A).  However
   // you can call a setCalibration function to change this range (see comments).
-  ina219.begin();
+  ina219_1.begin();
+  ina219_2.begin();
   // To use a slightly lower 32V, 1A range (higher precision on amps):
-  ina219.setCalibration_32V_1A();
+  ina219_1.setCalibration_32V_1A();
+  ina219_2.setCalibration_32V_1A();
   // Or to use a lower 16V, 400mA range (higher precision on volts and amps):
   //ina219.setCalibration_16V_400mA();
   
@@ -287,13 +341,14 @@ void setup() {
   timer.every(SEND_DELAY, sendDataHA);
   timer.every(SENDSTAT_DELAY, sendStatisticHA);
   timer.every(READADC_DELAY, readADC);
+  timer.every(500, displayTime);
   sendStatisticHA;
 
   ticker.detach();
   //keep LED on
   digitalWrite(BUILTIN_LED, HIGH);
   digitalWrite(LED1PIN, HIGH);
-
+  lcd.clear();
 }
 
 void loop() {
@@ -351,18 +406,34 @@ bool readADC(void *) {
 }
 
 void readINA(void) {
-  shuntvoltage = ina219.getShuntVoltage_mV();
-  busvoltage = ina219.getBusVoltage_V();
-  current_mA = ina219.getCurrent_mA();
-  power_mW = ina219.getPower_mW();
-  loadvoltage = busvoltage + (shuntvoltage / 1000);
+  shuntvoltage_1 = ina219_1.getShuntVoltage_mV();
+  busvoltage_1 = ina219_1.getBusVoltage_V();
+  current_mA_1 = ina219_1.getCurrent_mA();
+  power_mW_1 = ina219_1.getPower_mW();
+  loadvoltage_1 = busvoltage_1 + (shuntvoltage_1 / 1000);
   
-  Serial.print("Bus Voltage:   "); Serial.print(busvoltage); Serial.println(" V");
-  Serial.print("Shunt Voltage: "); Serial.print(shuntvoltage); Serial.println(" mV");
-  Serial.print("Load Voltage:  "); Serial.print(loadvoltage); Serial.println(" V");
-  Serial.print("Current:       "); Serial.print(current_mA); Serial.println(" mA");
-  Serial.print("Power:         "); Serial.print(power_mW); Serial.println(" mW");
+  Serial.println("OUTPUT:");
+  Serial.print("Bus Voltage:   "); Serial.print(busvoltage_1); Serial.println(" V");
+  Serial.print("Shunt Voltage: "); Serial.print(shuntvoltage_1); Serial.println(" mV");
+  Serial.print("Load Voltage:  "); Serial.print(loadvoltage_1); Serial.println(" V");
+  Serial.print("Current:       "); Serial.print(current_mA_1); Serial.println(" mA");
+  Serial.print("Power:         "); Serial.print(power_mW_1); Serial.println(" mW");
   Serial.println("");
+
+  shuntvoltage_2 = ina219_2.getShuntVoltage_mV();
+  busvoltage_2 = ina219_2.getBusVoltage_V();
+  current_mA_2 = ina219_2.getCurrent_mA();
+  power_mW_2 = ina219_2.getPower_mW();
+  loadvoltage_2 = busvoltage_2 + (shuntvoltage_2 / 1000);
+  
+  Serial.println("OUTPUT BATERY:");
+  Serial.print("Bus Voltage:   "); Serial.print(busvoltage_2); Serial.println(" V");
+  Serial.print("Shunt Voltage: "); Serial.print(shuntvoltage_2); Serial.println(" mV");
+  Serial.print("Load Voltage:  "); Serial.print(loadvoltage_2); Serial.println(" V");
+  Serial.print("Current:       "); Serial.print(current_mA_2); Serial.println(" mA");
+  Serial.print("Power:         "); Serial.print(power_mW_2); Serial.println(" mW");
+  Serial.println("");
+
 }
 
 bool sendDataHA(void *) {
@@ -406,12 +477,19 @@ bool sendDataHA(void *) {
   sender.add("currentRegOut",     currentRegOut);
   sender.add("currentAcu",        currentAcu);
   
-  sender.add("busVoltage", busvoltage);
-  sender.add("shuntVoltage", shuntvoltage);
-  sender.add("loadVoltage", loadvoltage);
-  sender.add("current", current_mA);
-  sender.add("power", power_mW);
+  sender.add("busVoltage", busvoltage_1);
+  sender.add("shuntVoltage", shuntvoltage_1);
+  sender.add("loadVoltage", loadvoltage_1);
+  sender.add("current", current_mA_1);
+  sender.add("power", power_mW_1);
   
+  sender.add("busVoltage_2", busvoltage_2);
+  sender.add("shuntVoltage_2", shuntvoltage_2);
+  sender.add("loadVoltage_2", loadvoltage_2);
+  sender.add("current_2", current_mA_2);
+  sender.add("power_2", power_mW_2);
+
+
   voltageRegInMin   = MAX;
   voltageRegOutMin  = MAX;
   voltageAcuMin     = MAX;   
@@ -445,3 +523,134 @@ bool sendStatisticHA(void *) {
   digitalWrite(BUILTIN_LED, HIGH);
   return true;
 }
+
+#ifdef time
+/*-------- NTP code ----------*/
+
+const int NTP_PACKET_SIZE = 48; // NTP time is in the first 48 bytes of message
+byte packetBuffer[NTP_PACKET_SIZE]; //buffer to hold incoming & outgoing packets
+
+time_t getNtpTime()
+{
+  //IPAddress ntpServerIP; // NTP server's ip address
+  IPAddress ntpServerIP = IPAddress(195, 113, 144, 201);
+
+  while (EthernetUdp.parsePacket() > 0) ; // discard any previously received packets
+  DEBUG_PRINTLN("Transmit NTP Request");
+  // get a random server from the pool
+  //WiFi.hostByName(ntpServerName, ntpServerIP);
+  DEBUG_PRINT(ntpServerName);
+  DEBUG_PRINT(": ");
+  DEBUG_PRINTLN(ntpServerIP);
+  sendNTPpacket(ntpServerIP);
+  uint32_t beginWait = millis();
+  while (millis() - beginWait < 1500) {
+    int size = EthernetUdp.parsePacket();
+    if (size >= NTP_PACKET_SIZE) {
+      DEBUG_PRINTLN("Receive NTP Response");
+      EthernetUdp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
+      unsigned long highWord = word(packetBuffer[40], packetBuffer[41]);
+      unsigned long lowWord = word(packetBuffer[42], packetBuffer[43]);
+      // combine the four bytes (two words) into a long integer
+      // this is NTP time (seconds since Jan 1 1900):
+      unsigned long secsSince1900 = highWord << 16 | lowWord;
+      DEBUG_PRINT("Seconds since Jan 1 1900 = " );
+      DEBUG_PRINTLN(secsSince1900);
+
+      // now convert NTP time into everyday time:
+      DEBUG_PRINT("Unix time = ");
+      // Unix time starts on Jan 1 1970. In seconds, that's 2208988800:
+      const unsigned long seventyYears = 2208988800UL;
+      // subtract seventy years:
+      unsigned long epoch = secsSince1900 - seventyYears;
+      // print Unix time:
+      DEBUG_PRINTLN(epoch);
+	  
+      TimeChangeRule *tcr;
+      time_t utc;
+      utc = epoch;
+      
+      return CE.toLocal(utc, &tcr);
+      //return secsSince1900 - 2208988800UL + timeZone * SECS_PER_HOUR;
+    }
+  }
+  DEBUG_PRINTLN("No NTP Response :-(");
+  return 0; // return 0 if unable to get the time
+}
+
+// send an NTP request to the time server at the given address
+void sendNTPpacket(IPAddress &address)
+{
+  // set all bytes in the buffer to 0
+  memset(packetBuffer, 0, NTP_PACKET_SIZE);
+  // Initialize values needed to form NTP request
+  // (see URL above for details on the packets)
+  packetBuffer[0] = 0b11100011;   // LI, Version, Mode
+  packetBuffer[1] = 0;     // Stratum, or type of clock
+  packetBuffer[2] = 6;     // Polling Interval
+  packetBuffer[3] = 0xEC;  // Peer Clock Precision
+  // 8 bytes of zero for Root Delay & Root Dispersion
+  packetBuffer[12] = 49;
+  packetBuffer[13] = 0x4E;
+  packetBuffer[14] = 49;
+  packetBuffer[15] = 52;
+  // all NTP fields have been given values, now
+  // you can send a packet requesting a timestamp:
+  EthernetUdp.beginPacket(address, 123); //NTP requests are to port 123
+  EthernetUdp.write(packetBuffer, NTP_PACKET_SIZE);
+  EthernetUdp.endPacket();
+}
+
+//display time on LCD
+void lcd2digits(int number) {
+  if (number >= 0 && number < 10) {
+    lcd.write('0');
+  }
+  lcd.print(number);
+}
+
+void print2digits(int number) {
+  if (number >= 0 && number < 10) {
+    DEBUG_WRITE('0');
+  }
+  DEBUG_PRINT(number);
+}
+
+
+void printSystemTime(){
+  DEBUG_PRINT(day());
+  DEBUG_PRINT(".");
+  DEBUG_PRINT(month());
+  DEBUG_PRINT(".");
+  DEBUG_PRINT(year());
+  DEBUG_PRINT(" ");
+  print2digits(hour());
+  DEBUG_PRINT(":");
+  print2digits(minute());
+  DEBUG_PRINT(":");
+  print2digits(second());
+}
+
+bool displayTime(void *) {
+  lcd.setCursor(TIMEX, TIMEY); //col,row
+  lcd2digits(hour());
+  if (showDoubleDot) {
+    showDoubleDot = false;
+    lcd.write(':');
+  } else {
+    showDoubleDot = true;
+    lcd.write(' ');
+  }
+  lcd2digits(minute());
+/*  lcd.write(':');
+  lcd2digits(second());*/
+  //zobrazeni hlasky o zmene uhlu kolektoru
+}
+#endif
+
+//---------------------------------------------D I S P L A Y ------------------------------------------------
+void lcdShow() {
+  if (display==DISPLAY_MAIN) {
+  }
+}
+
