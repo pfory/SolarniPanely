@@ -65,7 +65,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.24"
+#define     VERSION                          "0.25"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
@@ -333,7 +333,7 @@ void setup() {
   ina219_2.begin();
   // To use a slightly lower 32V, 1A range (higher precision on amps):
   ina219_1.setCalibration_32V_1A();
-  ina219_2.setCalibration_32V_1A();
+  ina219_2.setCalibration_32V_2A();
   // Or to use a lower 16V, 400mA range (higher precision on volts and amps):
   //ina219.setCalibration_16V_400mA();
   
