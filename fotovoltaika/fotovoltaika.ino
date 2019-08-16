@@ -129,7 +129,8 @@ char                  static_sn[16]         = "255.255.255.0";
 #define VIN                                  A0 // define the Arduino pin A0 as voltage input (V in)
 #define LED2PIN                              D3 //stav rele
 #define LED1PIN                              D4 //
-#define CHAROUT                              D7 //vystup z regulatoru
+//#define CHAROUT                              D7 //vystup z regulatoru
+#define CHAROUT                              D6 //vystup z regulatoru, na testovacim je D7 asi spaleny
 #define RELAYPIN                             D8 //pin rele
 #define PIRPIN                               D6 //pin pir sensoru
 //SDA                                        D2
