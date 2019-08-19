@@ -12,6 +12,11 @@
   display - 20x4
   ESP8266 - Wemos
   
+  větev baterie - měnič
+  odběr na prázdno      0,18A   2,2W
+  bez čerpadla soláru   1,36A  16,3W
+  s čerpadlem soláru    3,87A  46,5W
+  
 */
 
 #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
