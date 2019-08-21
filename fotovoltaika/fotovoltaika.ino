@@ -45,10 +45,6 @@ time_t getNtpTime();
 #define TIMEY   3
 #endif
 
-
-const float VCC = 5.0;// supply voltage 5V or 3.3V. If using PCB, set to 5V only.
-const int model = 0;   // enter the model (see below)
-
 Adafruit_ADS1115 ads1(0x48);  //ADDR to GND
 Adafruit_ADS1115 ads2(0x49);  //ADDR to 5V
 
@@ -171,12 +167,6 @@ float                 current_mA_2             = 0;
 float                 loadvoltage_2            = 0;
 float                 power_mW_2               = 0;
 
-
-// konstanta pro přepočet naměřeného napětí na proud
-// použijte 100 pro 20A verzi
-int konstanta            = 185;
-// proměnná pro nastavení offsetu, polovina Vcc
-int offset               = 2500;
 
 //gets called when WiFiManager enters configuration mode
 void configModeCallback (WiFiManager *myWiFiManager) {
