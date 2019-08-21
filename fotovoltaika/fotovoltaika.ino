@@ -637,6 +637,14 @@ void printSystemTime(){
   print2digits(second());
 }
 
+void display() {
+//012345678+90123456789
+// 254W  100W  140W ON
+//10.8A 10.1A  2.3A
+//18.6V 12.0V 14.5V
+//15:23 50.6Ah  25.2Ah
+}
+
 bool displayTime(void *) {
   lcd.setCursor(TIMEX, TIMEY); //col,row
   lcd2digits(hour());
