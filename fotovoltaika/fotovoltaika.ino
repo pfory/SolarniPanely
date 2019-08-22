@@ -45,8 +45,15 @@ time_t getNtpTime();
 #define TIMEY   3
 #endif
 
-Adafruit_ADS1115 ads1(0x48);  //ADDR to GND
-Adafruit_ADS1115 ads2(0x49);  //ADDR to 5V
+#define         CURRENT_UNIT     "A"
+#define         VOLTAGE_UNIT     "V"
+#define         POWER_UNIT       "W"
+
+//voltage and current meassurement
+Adafruit_ADS1115 ads1(0x48);  //mereni proudu ADDR to GND
+Adafruit_ADS1115 ads2(0x4A);  //mereni napeti ADDR to SDA
+Adafruit_ADS1115 ads3(0x4B);  //mereni napeti ADDR to SCL
+
 
 #define LCDADDRESS  0x27
 #define LCDCOLS     20
@@ -59,6 +66,26 @@ unsigned int display                        = 0;
 #define DISPLAY_MAIN                         0
 
 
+#define POZREGIN_CURRENTX                   0
+#define POZREGIN_CURRENTY                   1
+#define POZREGACU_CURRENTX                  6
+#define POZREGACU_CURRENTY                  1
+#define POZREGOUT_CURRENTX                 12
+#define POZREGOUT_CURRENTY                  1
+#define POZREGIN_VOLTAGEX                   0
+#define POZREGIN_VOLTAGEY                   2
+#define POZREGACU_VOLTAGEX                  6
+#define POZREGACU_VOLTAGEY                  2
+#define POZREGOUT_VOLTAGEX                  11
+#define POZREGOUT_VOLTAGEY                  2
+#define POZREGIN_POWERX                     0
+#define POZREGIN_POWERXY                    0
+#define POZREGACU_POWERX                    7
+#define POZREGACU_POWERXY                   0
+#define POZREGOUT_POWERX                    12
+#define POZREGOUT_POWERXY                   0
+
+
 char                  mqtt_server[40]       = "192.168.1.56";
 uint16_t              mqtt_port             = 1883;
 
@@ -66,7 +93,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.25"
+#define     VERSION                          "0.26"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
@@ -106,7 +133,7 @@ unsigned long lastOffOn                      = 0; //zamezuje cyklickemu zapinani
   #define DEBUG_WRITE(x)
 #endif 
 
-ADC_MODE(ADC_VCC);
+//ADC_MODE(ADC_VCC);
 
 uint32_t heartBeat                          = 0;
 
@@ -147,11 +174,17 @@ int16_t voltageRegInMax      = 0; //vystup z panelu, rozsah 0-20V
 int16_t voltageRegOutMax     = 0; //vystup z regulatoru, rozsah 0-15V
 int16_t voltageAcuMax        = 0; //vystup z regulatoru, rozsah 0-15V
 int16_t voltage12VMax        = 0; //vystup z regulatoru, rozsah 0-15V
+int16_t voltageRef           = 0; //napeti napajeni
 
 //mereni proudu
 uint16_t currentRegIn;
 uint16_t currentAcu;
 uint16_t currentRegOut;
+
+#define         CHANNEL_REG_IN_CURRENT          0
+#define         CHANNEL_REG_ACU_IN_CURRENT      1
+#define         CHANNEL_REG_OUT_CURRENT         2
+#define         CHANNEL_REG_ACU_OUT_CURRENT     3
 
 Adafruit_INA219 ina219_1; //output
 Adafruit_INA219 ina219_2(0x41); //batery
@@ -314,6 +347,7 @@ void setup() {
   //                                                                -------  -------
   ads1.setGain(GAIN_TWOTHIRDS);        // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
   ads2.setGain(GAIN_TWOTHIRDS);        // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
+  ads3.setGain(GAIN_TWOTHIRDS);        // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
   // ads.setGain(GAIN_ONE);            // 1x gain   +/- 4.096V  1 bit = 2mV      0.125mV
   // ads.setGain(GAIN_TWO);            // 2x gain   +/- 2.048V  1 bit = 1mV      0.0625mV
   // ads.setGain(GAIN_FOUR);           // 4x gain   +/- 1.024V  1 bit = 0.5mV    0.03125mV
@@ -321,6 +355,7 @@ void setup() {
   // ads.setGain(GAIN_SIXTEEN);        // 16x gain  +/- 0.256V  1 bit = 0.125mV  0.0078125mV
   ads1.begin();
   ads2.begin();
+  ads3.begin();
   
     // Initialize the INA219.
   // By default the initialization will use the largest range (32V, 2A).  However
@@ -374,7 +409,7 @@ void relay() {
 }
 
 bool readADC(void *) {
-  int16_t voltage = ads1.readADC_Differential_0_1();
+  int16_t voltage = ads2.readADC_Differential_0_1();
   voltageRegOutMin   = min(voltage, voltageRegOutMin); 
   voltageRegOutMax   = max(voltage, voltageRegOutMax); 
   // voltage = ads1.readADC_Differential_2_3();
@@ -387,16 +422,16 @@ bool readADC(void *) {
   // voltageAcuMax      = max(voltage, voltageAcuMax);
   // voltage12VMax      = max(voltage, voltage12VMax);
 
-  uint16_t current = ads1.readADC_SingleEnded(0);
-  currentRegIn = current;
-  current = ads1.readADC_SingleEnded(1);
-  currentAcu = current;
-  current = ads1.readADC_SingleEnded(2);
-  currentRegOut = current;
+  currentRegIn = ads1.readADC_SingleEnded(CHANNEL_REG_IN_CURRENT);
+  currentAcu = ads1.readADC_SingleEnded(CHANNEL_REG_ACU_OUT_CURRENT);
+  currentRegOut = ads1.readADC_SingleEnded(CHANNEL_REG_OUT_CURRENT);
+  voltageRef = analogRead(VIN);
   
   readINA();
 
   relay();
+  
+  lcdShow();
 
   return true;
 }
@@ -444,10 +479,6 @@ bool sendDataHA(void *) {
   // sender.add("voltage", voltage);
   // sender.add("voltage_raw", voltage_raw);
  
-  sender.add("currentRegIn",       currentRegIn);
-  sender.add("currentAcu",         currentAcu);
-  sender.add("currentRegOut",      currentRegOut);
-  
   //napeti na regulatoru
   // sender.add("adcRegInMin", adcRegInMin);
   // sender.add("adcRegOutMin", adcRegOutMin);
@@ -472,6 +503,7 @@ bool sendDataHA(void *) {
   sender.add("currentRegIn",      currentRegIn);
   sender.add("currentRegOut",     currentRegOut);
   sender.add("currentAcu",        currentAcu);
+  sender.add("Napeti",            voltageRef);
   
   sender.add("busVoltage", busvoltage_1);
   sender.add("shuntVoltage", shuntvoltage_1);
@@ -484,6 +516,7 @@ bool sendDataHA(void *) {
   sender.add("loadVoltage_2", loadvoltage_2);
   sender.add("current_2", current_mA_2);
   sender.add("power_2", power_mW_2);
+
 
 
   voltageRegInMin   = MAX;
@@ -509,7 +542,6 @@ bool sendStatisticHA(void *) {
 
   SenderClass sender;
   sender.add("VersionSWFotovoltaika", VERSION);
-  sender.add("Napeti",  ESP.getVcc());
   sender.add("HeartBeat", heartBeat++);
   sender.add("RSSI", WiFi.RSSI());
   
@@ -627,14 +659,6 @@ void printSystemTime(){
   print2digits(second());
 }
 
-void display() {
-//012345678+90123456789
-// 254W  100W  140W ON
-//10.8A 10.1A  2.3A
-//18.6V 12.0V 14.5V
-//15:23 50.6Ah  25.2Ah
-}
-
 bool displayTime(void *) {
   lcd.setCursor(TIMEX, TIMEY); //col,row
   lcd2digits(hour());
@@ -655,6 +679,38 @@ bool displayTime(void *) {
 //---------------------------------------------D I S P L A Y ------------------------------------------------
 void lcdShow() {
   if (display==DISPLAY_MAIN) {
+    //012345678+90123456789     //Reg In    Acu    Out  
+    // 254W  100W  140W ON      //power
+    //10.8A 10.1A  2.3A         //current
+    //18.6V 12.0V 14.5V         //voltage
+    //15:23 50.6Ah  25.2Ah      //hour   capacity
+    lcd.setCursor(POZREGIN_CURRENTX,POZREGIN_CURRENTY);
+    lcd.print(currentRegIn);
+    lcd.print(CURRENT_UNIT);
+    lcd.setCursor(POZREGACU_CURRENTX,POZREGACU_CURRENTY);
+    lcd.print(currentAcu);
+    lcd.print(CURRENT_UNIT);
+    lcd.setCursor(POZREGOUT_CURRENTX,POZREGOUT_CURRENTY);
+    lcd.print(currentRegOut);
+    lcd.print(CURRENT_UNIT);
+    lcd.setCursor(POZREGIN_VOLTAGEX,POZREGIN_VOLTAGEY);
+    lcd.print(voltageRegInMax);
+    lcd.print(VOLTAGE_UNIT);
+    lcd.setCursor(POZREGACU_VOLTAGEX,POZREGACU_VOLTAGEY);
+    lcd.print(voltageAcuMax);
+    lcd.print(VOLTAGE_UNIT);
+    lcd.setCursor(POZREGOUT_VOLTAGEX,POZREGOUT_VOLTAGEY);
+    lcd.print(voltageRegOutMax);
+    lcd.print(VOLTAGE_UNIT);
+    lcd.setCursor(POZREGIN_POWERX,POZREGIN_POWERXY);
+    lcd.print(voltageRegInMax*currentRegIn);
+    lcd.print(POWER_UNIT);
+    lcd.setCursor(POZREGACU_POWERX,POZREGACU_POWERXY);
+    lcd.print(voltageAcuMax*currentAcu);
+    lcd.print(POWER_UNIT);
+    lcd.setCursor(POZREGOUT_POWERX,POZREGOUT_POWERXY);
+    lcd.print(voltageRegOutMax*currentRegOut);
+    lcd.print(POWER_UNIT);
   }
 }
 
