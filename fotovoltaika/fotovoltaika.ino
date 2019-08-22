@@ -388,11 +388,11 @@ void loop() {
   ArduinoOTA.handle();
 #endif
 
-  if (digitalRead(PIRPIN)==1) {
+  /*if (digitalRead(PIRPIN)==1) {
     lcd.backlight();
   } else {
     lcd.noBacklight();
-  }
+  }*/
 }
 
 void relay() {
@@ -670,9 +670,7 @@ bool displayTime(void *) {
     lcd.write(' ');
   }
   lcd2digits(minute());
-/*  lcd.write(':');
-  lcd2digits(second());*/
-  //zobrazeni hlasky o zmene uhlu kolektoru
+  return true;
 }
 #endif
 
@@ -711,6 +709,10 @@ void lcdShow() {
     lcd.setCursor(POZREGOUT_POWERX,POZREGOUT_POWERXY);
     lcd.print(voltageRegOutMax*currentRegOut);
     lcd.print(POWER_UNIT);
+
+    lcd.setCursor(15,3);
+    lcd.print(voltageRef);
+
   }
 }
 
