@@ -1,14 +1,12 @@
 /*HW
   mereni proudu na regulatoru
-    - vstup z FW panelu, cidlo s ACS758LCB-050B +-50A
-    - akumulator, cidlo s ACS712 +-20A
-    - vystup, cidlo s ACS712 +-5A
+    - vstup z FW panelu, cidlo s  ACS758LCB-050B +-50A  40mV/A
+    - akumulator, cidlo s         ACS712 +-20A          100mV/A
+    - vystup, cidlo s             ACS712 +-5A           185mV/A
     vsechna cidla jsou pripojena na vstupy AD prevodniku s ADS1115, vystup I2C SDA - D2, SCL - D1
   mereni napeti na regulatoru, spolecny je + pol, proti zemi je max na vstupu z panelu tj.20V
 
-  náhrada
-  INA3221 - 3x proudový a napěťový sensor na sběrnici I2C
-  
+ 
   display - 20x4
   ESP8266 - Wemos
   
@@ -48,6 +46,7 @@ time_t getNtpTime();
 #define         CURRENT_UNIT     "A"
 #define         VOLTAGE_UNIT     "V"
 #define         POWER_UNIT       "W"
+#define         V2MV              1000.f  //prevod volt na milivolt Y(in milivolt) = X(in volt) * V2MV
 
 //voltage and current meassurement
 Adafruit_ADS1115 ads1(0x48);  //mereni proudu ADDR to GND
@@ -93,7 +92,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.26"
+#define     VERSION                          "0.30"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
@@ -166,25 +165,37 @@ char                  static_sn[16]         = "255.255.255.0";
 
 
 //mereni napeti
-int16_t voltageRegInMin      = MAX; //vystup z panelu, rozsah 0-20V
-int16_t voltageRegOutMin     = MAX; //vystup z regulatoru, rozsah 0-15V
-int16_t voltageAcuMin        = MAX; //vystup z regulatoru, rozsah 0-15V
-int16_t voltage12VMin        = MAX; //vystup z regulatoru, rozsah 0-15V
-int16_t voltageRegInMax      = 0; //vystup z panelu, rozsah 0-20V
-int16_t voltageRegOutMax     = 0; //vystup z regulatoru, rozsah 0-15V
-int16_t voltageAcuMax        = 0; //vystup z regulatoru, rozsah 0-15V
-int16_t voltage12VMax        = 0; //vystup z regulatoru, rozsah 0-15V
-int16_t voltageRef           = 0; //napeti napajeni
+int16_t voltageRegInMin        = MAX; //vystup z panelu, rozsah 0-20V
+int16_t voltageRegOutMin       = MAX; //vystup z regulatoru, rozsah 0-15V
+int16_t voltageAcuMin          = MAX; //vystup z regulatoru, rozsah 0-15V
+int16_t voltage12VMin          = MAX; //vystup z regulatoru, rozsah 0-15V
+int16_t voltageRegInMax        = 0; //vystup z panelu, rozsah 0-20V
+int16_t voltageRegOutMax       = 0; //vystup z regulatoru, rozsah 0-15V
+int16_t voltageAcuMax          = 0; //vystup z regulatoru, rozsah 0-15V
+int16_t voltage12VMax          = 0; //vystup z regulatoru, rozsah 0-15V
+int16_t voltageRef             = 0; //napeti napajeni
+float koef                     = 0;
+float dilkuIn                  = 0;
+float dilkuAcu                 = 0;
+float dilkuOut                 = 0;
 
 //mereni proudu
-uint16_t currentRegIn;
-uint16_t currentAcu;
-uint16_t currentRegOut;
+float currentRegIn;
+float currentAcu;
+float currentRegOut;
 
 #define         CHANNEL_REG_IN_CURRENT          0
 #define         CHANNEL_REG_ACU_IN_CURRENT      1
 #define         CHANNEL_REG_OUT_CURRENT         2
 #define         CHANNEL_REG_ACU_OUT_CURRENT     3
+
+#define         VOLTDILEKADC1                   0.0001875
+//#define         VOLTDILEKADC2                   0.0001875
+//#define         VOLTDILEKADC3                   0.0001875
+
+#define         MVAMPERIN                       40.f        // 40mV = 1A
+#define         MVAMPERACU                      100.f       // 100mV = 1A
+#define         MVAMPEROUT                      185.f       // 185mV = 1A
 
 Adafruit_INA219 ina219_1; //output
 Adafruit_INA219 ina219_2(0x41); //batery
@@ -343,8 +354,10 @@ void setup() {
   // functions, but be careful never to exceed VDD +0.3V max, or to
   // exceed the upper and lower limits if you adjust the input range!
   // Setting these values incorrectly may destroy your ADC!
-  //                                                                ADS1015  ADS1115
-  //                                                                -------  -------
+  //ADS1015 - 12bit = 4096
+  //ADS1115 - 16bit = 65536
+  //                                                             ADS1015         ADS1115
+  //                                                             -------         -------
   ads1.setGain(GAIN_TWOTHIRDS);        // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
   ads2.setGain(GAIN_TWOTHIRDS);        // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
   ads3.setGain(GAIN_TWOTHIRDS);        // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
@@ -373,7 +386,8 @@ void setup() {
   timer.every(SENDSTAT_DELAY, sendStatisticHA);
   timer.every(READADC_DELAY, readADC);
   timer.every(500, displayTime);
-  sendStatisticHA;
+  void * a;
+  sendStatisticHA(a);
 
   ticker.detach();
   //keep LED on
@@ -421,11 +435,14 @@ bool readADC(void *) {
   // voltageRegOutMax   = max(voltage, voltageRegOutMax); 
   // voltageAcuMax      = max(voltage, voltageAcuMax);
   // voltage12VMax      = max(voltage, voltage12VMax);
-
-  currentRegIn = ads1.readADC_SingleEnded(CHANNEL_REG_IN_CURRENT);
-  currentAcu = ads1.readADC_SingleEnded(CHANNEL_REG_ACU_OUT_CURRENT);
-  currentRegOut = ads1.readADC_SingleEnded(CHANNEL_REG_OUT_CURRENT);
-  voltageRef = analogRead(VIN);
+  koef = ((5.f / 1024.f) * analogRead(VIN)) / 2.f;
+  
+  dilkuIn = (float)ads1.readADC_SingleEnded(CHANNEL_REG_IN_CURRENT);
+  currentRegIn  = ((dilkuIn     * VOLTDILEKADC1) - koef) * V2MV / MVAMPERIN;
+  dilkuAcu = (float)ads1.readADC_SingleEnded(CHANNEL_REG_ACU_OUT_CURRENT);
+  currentAcu    = ((dilkuAcu   * VOLTDILEKADC1) - koef) * V2MV / MVAMPERACU;
+  dilkuOut = (float)ads1.readADC_SingleEnded(CHANNEL_REG_OUT_CURRENT);
+  currentRegOut = ((dilkuOut    * VOLTDILEKADC1) - koef) * V2MV / MVAMPEROUT;
   
   readINA();
 
@@ -491,19 +508,35 @@ bool sendDataHA(void *) {
   
   sender.add("chargerOUT",        digitalRead(CHAROUT));
 
-  sender.add("voltageRegInMin",   voltageRegInMin);
-  sender.add("voltageRegInMax",   voltageRegInMax);
-  sender.add("voltageRegOutMin",  voltageRegOutMin);
-  sender.add("voltageRegOutMax",  voltageRegOutMax);
-  sender.add("voltageAcuMin",     voltageAcuMin);
-  sender.add("voltageAcuMax",     voltageAcuMax);
-  sender.add("voltage12VMin",     voltage12VMin);
-  sender.add("voltage12VMax",     voltage12VMax);
+  //sender.add("voltageRegInMin",   voltageRegInMin);
+  //sender.add("voltageRegInMax",   voltageRegInMax);
+  sender.add("voltageRegInMin",   18.f);
+  sender.add("voltageRegInMax",   18.f);
+  //sender.add("voltageRegOutMin",  voltageRegOutMin);
+  //sender.add("voltageRegOutMax",  voltageRegOutMax);
+  sender.add("voltageRegOutMin",  12.f);
+  sender.add("voltageRegOutMax",  12.f);
+  //sender.add("voltageAcuMin",     voltageAcuMin);
+  //sender.add("voltageAcuMax",     voltageAcuMax);
+  sender.add("voltageAcuMin",     12.f);
+  sender.add("voltageAcuMax",     12.f);
+  //sender.add("voltage12VMin",     voltage12VMin);
+  //sender.add("voltage12VMax",     voltage12VMax);
+  sender.add("voltage12VMin",     12.f);
+  sender.add("voltage12VMax",     12.f);
 
   sender.add("currentRegIn",      currentRegIn);
   sender.add("currentRegOut",     currentRegOut);
   sender.add("currentAcu",        currentAcu);
-  sender.add("Napeti",            voltageRef);
+  sender.add("NapetiSbernice",    koef);
+  sender.add("dilkuIn",           dilkuIn);
+  sender.add("dilkuAcu",          dilkuAcu);
+  sender.add("dilkuOut",          dilkuOut);
+
+  //sender.add("powerIn",           currentRegIn * voltageRegInMax);
+  //sender.add("powerOut",          currentRegOut * voltageRegOutMax);
+  sender.add("powerIn",           currentRegIn * 18);
+  sender.add("powerOut",          currentRegOut * 12);
   
   sender.add("busVoltage", busvoltage_1);
   sender.add("shuntVoltage", shuntvoltage_1);
