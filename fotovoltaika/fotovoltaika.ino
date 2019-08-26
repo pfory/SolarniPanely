@@ -92,7 +92,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.30"
+#define     VERSION                          "0.35"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
@@ -140,49 +140,57 @@ uint32_t heartBeat                          = 0;
 #include <ArduinoOTA.h>
 #endif
 
-char                  mqtt_username[40]     = "datel";
-char                  mqtt_key[20]          = "hanka12";
-//#define test
-#ifdef test
-char                  mqtt_base[60]         = "/home/SolarMereniTest";
-char                  static_ip[16]         = "192.168.1.117";
-#else
-char                  mqtt_base[60]         = "/home/SolarMereni";
-char                  static_ip[16]         = "192.168.1.116";
-#endif
-char                  static_gw[16]         = "192.168.1.1";
-char                  static_sn[16]         = "255.255.255.0";
+char      mqtt_username[40]         = "datel";
+char      mqtt_key[20]              = "hanka12";
+//#define test                   
+#ifdef test                      
+char      mqtt_base[60]             = "/home/SolarMereniTest";
+char      static_ip[16]             = "192.168.1.117";
+#else                            
+char      mqtt_base[60]             = "/home/SolarMereni";
+char      static_ip[16]             = "192.168.1.116";
+#endif                           
+char      static_gw[16]             = "192.168.1.1";
+char      static_sn[16]             = "255.255.255.0";
 
-#define VIN                                  A0 // define the Arduino pin A0 as voltage input (V in)
-#define LED2PIN                              D3 //stav rele
-#define LED1PIN                              D4 //
-//#define CHAROUT                              D7 //vystup z regulatoru
-#define CHAROUT                              D6 //vystup z regulatoru, na testovacim je D7 asi spaleny
-#define RELAYPIN                             D8 //pin rele
-#define PIRPIN                               D6 //pin pir sensoru
-//SDA                                        D2
-//SCL                                        D1
+#define VIN                         A0 // define the Arduino pin A0 as voltage input (V in)
+#define LED2PIN                     D3 //stav rele
+#define LED1PIN                     D4 //
+//#define CHAROUT                     D7 //vystup z regulatoru
+#define CHAROUT                     D6 //vystup z regulatoru, na testovacim je D7 asi spaleny
+#define RELAYPIN                    D8 //pin rele
+#define PIRPIN                      D6 //pin pir sensoru
+//SDA                               D2
+//SCL                               D1
 
 
-//mereni napeti
-int16_t voltageRegInMin        = MAX; //vystup z panelu, rozsah 0-20V
-int16_t voltageRegOutMin       = MAX; //vystup z regulatoru, rozsah 0-15V
-int16_t voltageAcuMin          = MAX; //vystup z regulatoru, rozsah 0-15V
-int16_t voltage12VMin          = MAX; //vystup z regulatoru, rozsah 0-15V
-int16_t voltageRegInMax        = 0; //vystup z panelu, rozsah 0-20V
-int16_t voltageRegOutMax       = 0; //vystup z regulatoru, rozsah 0-15V
-int16_t voltageAcuMax          = 0; //vystup z regulatoru, rozsah 0-15V
-int16_t voltage12VMax          = 0; //vystup z regulatoru, rozsah 0-15V
-int16_t voltageRef             = 0; //napeti napajeni
-float koef                     = 0;
-float dilkuIn                  = 0;
-float dilkuAcu                 = 0;
-float dilkuOut                 = 0;
+//mereni napeti   
+int16_t   voltageRegInMin           = MAX; //vystup z panelu, rozsah 0-20V
+int16_t   voltageRegOutMin          = MAX; //vystup z regulatoru, rozsah 0-15V
+int16_t   voltageAcuMin             = MAX; //vystup z regulatoru, rozsah 0-15V
+int16_t   voltage12VMin             = MAX; //vystup z regulatoru, rozsah 0-15V
+int16_t   voltageRegInMax           = 0; //vystup z panelu, rozsah 0-20V
+int16_t   voltageRegOutMax          = 0; //vystup z regulatoru, rozsah 0-15V
+int16_t   voltageAcuMax             = 0; //vystup z regulatoru, rozsah 0-15V
+int16_t   voltage12VMax             = 0; //vystup z regulatoru, rozsah 0-15V
+int16_t   voltageRef                = 0; //napeti napajeni
+float     koef                      = 0;
+float     dilkuIn                   = 0;
+float     dilkuAcu                  = 0;
+float     dilkuOut                  = 0;
+  
+byte charOut                        = 0;
 
 //mereni proudu
-float currentRegIn;
-float currentAcu;
-float currentRegOut;
+float     currentRegIn              = 0.f;
+float     currentAcu                = 0.f;
+float     currentRegOut             = 0.f;
+      
+float     currentRegInSum           = 0.f;
+float     currentAcuSum             = 0.f;
+float     currentRegOutSum          = 0.f;
+int16_t   intervalMSec              = 0;
+
 
 #define         CHANNEL_REG_IN_CURRENT          0
 #define         CHANNEL_REG_ACU_IN_CURRENT      1
@@ -200,17 +208,17 @@ float currentRegOut;
 Adafruit_INA219 ina219_1; //output
 Adafruit_INA219 ina219_2(0x41); //batery
 
-float                 shuntvoltage_1           = 0;
-float                 busvoltage_1             = 0;
-float                 current_mA_1             = 0;
-float                 loadvoltage_1            = 0;
-float                 power_mW_1               = 0;
-float                 shuntvoltage_2           = 0;
-float                 busvoltage_2             = 0;
-float                 current_mA_2             = 0;
-float                 loadvoltage_2            = 0;
-float                 power_mW_2               = 0;
-
+float     shuntvoltage_1            = 0;
+float     busvoltage_1              = 0;
+float     current_mA_1              = 0;
+float     loadvoltage_1             = 0;
+float     power_mW_1                = 0;
+float     shuntvoltage_2            = 0;
+float     busvoltage_2              = 0;
+float     current_mA_2              = 0;
+float     loadvoltage_2             = 0;
+float     power_mW_2                = 0;
+  
 
 //gets called when WiFiManager enters configuration mode
 void configModeCallback (WiFiManager *myWiFiManager) {
@@ -265,6 +273,12 @@ void setup() {
   pinMode(RELAYPIN, OUTPUT);
   pinMode(PIRPIN, INPUT);
 
+  rst_info *_reset_info = ESP.getResetInfoPtr();
+  uint8_t _reset_reason = _reset_info->reason;
+  DEBUG_PRINT("Boot-Mode: ");
+  DEBUG_PRINTLN(_reset_reason);
+  heartBeat = _reset_reason;
+  
   ticker.attach(1, tick);
   
   WiFiManager wifiManager;
@@ -407,6 +421,10 @@ void loop() {
   } else {
     lcd.noBacklight();
   }*/
+  
+  if (charOut == 0) {
+    charOut = digitalRead(CHAROUT);
+  }
 }
 
 void relay() {
@@ -435,14 +453,30 @@ bool readADC(void *) {
   // voltageRegOutMax   = max(voltage, voltageRegOutMax); 
   // voltageAcuMax      = max(voltage, voltageAcuMax);
   // voltage12VMax      = max(voltage, voltage12VMax);
+  voltageRegInMin    = 18.f;
+  voltageRegOutMin   = 12.f; 
+  voltageAcuMin      = 12.f;
+  voltage12VMin      = 12.f;
+  voltageRegInMax    = 18.f;
+  voltageRegOutMax   = 12.f; 
+  voltageAcuMax      = 12.f;
+  voltage12VMax      = 12.f;
+  
   koef = ((5.f / 1024.f) * analogRead(VIN)) / 2.f;
   
   dilkuIn = (float)ads1.readADC_SingleEnded(CHANNEL_REG_IN_CURRENT);
   currentRegIn  = ((dilkuIn     * VOLTDILEKADC1) - koef) * V2MV / MVAMPERIN;
-  dilkuAcu = (float)ads1.readADC_SingleEnded(CHANNEL_REG_ACU_OUT_CURRENT);
+  currentRegInSum += currentRegIn * (READADC_DELAY / 1000);
+  
+  dilkuAcu = (float)ads1.readADC_SingleEnded(CHANNEL_REG_ACU_IN_CURRENT);
   currentAcu    = ((dilkuAcu   * VOLTDILEKADC1) - koef) * V2MV / MVAMPERACU;
+  currentAcuSum += currentAcu * (READADC_DELAY / 1000);
+  
   dilkuOut = (float)ads1.readADC_SingleEnded(CHANNEL_REG_OUT_CURRENT);
   currentRegOut = ((dilkuOut    * VOLTDILEKADC1) - koef) * V2MV / MVAMPEROUT;
+  currentRegOutSum += currentRegOut * (READADC_DELAY / 1000);
+  
+  intervalMSec += READADC_DELAY;
   
   readINA();
 
@@ -506,37 +540,29 @@ bool sendDataHA(void *) {
   // sender.add("adcAcuMax", adcAcuMax);
   // sender.add("adc12VMax", adc12VMax);
   
-  sender.add("chargerOUT",        digitalRead(CHAROUT));
+  sender.add("chargerOUT",        charOut);
+  charOut = 0;
 
-  //sender.add("voltageRegInMin",   voltageRegInMin);
-  //sender.add("voltageRegInMax",   voltageRegInMax);
-  sender.add("voltageRegInMin",   18.f);
-  sender.add("voltageRegInMax",   18.f);
-  //sender.add("voltageRegOutMin",  voltageRegOutMin);
-  //sender.add("voltageRegOutMax",  voltageRegOutMax);
-  sender.add("voltageRegOutMin",  12.f);
-  sender.add("voltageRegOutMax",  12.f);
-  //sender.add("voltageAcuMin",     voltageAcuMin);
-  //sender.add("voltageAcuMax",     voltageAcuMax);
-  sender.add("voltageAcuMin",     12.f);
-  sender.add("voltageAcuMax",     12.f);
-  //sender.add("voltage12VMin",     voltage12VMin);
-  //sender.add("voltage12VMax",     voltage12VMax);
-  sender.add("voltage12VMin",     12.f);
-  sender.add("voltage12VMax",     12.f);
+  sender.add("voltageRegInMin",   voltageRegInMin);
+  sender.add("voltageRegInMax",   voltageRegInMax);
+  sender.add("voltageRegOutMin",  voltageRegOutMin);
+  sender.add("voltageRegOutMax",  voltageRegOutMax);
+  sender.add("voltageAcuMin",     voltageAcuMin);
+  sender.add("voltageAcuMax",     voltageAcuMax);
+  sender.add("voltage12VMin",     voltage12VMin);
+  sender.add("voltage12VMax",     voltage12VMax);
 
-  sender.add("currentRegIn",      currentRegIn);
-  sender.add("currentRegOut",     currentRegOut);
-  sender.add("currentAcu",        currentAcu);
+  sender.add("currentRegIn",      currentRegInSum / (float)(intervalMSec / 1000));
+  sender.add("currentRegOut",     currentRegOutSum / (float)(intervalMSec / 1000));
+  sender.add("currentAcu",        currentAcuSum / (float)(intervalMSec / 1000));
+  
   sender.add("NapetiSbernice",    koef);
   sender.add("dilkuIn",           dilkuIn);
   sender.add("dilkuAcu",          dilkuAcu);
   sender.add("dilkuOut",          dilkuOut);
 
-  //sender.add("powerIn",           currentRegIn * voltageRegInMax);
-  //sender.add("powerOut",          currentRegOut * voltageRegOutMax);
-  sender.add("powerIn",           currentRegIn * 18);
-  sender.add("powerOut",          currentRegOut * 12);
+  sender.add("powerIn",           currentRegInSum / (float)(intervalMSec / 1000) * voltageRegInMax);
+  sender.add("powerOut",          currentRegOutSum / (float)(intervalMSec / 1000) * voltageRegOutMax);
   
   sender.add("busVoltage", busvoltage_1);
   sender.add("shuntVoltage", shuntvoltage_1);
@@ -560,6 +586,10 @@ bool sendDataHA(void *) {
   voltageRegOutMax  = 0;
   voltageAcuMax     = 0;   
   voltage12VMax     = 0;   
+  intervalMSec      = 0;
+  currentAcuSum     = 0.f;
+  currentRegInSum   = 0.f;
+  currentRegOutSum  = 0.f;
   
   DEBUG_PRINTLN(F("Calling MQTT"));
 
