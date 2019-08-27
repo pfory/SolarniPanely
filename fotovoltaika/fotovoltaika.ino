@@ -108,6 +108,7 @@ unsigned long lastOffOn                      = 0; //zamezuje cyklickemu zapinani
 #define ota
 #ifdef ota
 #define HOSTNAMEOTA   "fotovoltaika"
+#include <ArduinoOTA.h>
 #endif
 
 #define AUTOCONNECTNAME   HOSTNAMEOTA
@@ -136,9 +137,6 @@ unsigned long lastOffOn                      = 0; //zamezuje cyklickemu zapinani
 
 uint32_t heartBeat                          = 0;
 
-#ifdef ota
-#include <ArduinoOTA.h>
-#endif
 
 char      mqtt_username[40]         = "datel";
 char      mqtt_key[20]              = "hanka12";
