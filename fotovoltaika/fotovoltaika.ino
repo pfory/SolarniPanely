@@ -92,7 +92,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.35"
+#define     VERSION                          "0.39"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
@@ -155,7 +155,7 @@ char      static_sn[16]             = "255.255.255.0";
 #define LED2PIN                     D3 //stav rele
 #define LED1PIN                     D4 //
 //#define CHAROUT                     D7 //vystup z regulatoru
-#define CHAROUT                     D6 //vystup z regulatoru, na testovacim je D7 asi spaleny
+#define CHAROUTPIN                  D6 //vystup z regulatoru, na testovacim je D7 asi spaleny
 #define RELAYPIN                    D8 //pin rele
 #define PIRPIN                      D6 //pin pir sensoru
 //SDA                               D2
@@ -171,13 +171,12 @@ int16_t   voltageRegInMax           = 0; //vystup z panelu, rozsah 0-20V
 int16_t   voltageRegOutMax          = 0; //vystup z regulatoru, rozsah 0-15V
 int16_t   voltageAcuMax             = 0; //vystup z regulatoru, rozsah 0-15V
 int16_t   voltage12VMax             = 0; //vystup z regulatoru, rozsah 0-15V
-int16_t   voltageRef                = 0; //napeti napajeni
 float     koef                      = 0;
 float     dilkuIn                   = 0;
 float     dilkuAcu                  = 0;
 float     dilkuOut                  = 0;
   
-byte charOut                        = 0;
+byte      charOut                   = LOW;
 
 //mereni proudu
 float     currentRegIn              = 0.f;
@@ -267,7 +266,7 @@ void setup() {
   pinMode(BUILTIN_LED, OUTPUT);
   pinMode(LED1PIN, OUTPUT);
   pinMode(LED2PIN, OUTPUT);
-  pinMode(CHAROUT, INPUT);
+  pinMode(CHAROUTPIN, INPUT);
   pinMode(RELAYPIN, OUTPUT);
   pinMode(PIRPIN, INPUT);
 
@@ -420,13 +419,16 @@ void loop() {
     lcd.noBacklight();
   }*/
   
-  if (charOut == 0) {
-    charOut = digitalRead(CHAROUT);
-  }
+  
+  //if (charOut==0) {
+   charOut = digitalRead(CHAROUTPIN);
+  //}
+  lcd.setCursor(16,3);
+  lcd.print(charOut);
 }
 
 void relay() {
-  if (digitalRead(CHAROUT)==HIGH) {
+  if (digitalRead(CHAROUTPIN)==HIGH) {
     if (millis() - DELAY_AFTER_ON > lastOffOn) {
       digitalWrite(RELAYPIN, HIGH);
       digitalWrite(LED2PIN, HIGH);
@@ -539,7 +541,7 @@ bool sendDataHA(void *) {
   // sender.add("adc12VMax", adc12VMax);
   
   sender.add("chargerOUT",        charOut);
-  charOut = 0;
+  //charOut = 0;
 
   sender.add("voltageRegInMin",   voltageRegInMin);
   sender.add("voltageRegInMax",   voltageRegInMax);
@@ -771,8 +773,10 @@ void lcdShow() {
     lcd.print(voltageRegOutMax*currentRegOut);
     lcd.print(POWER_UNIT);
 
-    lcd.setCursor(15,3);
-    lcd.print(voltageRef);
+    lcd.setCursor(10,3);
+    lcd.print(koef, 3);
+
+
 
   }
 }
