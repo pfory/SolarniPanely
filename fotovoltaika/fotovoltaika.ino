@@ -67,21 +67,21 @@ unsigned int display                        = 0;
 
 #define POZREGIN_CURRENTX                   0
 #define POZREGIN_CURRENTY                   1
-#define POZREGACU_CURRENTX                  6
+#define POZREGACU_CURRENTX                  7
 #define POZREGACU_CURRENTY                  1
-#define POZREGOUT_CURRENTX                 12
+#define POZREGOUT_CURRENTX                 13
 #define POZREGOUT_CURRENTY                  1
 #define POZREGIN_VOLTAGEX                   0
 #define POZREGIN_VOLTAGEY                   2
-#define POZREGACU_VOLTAGEX                  6
+#define POZREGACU_VOLTAGEX                  7
 #define POZREGACU_VOLTAGEY                  2
-#define POZREGOUT_VOLTAGEX                  11
+#define POZREGOUT_VOLTAGEX                  13
 #define POZREGOUT_VOLTAGEY                  2
-#define POZREGIN_POWERX                     0
+#define POZREGIN_POWERX                     1
 #define POZREGIN_POWERXY                    0
-#define POZREGACU_POWERX                    7
+#define POZREGACU_POWERX                    8
 #define POZREGACU_POWERXY                   0
-#define POZREGOUT_POWERX                    12
+#define POZREGOUT_POWERX                    15
 #define POZREGOUT_POWERXY                   0
 
 
@@ -92,7 +92,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.39"
+#define     VERSION                          "0.40"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
@@ -740,44 +740,81 @@ bool displayTime(void *) {
 //---------------------------------------------D I S P L A Y ------------------------------------------------
 void lcdShow() {
   if (display==DISPLAY_MAIN) {
-    //012345678+90123456789     //Reg In    Acu    Out  
-    // 254W  100W  140W ON      //power
-    //10.8A 10.1A  2.3A         //current
-    //18.6V 12.0V 14.5V         //voltage
+    //01234567890123456789     //Reg In    Acu    Out  
+    //  254W   100W   140W      //power
+    // 10.8A  10.1A  12.3A      //current
+    // 18.6V  12.0V  14.5V      //voltage
     //15:23 50.6Ah  25.2Ah      //hour   capacity
-    lcd.setCursor(POZREGIN_CURRENTX,POZREGIN_CURRENTY);
-    lcd.print(currentRegIn);
-    lcd.print(CURRENT_UNIT);
-    lcd.setCursor(POZREGACU_CURRENTX,POZREGACU_CURRENTY);
-    lcd.print(currentAcu);
-    lcd.print(CURRENT_UNIT);
-    lcd.setCursor(POZREGOUT_CURRENTX,POZREGOUT_CURRENTY);
-    lcd.print(currentRegOut);
-    lcd.print(CURRENT_UNIT);
-    lcd.setCursor(POZREGIN_VOLTAGEX,POZREGIN_VOLTAGEY);
-    lcd.print(voltageRegInMax);
-    lcd.print(VOLTAGE_UNIT);
-    lcd.setCursor(POZREGACU_VOLTAGEX,POZREGACU_VOLTAGEY);
-    lcd.print(voltageAcuMax);
-    lcd.print(VOLTAGE_UNIT);
-    lcd.setCursor(POZREGOUT_VOLTAGEX,POZREGOUT_VOLTAGEY);
-    lcd.print(voltageRegOutMax);
-    lcd.print(VOLTAGE_UNIT);
-    lcd.setCursor(POZREGIN_POWERX,POZREGIN_POWERXY);
-    lcd.print(voltageRegInMax*currentRegIn);
+    displayValue(POZREGIN_POWERX,POZREGIN_POWERXY, voltageRegInMax*currentRegIn, false);
     lcd.print(POWER_UNIT);
-    lcd.setCursor(POZREGACU_POWERX,POZREGACU_POWERXY);
-    lcd.print(voltageAcuMax*currentAcu);
+    displayValue(POZREGACU_POWERX,POZREGACU_POWERXY, voltageAcuMax*currentAcu, false)
     lcd.print(POWER_UNIT);
-    lcd.setCursor(POZREGOUT_POWERX,POZREGOUT_POWERXY);
-    lcd.print(voltageRegOutMax*currentRegOut);
+    displayValue(POZREGOUT_POWERX,POZREGOUT_POWERXY, voltageRegOutMax*currentRegOut, false);
     lcd.print(POWER_UNIT);
+    displayValue(POZREGIN_CURRENTX,POZREGIN_CURRENTY, currentRegIn, true);
+    lcd.print(CURRENT_UNIT);
+    displayValue(POZREGACU_CURRENTX,POZREGACU_CURRENTY, currentAcu, true);
+    lcd.print(CURRENT_UNIT);
+    displayValue(POZREGOUT_CURRENTX,POZREGOUT_CURRENTY, currentRegOut, true);
+    lcd.print(CURRENT_UNIT);
+    displayValue(POZREGIN_VOLTAGEX,POZREGIN_VOLTAGEY, voltageRegInMax, true);
+    lcd.print(VOLTAGE_UNIT);
+    displayValue(POZREGACU_VOLTAGEX,POZREGACU_VOLTAGEY, voltageAcuMax, true);
+    lcd.print(VOLTAGE_UNIT);
+    displayValue(POZREGOUT_VOLTAGEX,POZREGOUT_VOLTAGEY, voltageRegOutMax, true);
+    lcd.print(VOLTAGE_UNIT);
 
     lcd.setCursor(10,3);
     lcd.print(koef, 3);
-
-
-
   }
+}
+
+
+void displayValue(int x, int y, float value, bool des) {
+  /*
+  value     des=true   des=false
+            0123       0123
+  89.3      89.3       89
+  10.0      10.0       10
+   9.9       9.9        9
+   1.1       1.1        1
+   0.9       0.9        0
+   0.1       0.0        0
+   0.0       0.0        0
+  -0.1      -0.1       -0
+  -0.9      -0.9       -0
+  -1.0      -1.0       -1
+  -9.9      -9.9       -9
+ -10.0      -10        -10
+ -25.2      -25        -25  
+   */
+  lcd.setCursor(x,y);
+  
+  //DEBUG_PRINTLN(F(value);
+  if (!des) {
+    value = round(value);
+  }
+  
+  if (value<10.f && value>=0.f) {
+    //DEBUG_PRINT(F("_"));
+    lcd.print(F(" "));
+  } else if (value<0.f && value>-10.f) {
+    //DEBUG_PRINT(F("_"));
+    lcd.print(F("-"));
+  } else if (value<-10.f) {
+    des = false;
+    //DEBUG_PRINT("-"));
+  }
+  
+  // if (value>=100.f) {
+    // value=value-100.f;
+  // }
+ 
+  lcd.print(abs((int)value));
+  if (des) {
+    lcd.print(F("."));
+    lcd.print(abs((int)(value*10)%10));
+  }
+  lcd.print(F(" "));
 }
 
