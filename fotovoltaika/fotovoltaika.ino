@@ -92,7 +92,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.41"
+#define     VERSION                          "0.43"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
@@ -159,8 +159,7 @@ char      static_sn[16]             = "255.255.255.0";
 #define VIN                         A0 // define the Arduino pin A0 as voltage input (V in)
 #define LED2PIN                     D3 //stav rele
 #define LED1PIN                     D4 //
-//#define CHAROUT                     D7 //vystup z regulatoru
-#define CHAROUTPIN                  D6 //vystup z regulatoru, na testovacim je D7 asi spaleny
+#define CHAROUTPIN                  D7 //vystup z regulatoru, na testovacim je D7 asi spaleny
 #define RELAYPIN                    D8 //pin rele
 #define PIRPIN                      D6 //pin pir sensoru
 //SDA                               D2
@@ -198,7 +197,7 @@ int16_t   intervalMSec              = 0;
 #define         CHANNEL_REG_IN_CURRENT          0
 #define         CHANNEL_REG_ACU_IN_CURRENT      1
 #define         CHANNEL_REG_OUT_CURRENT         2
-#define         CHANNEL_REG_ACU_OUT_CURRENT     3
+#define         CHANNEL_VOLTAGE_REF             3
 
 #define         VOLTDILEKADC1                   0.0001875
 //#define         VOLTDILEKADC2                   0.0001875
@@ -474,7 +473,8 @@ bool readADC(void *) {
   voltageAcuMax      = 12.f;
   voltage12VMax      = 12.f;
   
-  koef = ((5.f / 1024.f) * analogRead(VIN)) / 2.f;
+  //koef = ((5.f / 1024.f) * analogRead(VIN)) / 2.f;
+  koef    = ((float)ads1.readADC_SingleEnded(CHANNEL_VOLTAGE_REF) * VOLTDILEKADC1) / 2.f;
   
   dilkuIn = (float)ads1.readADC_SingleEnded(CHANNEL_REG_IN_CURRENT);
   currentRegIn  = ((dilkuIn     * VOLTDILEKADC1) - koef) * V2MV / MVAMPERIN;
@@ -488,6 +488,7 @@ bool readADC(void *) {
   currentRegOut = ((dilkuOut    * VOLTDILEKADC1) - koef) * V2MV / MVAMPEROUT;
   currentRegOutSum += currentRegOut * (READADC_DELAY / 1000);
   
+
   intervalMSec += READADC_DELAY;
   
   readINA();
