@@ -177,6 +177,7 @@ float     dilkuAcu                  = 0;
 float     dilkuOut                  = 0;
   
 byte      charOut                   = LOW;
+byte      charOutOld                = LOW;
 
 //mereni proudu
 float     currentRegIn              = 0.f;
@@ -420,11 +421,12 @@ void loop() {
   }*/
   
   
-  //if (charOut==0) {
-   charOut = digitalRead(CHAROUTPIN);
-  //}
+  charOut = digitalRead(CHAROUTPIN);
+  if (charOut!=charOutOld) {
+    charOutOld = charOut;
+  }
   lcd.setCursor(16,3);
-  lcd.print(charOut);
+  lcd.print(digitalRead(CHAROUTPIN));
 }
 
 void relay() {
@@ -541,7 +543,7 @@ bool sendDataHA(void *) {
   // sender.add("adc12VMax", adc12VMax);
   
   sender.add("chargerOUT",        charOut);
-  //charOut = 0;
+  charOutOld = charOut;
 
   sender.add("voltageRegInMin",   voltageRegInMin);
   sender.add("voltageRegInMax",   voltageRegInMax);
@@ -747,7 +749,7 @@ void lcdShow() {
     //15:23 50.6Ah  25.2Ah      //hour   capacity
     displayValue(POZREGIN_POWERX,POZREGIN_POWERXY, voltageRegInMax*currentRegIn, false);
     lcd.print(POWER_UNIT);
-    displayValue(POZREGACU_POWERX,POZREGACU_POWERXY, voltageAcuMax*currentAcu, false)
+    displayValue(POZREGACU_POWERX,POZREGACU_POWERXY, voltageAcuMax*currentAcu, false);
     lcd.print(POWER_UNIT);
     displayValue(POZREGOUT_POWERX,POZREGOUT_POWERXY, voltageRegOutMax*currentRegOut, false);
     lcd.print(POWER_UNIT);
