@@ -92,15 +92,20 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.40"
+#define     VERSION                          "0.41"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
 #define SENDSTAT_DELAY                       60000 //poslani statistiky kazdou minutu
 #define READADC_DELAY                        1000  //cteni ADC
 
-#define DELAY_AFTER_ON                       300000 //interval sepnuti vystupniho rele 5 minut
-unsigned long lastOffOn                      = 0; //zamezuje cyklickemu zapinani a vypinani rele
+#define RELAY_DELAY_ON                       300000 //interval prodlevy po rozepnuti rele
+#define RELAY_DELAY_OFF                      5000   //interval prodlevy po sepnuti rele
+unsigned long lastRelayChange                = 0;   //zamezuje cyklickemu zapinani a vypinani rele
+
+#define RELAY_ON                             HIGH
+#define RELAY_OFF                            LOW
+byte relayStatus                             = RELAY_OFF;
 
 #define MAX                                  32767
 #define MIN                                  -32767
@@ -430,15 +435,20 @@ void loop() {
 }
 
 void relay() {
-  if (digitalRead(CHAROUTPIN)==HIGH) {
-    if (millis() - DELAY_AFTER_ON > lastOffOn) {
-      digitalWrite(RELAYPIN, HIGH);
+  if (digitalRead(CHAROUTPIN)==HIGH && relayStatus == RELAY_OFF) { //zmena 0-1
+    if (millis() - RELAY_DELAY_ON > lastRelayChange) {
+      relayStatus = RELAY_ON;
+      digitalWrite(RELAYPIN, relayStatus);
       digitalWrite(LED2PIN, HIGH);
+      lastRelayChange = millis();
     }
-  }else{
-    digitalWrite(RELAYPIN, LOW);
-    digitalWrite(LED2PIN, LOW);
-    lastOffOn = millis();
+  }else if (digitalRead(CHAROUTPIN)==LOW && relayStatus == RELAY_ON) { //zmena 1-0
+    if (millis() - RELAY_DELAY_OFF > lastRelayChange) {
+      relayStatus = RELAY_OFF;
+      digitalWrite(RELAYPIN, relayStatus);
+      digitalWrite(LED2PIN, LOW);
+      lastRelayChange = millis();
+    }
   }
 }
 
