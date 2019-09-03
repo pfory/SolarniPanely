@@ -77,11 +77,11 @@ unsigned int display                        = 0;
 #define POZREGACU_VOLTAGEY                  2
 #define POZREGOUT_VOLTAGEX                  13
 #define POZREGOUT_VOLTAGEY                  2
-#define POZREGIN_POWERX                     1
+#define POZREGIN_POWERX                     2
 #define POZREGIN_POWERXY                    0
-#define POZREGACU_POWERX                    8
+#define POZREGACU_POWERX                    9
 #define POZREGACU_POWERXY                   0
-#define POZREGOUT_POWERX                    15
+#define POZREGOUT_POWERX                    16
 #define POZREGOUT_POWERXY                   0
 
 
@@ -92,7 +92,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.43"
+#define     VERSION                          "0.44"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
@@ -435,14 +435,14 @@ void loop() {
 
 void relay() {
   if (digitalRead(CHAROUTPIN)==HIGH && relayStatus == RELAY_OFF) { //zmena 0-1
-    if (millis() - RELAY_DELAY_ON > lastRelayChange) {
+    if (millis() - RELAY_DELAY_OFF > lastRelayChange) {
       relayStatus = RELAY_ON;
       digitalWrite(RELAYPIN, relayStatus);
       digitalWrite(LED2PIN, HIGH);
       lastRelayChange = millis();
     }
   }else if (digitalRead(CHAROUTPIN)==LOW && relayStatus == RELAY_ON) { //zmena 1-0
-    if (millis() - RELAY_DELAY_OFF > lastRelayChange) {
+    if (millis() - RELAY_DELAY_ON > lastRelayChange) {
       relayStatus = RELAY_OFF;
       digitalWrite(RELAYPIN, relayStatus);
       digitalWrite(LED2PIN, LOW);
@@ -786,20 +786,22 @@ void lcdShow() {
 void displayValue(int x, int y, float value, bool des) {
   /*
   value     des=true   des=false
-            0123       0123
-  89.3      89.3       89
-  10.0      10.0       10
-   9.9       9.9        9
-   1.1       1.1        1
-   0.9       0.9        0
-   0.1       0.0        0
-   0.0       0.0        0
-  -0.1      -0.1       -0
-  -0.9      -0.9       -0
-  -1.0      -1.0       -1
-  -9.9      -9.9       -9
- -10.0      -10        -10
- -25.2      -25        -25  
+               01234        0123
+ 245.5         245.5         245 
+  89.3          89.3          89 
+  10.0          10.0          10 
+   9.9           9.9           9 
+   1.1           1.1           1 
+   0.9           0.9           0 
+   0.1           0.0           0 
+   0.0           0.0           0 
+  -0.1          -0.1          -0 
+  -0.9          -0.9          -0 
+  -1.0          -1.0          -1 
+  -9.9          -9.9          -9 
+ -10.0         -10.0         -10 
+ -25.2         -25.2         -25 
+-245.5         -245         -245
    */
   lcd.setCursor(x,y);
   
@@ -807,27 +809,31 @@ void displayValue(int x, int y, float value, bool des) {
   if (!des) {
     value = round(value);
   }
+
+  if (des && value>-100.f) {
+    lcd.print(F(" "));
+  }
   
-  if (value<10.f && value>=0.f) {
+  if (value>=100.f) {
+  } else if (value>10.f && value < 100.f) {
+    lcd.print(F(" "));
+  } else if (value<10.f && value>=0.f) {
     //DEBUG_PRINT(F("_"));
+    lcd.print(F(" "));
     lcd.print(F(" "));
   } else if (value<0.f && value>-10.f) {
     //DEBUG_PRINT(F("_"));
+    lcd.print(F(" "));
     lcd.print(F("-"));
   } else if (value<-10.f) {
+    lcd.print(F("-"));
     des = false;
-    //DEBUG_PRINT("-"));
   }
   
-  // if (value>=100.f) {
-    // value=value-100.f;
-  // }
- 
   lcd.print(abs((int)value));
   if (des) {
     lcd.print(F("."));
     lcd.print(abs((int)(value*10)%10));
   }
-  lcd.print(F(" "));
 }
 
