@@ -92,14 +92,14 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.44"
+#define     VERSION                          "0.46"
 #define     SW_NAME                          "Fotovoltaika"
 
-#define SEND_DELAY                           30000  //prodleva mezi poslanim dat v ms
+#define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
 #define SENDSTAT_DELAY                       60000 //poslani statistiky kazdou minutu
 #define READADC_DELAY                        1000  //cteni ADC
 
-#define RELAY_DELAY_ON                       300000 //interval prodlevy po rozepnuti rele
+#define RELAY_DELAY_ON                       600000 //interval prodlevy po rozepnuti rele
 #define RELAY_DELAY_OFF                      5000   //interval prodlevy po sepnuti rele
 unsigned long lastRelayChange                = 0;   //zamezuje cyklickemu zapinani a vypinani rele
 
@@ -281,6 +281,17 @@ void setup() {
   DEBUG_PRINTLN(_reset_reason);
   heartBeat = _reset_reason;
   
+  /*
+ REASON_DEFAULT_RST             = 0      normal startup by power on 
+ REASON_WDT_RST                 = 1      hardware watch dog reset 
+ REASON_EXCEPTION_RST           = 2      exception reset, GPIO status won't change 
+ REASON_SOFT_WDT_RST            = 3      software watch dog reset, GPIO status won't change 
+ REASON_SOFT_RESTART            = 4      software restart ,system_restart , GPIO status won't change 
+ REASON_DEEP_SLEEP_AWAKE        = 5      wake up from deep-sleep 
+ REASON_EXT_SYS_RST             = 6      external system reset 
+  */
+  
+  
   ticker.attach(1, tick);
   
   WiFiManager wifiManager;
@@ -435,14 +446,14 @@ void loop() {
 
 void relay() {
   if (digitalRead(CHAROUTPIN)==HIGH && relayStatus == RELAY_OFF) { //zmena 0-1
-    if (millis() - RELAY_DELAY_OFF > lastRelayChange) {
+    if (millis() - RELAY_DELAY_ON > lastRelayChange) { //10minut
       relayStatus = RELAY_ON;
       digitalWrite(RELAYPIN, relayStatus);
       digitalWrite(LED2PIN, HIGH);
       lastRelayChange = millis();
     }
   }else if (digitalRead(CHAROUTPIN)==LOW && relayStatus == RELAY_ON) { //zmena 1-0
-    if (millis() - RELAY_DELAY_ON > lastRelayChange) {
+    if (millis() - RELAY_DELAY_OFF > lastRelayChange) { //5s
       relayStatus = RELAY_OFF;
       digitalWrite(RELAYPIN, relayStatus);
       digitalWrite(LED2PIN, LOW);
@@ -555,7 +566,9 @@ bool sendDataHA(void *) {
   
   sender.add("chargerOUT",        charOut);
   charOutOld = charOut;
-
+  sender.add("relayStatus",       relayStatus);
+  sender.add("lastRelayChange",   (uint32_t)lastRelayChange);
+  
   sender.add("voltageRegInMin",   voltageRegInMin);
   sender.add("voltageRegInMax",   voltageRegInMax);
   sender.add("voltageRegOutMin",  voltageRegOutMin);
