@@ -96,7 +96,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.48"
+#define     VERSION                          "0.49"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           1000  //prodleva mezi poslanim dat v ms
@@ -447,7 +447,7 @@ void loop() {
 }
 
 void relay() {
-  if (digitalRead(CHAROUTPIN)==HIGH && relayStatus == RELAY_OFF) { //zmena 0-1
+  if (charOut==HIGH && relayStatus == RELAY_OFF) { //zmena 0-1
     if (millis() - RELAY_DELAY_ON > lastRelayChange) { //10minut
       relayStatus = RELAY_ON;
       digitalWrite(RELAYPIN, relayStatus);
@@ -456,7 +456,7 @@ void relay() {
       lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
       lcd.print(" ON");
     }
-  }else if (digitalRead(CHAROUTPIN)==LOW && relayStatus == RELAY_ON) { //zmena 1-0
+  }else if (charOut==LOW && relayStatus == RELAY_ON) { //zmena 1-0
     if (millis() - RELAY_DELAY_OFF > lastRelayChange) { //5s
       relayStatus = RELAY_OFF;
       digitalWrite(RELAYPIN, relayStatus);
