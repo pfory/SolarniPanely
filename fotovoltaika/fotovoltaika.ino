@@ -583,6 +583,11 @@ bool sendDataHA(void *) {
   sender.add("currentAcu",        currentAcuSum / (float)(intervalMSec / 1000));
   
   sender.add("NapetiSbernice",    koef);
+  sender.add("ch0Dilky",          ads1.readADC_SingleEnded(0));
+  sender.add("ch1Dilky",          ads1.readADC_SingleEnded(1));
+  sender.add("ch2Dilky",          ads1.readADC_SingleEnded(2));
+  sender.add("ch3Dilky",          ads1.readADC_SingleEnded(3));
+  
   sender.add("dilkuIn",           dilkuIn);
   sender.add("dilkuAcu",          dilkuAcu);
   sender.add("dilkuOut",          dilkuOut);
