@@ -69,20 +69,24 @@ unsigned int display                        = 0;
 #define POZREGIN_CURRENTY                   1
 #define POZREGACU_CURRENTX                  7
 #define POZREGACU_CURRENTY                  1
-#define POZREGOUT_CURRENTX                 13
+#define POZREGOUT_CURRENTX                 14
 #define POZREGOUT_CURRENTY                  1
 #define POZREGIN_VOLTAGEX                   0
 #define POZREGIN_VOLTAGEY                   2
 #define POZREGACU_VOLTAGEX                  7
 #define POZREGACU_VOLTAGEY                  2
-#define POZREGOUT_VOLTAGEX                  13
+#define POZREGOUT_VOLTAGEX                  14
 #define POZREGOUT_VOLTAGEY                  2
-#define POZREGIN_POWERX                     2
+#define POZREGIN_POWERX                     1
 #define POZREGIN_POWERXY                    0
-#define POZREGACU_POWERX                    9
+#define POZREGACU_POWERX                    8
 #define POZREGACU_POWERXY                   0
-#define POZREGOUT_POWERX                    16
+#define POZREGOUT_POWERX                    15
 #define POZREGOUT_POWERXY                   0
+#define RELAY_STATUSX                       17
+#define RELAY_STATUSY                       3
+#define KOEFX                               10
+#define KOEFY                               3
 
 
 char                  mqtt_server[40]       = "192.168.1.56";
@@ -92,12 +96,12 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.46"
+#define     VERSION                          "0.49"
 #define     SW_NAME                          "Fotovoltaika"
 
-#define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
+#define SEND_DELAY                           1000  //prodleva mezi poslanim dat v ms
 #define SENDSTAT_DELAY                       60000 //poslani statistiky kazdou minutu
-#define READADC_DELAY                        1000  //cteni ADC
+#define READADC_DELAY                        2000  //cteni ADC
 
 #define RELAY_DELAY_ON                       600000 //interval prodlevy po rozepnuti rele
 #define RELAY_DELAY_OFF                      5000   //interval prodlevy po sepnuti rele
@@ -440,24 +444,26 @@ void loop() {
   if (charOut!=charOutOld) {
     charOutOld = charOut;
   }
-  lcd.setCursor(16,3);
-  lcd.print(digitalRead(CHAROUTPIN));
 }
 
 void relay() {
-  if (digitalRead(CHAROUTPIN)==HIGH && relayStatus == RELAY_OFF) { //zmena 0-1
+  if (charOut==HIGH && relayStatus == RELAY_OFF) { //zmena 0-1
     if (millis() - RELAY_DELAY_ON > lastRelayChange) { //10minut
       relayStatus = RELAY_ON;
       digitalWrite(RELAYPIN, relayStatus);
       digitalWrite(LED2PIN, HIGH);
       lastRelayChange = millis();
+      lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
+      lcd.print(" ON");
     }
-  }else if (digitalRead(CHAROUTPIN)==LOW && relayStatus == RELAY_ON) { //zmena 1-0
+  }else if (charOut==LOW && relayStatus == RELAY_ON) { //zmena 1-0
     if (millis() - RELAY_DELAY_OFF > lastRelayChange) { //5s
       relayStatus = RELAY_OFF;
       digitalWrite(RELAYPIN, relayStatus);
       digitalWrite(LED2PIN, LOW);
       lastRelayChange = millis();
+      lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
+      lcd.print("OFF");
     }
   }
 }
@@ -791,8 +797,9 @@ void lcdShow() {
     displayValue(POZREGOUT_VOLTAGEX,POZREGOUT_VOLTAGEY, voltageRegOutMax, true);
     lcd.print(VOLTAGE_UNIT);
 
-    lcd.setCursor(10,3);
+    lcd.setCursor(KOEFX, KOEFY);
     lcd.print(koef, 3);
+    lcd.print(VOLTAGE_UNIT);
   }
 }
 
@@ -824,12 +831,12 @@ void displayValue(int x, int y, float value, bool des) {
     value = round(value);
   }
 
-  if (des && value>-100.f) {
+  if (!des && value>-100.f) {
     lcd.print(F(" "));
   }
   
   if (value>=100.f) {
-  } else if (value>10.f && value < 100.f) {
+  } else if (value>=10.f && value < 100.f) {
     lcd.print(F(" "));
   } else if (value<10.f && value>=0.f) {
     //DEBUG_PRINT(F("_"));
