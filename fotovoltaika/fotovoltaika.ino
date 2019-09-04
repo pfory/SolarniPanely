@@ -96,7 +96,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.51"
+#define     VERSION                          "0.52"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
@@ -110,6 +110,7 @@ unsigned long lastRelayChange                = 0;   //zamezuje cyklickemu zapina
 #define RELAY_ON                             HIGH
 #define RELAY_OFF                            LOW
 byte relayStatus                             = RELAY_OFF;
+byte manualRelay                             = 0;
 
 #define MAX                                  32767
 #define MIN                                  -32767
@@ -250,6 +251,43 @@ void tick()
 }
 
 
+//MQTT callback
+void callback(char* topic, byte* payload, unsigned int length) {
+  char * pEnd;
+  long int valL;
+  String val =  String();
+  DEBUG_PRINT("Message arrived [");
+  DEBUG_PRINT(topic);
+  DEBUG_PRINT("] ");
+  for (int i=0;i<length;i++) {
+    DEBUG_PRINT((char)payload[i]);
+    val += (char)payload[i];
+  }
+  DEBUG_PRINTLN();
+  lcd.clear();
+  lcd.print(topic);
+  lcd.print(": ");
+  lcd.print(val);
+  delay(2000);
+  lcd.clear();
+  
+  if (strcmp(topic, "/home/SolarMereni/manualRelay")==0) {
+    DEBUG_PRINT("set manual control relay to ");
+    manualRelay = val.toInt();
+    if (val.toInt()==1) {
+      DEBUG_PRINTLN(F("ON"));
+    } else {
+      DEBUG_PRINTLN(F("OFF"));
+    }
+  } else if (strcmp(topic, "/home/SolarMereni/restart")==0) {
+    DEBUG_PRINT("RESTART");
+    ESP.restart();
+  }
+}
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+
 void setup() {
   SERIAL_BEGIN;
   DEBUG_PRINT(F(SW_NAME));
@@ -294,8 +332,9 @@ void setup() {
  REASON_DEEP_SLEEP_AWAKE        = 5      wake up from deep-sleep 
  REASON_EXT_SYS_RST             = 6      external system reset 
   */
-  
-  
+  client.setServer(mqtt_server, mqtt_port);
+  client.setCallback(callback);
+
   ticker.attach(1, tick);
   
   WiFiManager wifiManager;
@@ -438,6 +477,10 @@ void loop() {
   } else {
     lcd.noBacklight();
   }*/
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
   
   
   charOut = digitalRead(CHAROUTPIN);
@@ -447,24 +490,38 @@ void loop() {
 }
 
 void relay() {
-  if (charOut==HIGH && relayStatus == RELAY_OFF) { //zmena 0-1
-    if (millis() - RELAY_DELAY_ON > lastRelayChange) { //10minut
+  if (manualRelay==1) {
       relayStatus = RELAY_ON;
       digitalWrite(RELAYPIN, relayStatus);
       digitalWrite(LED2PIN, HIGH);
-      lastRelayChange = millis();
       lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
-      lcd.print(" ON");
-    }
-  }else if (charOut==LOW && relayStatus == RELAY_ON) { //zmena 1-0
-    if (millis() - RELAY_DELAY_OFF > lastRelayChange) { //5s
+      lcd.print("MON");
+  } else if (manualRelay==0) {
       relayStatus = RELAY_OFF;
       digitalWrite(RELAYPIN, relayStatus);
       digitalWrite(LED2PIN, LOW);
-      lastRelayChange = millis();
       lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
-      lcd.print("OFF");
-    }
+      lcd.print("MOF");
+  } else {
+    // if (charOut==HIGH && relayStatus == RELAY_OFF) { //zmena 0-1
+      // if (millis() - RELAY_DELAY_ON > lastRelayChange) { //10minut
+        // relayStatus = RELAY_ON;
+        // digitalWrite(RELAYPIN, relayStatus);
+        // digitalWrite(LED2PIN, HIGH);
+        // lastRelayChange = millis();
+        // lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
+        // lcd.print(" ON");
+      // }
+    // }else if (charOut==LOW && relayStatus == RELAY_ON) { //zmena 1-0
+      // if (millis() - RELAY_DELAY_OFF > lastRelayChange) { //5s
+        // relayStatus = RELAY_OFF;
+        // digitalWrite(RELAYPIN, relayStatus);
+        // digitalWrite(LED2PIN, LOW);
+        // lastRelayChange = millis();
+        // lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
+        // lcd.print("OFF");
+      // }
+    // }
   }
 }
 
@@ -510,7 +567,7 @@ bool readADC(void *) {
   
   readINA();
 
-  //relay();
+  relay();
   
   lcdShow();
 
@@ -858,3 +915,25 @@ void displayValue(int x, int y, float value, bool des) {
   }
 }
 
+void reconnect() {
+  // Loop until we're reconnected
+  while (!client.connected()) {
+    DEBUG_PRINT("Attempting MQTT connection...");
+    // Attempt to connect
+    if (client.connect(mqtt_base, mqtt_username, mqtt_key)) {
+      DEBUG_PRINTLN("connected");
+      // Once connected, publish an announcement...
+      //client.publish("outTopic","hello world");
+      // ... and resubscribe
+      //client.subscribe(mqtt_base + '/' + 'inTopic');
+      client.subscribe((String(mqtt_base) + "/" + "manualRelay").c_str());
+      client.subscribe((String(mqtt_base) + "/" + "restart").c_str());
+    } else {
+      DEBUG_PRINT("failed, rc=");
+      DEBUG_PRINT(client.state());
+      DEBUG_PRINTLN(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
+}
