@@ -193,7 +193,7 @@ float     currentRegOut             = 0.f;
 float     currentRegInSum           = 0.f;
 float     currentAcuSum             = 0.f;
 float     currentRegOutSum          = 0.f;
-int16_t   intervalMSec              = 0;
+int32_t   intervalMSec              = 0;
 
 
 #define         CHANNEL_REG_IN_CURRENT          0
@@ -548,17 +548,33 @@ bool readADC(void *) {
   int32_t dilkuInput  = ads1.readADC_SingleEnded(CHANNEL_REG_IN_CURRENT);
   int32_t dilkuAcu    = ads1.readADC_SingleEnded(CHANNEL_REG_ACU_CURRENT);
   int32_t dilkuOut    = ads1.readADC_SingleEnded(CHANNEL_REG_OUT_CURRENT);
+  DEBUG_PRINT("dilkuSupply");
+  DEBUG_PRINT(dilkuSupply);
+  DEBUG_PRINT(", dilkuInput");
+  DEBUG_PRINT(dilkuInput);
+  DEBUG_PRINT(", dilkuAcu");
+  DEBUG_PRINT(dilkuAcu);
+  DEBUG_PRINT(", dilkuOut");
+  DEBUG_PRINTLN(dilkuOut);
   
   voltageSupply    = ((float)dilkuSupply * MVOLTDILEKADC1); //in mV  example 26149 * 0.1875 = 4902,938mV
+  DEBUG_PRINT("voltageSupply");
+  DEBUG_PRINTLN(voltageSupply);
   
   currentRegIn  = ((float)(dilkuInput * 2 - dilkuSupply) * MVOLTDILEKADC1) / MVAMPERIN; //in Amp example ((15170 * 2 - 25852) * 0.1875) / 40 = ((30340 - 25852) * 0.1875) / 40 = 4488 * 0.1875 / 40
-  currentRegInSum += currentRegIn * (READADC_DELAY / 1000);
+  currentRegInSum += currentRegIn * READADC_DELAY;
+  DEBUG_PRINT("currentRegIn");
+  DEBUG_PRINTLN(currentRegIn);
   
   currentAcu    = ((float)(dilkuAcu * 2 - dilkuSupply)   * MVOLTDILEKADC1) / MVAMPERIN;
-  currentAcuSum += currentAcu * (READADC_DELAY / 1000);
+  currentAcuSum += currentAcu * READADC_DELAY;
+  DEBUG_PRINT("currentAcu");
+  DEBUG_PRINTLN(currentAcu);
   
   currentRegOut = ((float)(dilkuOut * 2 - dilkuSupply)   * MVOLTDILEKADC1) / MVAMPERIN;
-  currentRegOutSum += currentRegOut * (READADC_DELAY / 1000);
+  currentRegOutSum += currentRegOut * READADC_DELAY;
+  DEBUG_PRINT("currentRegOut");
+  DEBUG_PRINTLN(currentRegOut);
   
   intervalMSec += READADC_DELAY;
   
@@ -638,9 +654,9 @@ bool sendDataHA(void *) {
   sender.add("voltage12VMin",     voltage12VMin);
   sender.add("voltage12VMax",     voltage12VMax);
 
-  sender.add("currentRegIn",      currentRegIn); //Sum / (float)(intervalMSec / 1000));
-  sender.add("currentRegOut",     currentRegOut); //Sum / (float)(intervalMSec / 1000));
-  sender.add("currentAcu",        currentAcu), //Sum / (float)(intervalMSec / 1000));
+  sender.add("currentRegIn",      currentRegInSum   / (float)intervalMSec);
+  sender.add("currentRegOut",     currentRegOutSum  / (float)intervalMSec);
+  sender.add("currentAcu",        currentAcuSum     / (float)intervalMSec);
   
   sender.add("NapetiSbernice",    voltageSupply);
   sender.add("ch0Dilky",          ads1.readADC_SingleEnded(0));
@@ -648,8 +664,8 @@ bool sendDataHA(void *) {
   sender.add("ch2Dilky",          ads1.readADC_SingleEnded(2));
   sender.add("ch3Dilky",          ads1.readADC_SingleEnded(3));
   
-  sender.add("powerIn",           currentRegInSum / (float)(intervalMSec / 1000) * voltageRegInMax);
-  sender.add("powerOut",          currentRegOutSum / (float)(intervalMSec / 1000) * voltageRegOutMax);
+  sender.add("powerIn",           (currentRegInSum  / (float)intervalMSec) * voltageRegInMax);
+  sender.add("powerOut",          (currentRegOutSum / (float)intervalMSec) * voltageRegOutMax);
   
   sender.add("busVoltage", busvoltage_1);
   sender.add("shuntVoltage", shuntvoltage_1);
