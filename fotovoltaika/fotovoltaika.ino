@@ -96,15 +96,15 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.49"
+#define     VERSION                          "0.51"
 #define     SW_NAME                          "Fotovoltaika"
 
-#define SEND_DELAY                           1000  //prodleva mezi poslanim dat v ms
+#define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
 #define SENDSTAT_DELAY                       60000 //poslani statistiky kazdou minutu
 #define READADC_DELAY                        2000  //cteni ADC
 
 #define RELAY_DELAY_ON                       600000 //interval prodlevy po rozepnuti rele
-#define RELAY_DELAY_OFF                      5000   //interval prodlevy po sepnuti rele
+#define RELAY_DELAY_OFF                      1000   //interval prodlevy po sepnuti rele
 unsigned long lastRelayChange                = 0;   //zamezuje cyklickemu zapinani a vypinani rele
 
 #define RELAY_ON                             HIGH
@@ -510,7 +510,7 @@ bool readADC(void *) {
   
   readINA();
 
-  relay();
+  //relay();
   
   lcdShow();
 
