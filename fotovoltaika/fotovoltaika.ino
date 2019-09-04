@@ -96,7 +96,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.52"
+#define     VERSION                          "0.53"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
@@ -180,10 +180,7 @@ int16_t   voltageRegInMax           = 0; //vystup z panelu, rozsah 0-20V
 int16_t   voltageRegOutMax          = 0; //vystup z regulatoru, rozsah 0-15V
 int16_t   voltageAcuMax             = 0; //vystup z regulatoru, rozsah 0-15V
 int16_t   voltage12VMax             = 0; //vystup z regulatoru, rozsah 0-15V
-float     koef                      = 0;
-float     dilkuIn                   = 0;
-float     dilkuAcu                  = 0;
-float     dilkuOut                  = 0;
+float     voltageSupply           = 0;
   
 byte      charOut                   = LOW;
 byte      charOutOld                = LOW;
@@ -200,13 +197,13 @@ int16_t   intervalMSec              = 0;
 
 
 #define         CHANNEL_REG_IN_CURRENT          0
-#define         CHANNEL_REG_ACU_IN_CURRENT      1
+#define         CHANNEL_REG_ACU_CURRENT         1
 #define         CHANNEL_REG_OUT_CURRENT         2
-#define         CHANNEL_VOLTAGE_REF             3
+#define         CHANNEL_VOLTAGE_SUPPLY          3
 
-#define         VOLTDILEKADC1                   0.0001875
-//#define         VOLTDILEKADC2                   0.0001875
-//#define         VOLTDILEKADC3                   0.0001875
+#define         MVOLTDILEKADC1                   0.1875
+//#define         MVOLTDILEKADC2                   0.1875
+//#define         MVOLTDILEKADC3                   0.1875
 
 #define         MVAMPERIN                       40.f        // 40mV = 1A
 #define         MVAMPERACU                      100.f       // 100mV = 1A
@@ -513,7 +510,7 @@ void relay() {
         // lcd.print(" ON");
       // }
     // }else if (charOut==LOW && relayStatus == RELAY_ON) { //zmena 1-0
-      // if (millis() - RELAY_DELAY_OFF > lastRelayChange) { //5s
+      // if (millis() - RELAY_DELAY_OFF > lastRelayChange) { //1s
         // relayStatus = RELAY_OFF;
         // digitalWrite(RELAYPIN, relayStatus);
         // digitalWrite(LED2PIN, LOW);
@@ -547,22 +544,22 @@ bool readADC(void *) {
   voltageAcuMax      = 12.f;
   voltage12VMax      = 12.f;
   
-  //koef = ((5.f / 1024.f) * analogRead(VIN)) / 2.f;
-  koef    = ((float)ads1.readADC_SingleEnded(CHANNEL_VOLTAGE_REF) * VOLTDILEKADC1) / 2.f;
+  int32_t dilkuSupply = ads1.readADC_SingleEnded(CHANNEL_VOLTAGE_SUPPLY);
+  int32_t dilkuInput  = ads1.readADC_SingleEnded(CHANNEL_REG_IN_CURRENT);
+  int32_t dilkuAcu    = ads1.readADC_SingleEnded(CHANNEL_REG_ACU_CURRENT);
+  int32_t dilkuOut    = ads1.readADC_SingleEnded(CHANNEL_REG_OUT_CURRENT);
   
-  dilkuIn = (float)ads1.readADC_SingleEnded(CHANNEL_REG_IN_CURRENT);
-  currentRegIn  = ((dilkuIn     * VOLTDILEKADC1) - koef) * V2MV / MVAMPERIN;
+  voltageSupply    = ((float)dilkuSupply * MVOLTDILEKADC1); //in mV  example 26149 * 0.1875 = 4902,938mV
+  
+  currentRegIn  = ((float)(dilkuInput * 2 - dilkuSupply) * MVOLTDILEKADC1) / MVAMPERIN; //in Amp example ((15170 * 2 - 25852) * 0.1875) / 40 = ((30340 - 25852) * 0.1875) / 40 = 4488 * 0.1875 / 40
   currentRegInSum += currentRegIn * (READADC_DELAY / 1000);
   
-  dilkuAcu = (float)ads1.readADC_SingleEnded(CHANNEL_REG_ACU_IN_CURRENT);
-  currentAcu    = ((dilkuAcu   * VOLTDILEKADC1) - koef) * V2MV / MVAMPERACU;
+  currentAcu    = ((float)(dilkuAcu * 2 - dilkuSupply)   * MVOLTDILEKADC1) / MVAMPERIN;
   currentAcuSum += currentAcu * (READADC_DELAY / 1000);
   
-  dilkuOut = (float)ads1.readADC_SingleEnded(CHANNEL_REG_OUT_CURRENT);
-  currentRegOut = ((dilkuOut    * VOLTDILEKADC1) - koef) * V2MV / MVAMPEROUT;
+  currentRegOut = ((float)(dilkuOut * 2 - dilkuSupply)   * MVOLTDILEKADC1) / MVAMPERIN;
   currentRegOutSum += currentRegOut * (READADC_DELAY / 1000);
   
-
   intervalMSec += READADC_DELAY;
   
   readINA();
@@ -641,15 +638,15 @@ bool sendDataHA(void *) {
   sender.add("voltage12VMin",     voltage12VMin);
   sender.add("voltage12VMax",     voltage12VMax);
 
-  sender.add("currentRegIn",      currentRegInSum / (float)(intervalMSec / 1000));
-  sender.add("currentRegOut",     currentRegOutSum / (float)(intervalMSec / 1000));
-  sender.add("currentAcu",        currentAcuSum / (float)(intervalMSec / 1000));
+  sender.add("currentRegIn",      currentRegIn); //Sum / (float)(intervalMSec / 1000));
+  sender.add("currentRegOut",     currentRegOut); //Sum / (float)(intervalMSec / 1000));
+  sender.add("currentAcu",        currentAcu), //Sum / (float)(intervalMSec / 1000));
   
-  sender.add("NapetiSbernice",    koef);
-  // sender.add("ch0Dilky",          ads1.readADC_SingleEnded(0));
-  // sender.add("ch1Dilky",          ads1.readADC_SingleEnded(1));
-  // sender.add("ch2Dilky",          ads1.readADC_SingleEnded(2));
-  // sender.add("ch3Dilky",          ads1.readADC_SingleEnded(3));
+  sender.add("NapetiSbernice",    voltageSupply);
+  sender.add("ch0Dilky",          ads1.readADC_SingleEnded(0));
+  sender.add("ch1Dilky",          ads1.readADC_SingleEnded(1));
+  sender.add("ch2Dilky",          ads1.readADC_SingleEnded(2));
+  sender.add("ch3Dilky",          ads1.readADC_SingleEnded(3));
   
   sender.add("powerIn",           currentRegInSum / (float)(intervalMSec / 1000) * voltageRegInMax);
   sender.add("powerOut",          currentRegOutSum / (float)(intervalMSec / 1000) * voltageRegOutMax);
@@ -855,7 +852,7 @@ void lcdShow() {
     lcd.print(VOLTAGE_UNIT);
 
     lcd.setCursor(KOEFX, KOEFY);
-    lcd.print(koef, 3);
+    lcd.print(voltageSupply, 3);
     lcd.print(VOLTAGE_UNIT);
   }
 }
