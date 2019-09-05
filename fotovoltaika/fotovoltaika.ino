@@ -65,19 +65,19 @@ unsigned int display                        = 0;
 #define DISPLAY_MAIN                         0
 
 
-#define POZREGIN_CURRENTX                   0
+#define POZREGIN_CURRENTX                   1
 #define POZREGIN_CURRENTY                   1
 #define POZREGACU_CURRENTX                  7
 #define POZREGACU_CURRENTY                  1
 #define POZREGOUT_CURRENTX                 14
 #define POZREGOUT_CURRENTY                  1
-#define POZREGIN_VOLTAGEX                   0
+#define POZREGIN_VOLTAGEX                   1
 #define POZREGIN_VOLTAGEY                   2
 #define POZREGACU_VOLTAGEX                  7
 #define POZREGACU_VOLTAGEY                  2
 #define POZREGOUT_VOLTAGEX                  14
 #define POZREGOUT_VOLTAGEY                  2
-#define POZREGIN_POWERX                     1
+#define POZREGIN_POWERX                     2
 #define POZREGIN_POWERXY                    0
 #define POZREGACU_POWERX                    8
 #define POZREGACU_POWERXY                   0
@@ -96,7 +96,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.53"
+#define     VERSION                          "0.54"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
@@ -104,13 +104,13 @@ Ticker ticker;
 #define READADC_DELAY                        2000  //cteni ADC
 
 #define RELAY_DELAY_ON                       600000 //interval prodlevy po rozepnuti rele
-#define RELAY_DELAY_OFF                      1000   //interval prodlevy po sepnuti rele
+#define RELAY_DELAY_OFF                      0      //interval prodlevy po sepnuti rele
 unsigned long lastRelayChange                = 0;   //zamezuje cyklickemu zapinani a vypinani rele
 
 #define RELAY_ON                             HIGH
 #define RELAY_OFF                            LOW
 byte relayStatus                             = RELAY_OFF;
-byte manualRelay                             = 0;
+byte manualRelay                             = 2;
 
 #define MAX                                  32767
 #define MIN                                  -32767
@@ -124,6 +124,7 @@ byte manualRelay                             = 0;
 #define AUTOCONNECTNAME   HOSTNAMEOTA
 #define AUTOCONNECTPWD    "password"
 
+#define verbose
 #ifdef verbose
   #define DEBUG_PRINT(x)                     Serial.print (x)
   #define DEBUG_PRINT2(x,y)                  Serial.print (x,y)
@@ -363,6 +364,8 @@ void setup() {
   
 #ifdef time
   DEBUG_PRINTLN("Setup TIME");
+  lcd.setCursor(0,1);
+  lcd.print("Setup time...");
   EthernetUdp.begin(localPort);
   DEBUG_PRINT("Local port: ");
   DEBUG_PRINTLN(EthernetUdp.localPort());
@@ -461,6 +464,8 @@ void setup() {
   digitalWrite(BUILTIN_LED, HIGH);
   digitalWrite(LED1PIN, HIGH);
   lcd.clear();
+  lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
+  lcd.print("OFF");
 }
 
 void loop() {
@@ -500,25 +505,25 @@ void relay() {
       lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
       lcd.print("MOF");
   } else {
-    // if (charOut==HIGH && relayStatus == RELAY_OFF) { //zmena 0-1
-      // if (millis() - RELAY_DELAY_ON > lastRelayChange) { //10minut
-        // relayStatus = RELAY_ON;
-        // digitalWrite(RELAYPIN, relayStatus);
-        // digitalWrite(LED2PIN, HIGH);
-        // lastRelayChange = millis();
-        // lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
-        // lcd.print(" ON");
-      // }
-    // }else if (charOut==LOW && relayStatus == RELAY_ON) { //zmena 1-0
-      // if (millis() - RELAY_DELAY_OFF > lastRelayChange) { //1s
-        // relayStatus = RELAY_OFF;
-        // digitalWrite(RELAYPIN, relayStatus);
-        // digitalWrite(LED2PIN, LOW);
-        // lastRelayChange = millis();
-        // lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
-        // lcd.print("OFF");
-      // }
-    // }
+    if (charOut==HIGH && relayStatus == RELAY_OFF) { //zmena 0-1
+      if (millis() - RELAY_DELAY_ON > lastRelayChange) { //10minut
+        relayStatus = RELAY_ON;
+        digitalWrite(RELAYPIN, relayStatus);
+        digitalWrite(LED2PIN, HIGH);
+        lastRelayChange = millis();
+        lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
+        lcd.print(" ON");
+      }
+    }else if (charOut==LOW && relayStatus == RELAY_ON) { //zmena 1-0
+      //if (millis() - RELAY_DELAY_OFF > lastRelayChange) { //1s
+        relayStatus = RELAY_OFF;
+        digitalWrite(RELAYPIN, relayStatus);
+        digitalWrite(LED2PIN, LOW);
+        lastRelayChange = millis();
+        lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
+        lcd.print("OFF");
+      //}
+    }
   }
 }
 
@@ -548,13 +553,13 @@ bool readADC(void *) {
   int32_t dilkuInput  = ads1.readADC_SingleEnded(CHANNEL_REG_IN_CURRENT);
   int32_t dilkuAcu    = ads1.readADC_SingleEnded(CHANNEL_REG_ACU_CURRENT);
   int32_t dilkuOut    = ads1.readADC_SingleEnded(CHANNEL_REG_OUT_CURRENT);
-  DEBUG_PRINT("dilkuSupply");
+  DEBUG_PRINT("dilkuSupply:");
   DEBUG_PRINT(dilkuSupply);
-  DEBUG_PRINT(", dilkuInput");
+  DEBUG_PRINT(", dilkuInput:");
   DEBUG_PRINT(dilkuInput);
-  DEBUG_PRINT(", dilkuAcu");
+  DEBUG_PRINT(", dilkuAcu:");
   DEBUG_PRINT(dilkuAcu);
-  DEBUG_PRINT(", dilkuOut");
+  DEBUG_PRINT(", dilkuOut:");
   DEBUG_PRINTLN(dilkuOut);
   
   voltageSupply    = ((float)dilkuSupply * MVOLTDILEKADC1); //in mV  example 26149 * 0.1875 = 4902,938mV
@@ -848,18 +853,24 @@ void lcdShow() {
     // 10.8A  10.1A  12.3A      //current
     // 18.6V  12.0V  14.5V      //voltage
     //15:23 50.6Ah  25.2Ah      //hour   capacity
+    lcd.setCursor(0,0);
+    lcd.print("P");
     displayValue(POZREGIN_POWERX,POZREGIN_POWERXY, voltageRegInMax*currentRegIn, false);
     lcd.print(POWER_UNIT);
     displayValue(POZREGACU_POWERX,POZREGACU_POWERXY, voltageAcuMax*currentAcu, false);
     lcd.print(POWER_UNIT);
     displayValue(POZREGOUT_POWERX,POZREGOUT_POWERXY, voltageRegOutMax*currentRegOut, false);
     lcd.print(POWER_UNIT);
+    lcd.setCursor(0,1);
+    lcd.print("I");
     displayValue(POZREGIN_CURRENTX,POZREGIN_CURRENTY, currentRegIn, true);
     lcd.print(CURRENT_UNIT);
     displayValue(POZREGACU_CURRENTX,POZREGACU_CURRENTY, currentAcu, true);
     lcd.print(CURRENT_UNIT);
     displayValue(POZREGOUT_CURRENTX,POZREGOUT_CURRENTY, currentRegOut, true);
     lcd.print(CURRENT_UNIT);
+    lcd.setCursor(0,2);
+    lcd.print("U");
     displayValue(POZREGIN_VOLTAGEX,POZREGIN_VOLTAGEY, voltageRegInMax, true);
     lcd.print(VOLTAGE_UNIT);
     displayValue(POZREGACU_VOLTAGEX,POZREGACU_VOLTAGEY, voltageAcuMax, true);
@@ -868,7 +879,7 @@ void lcdShow() {
     lcd.print(VOLTAGE_UNIT);
 
     lcd.setCursor(KOEFX, KOEFY);
-    lcd.print(voltageSupply, 3);
+    lcd.print(voltageSupply/V2MV, 3);
     lcd.print(VOLTAGE_UNIT);
   }
 }
