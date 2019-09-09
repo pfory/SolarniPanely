@@ -69,23 +69,23 @@ unsigned int display                        = 0;
 #define POZREGIN_CURRENTY                   1
 #define POZREGACU_CURRENTX                  7
 #define POZREGACU_CURRENTY                  1
-#define POZREGOUT_CURRENTX                 14
+#define POZREGOUT_CURRENTX                 13
 #define POZREGOUT_CURRENTY                  1
 #define POZREGIN_VOLTAGEX                   1
 #define POZREGIN_VOLTAGEY                   2
 #define POZREGACU_VOLTAGEX                  7
 #define POZREGACU_VOLTAGEY                  2
-#define POZREGOUT_VOLTAGEX                  14
+#define POZREGOUT_VOLTAGEX                  13
 #define POZREGOUT_VOLTAGEY                  2
 #define POZREGIN_POWERX                     2
 #define POZREGIN_POWERXY                    0
 #define POZREGACU_POWERX                    8
 #define POZREGACU_POWERXY                   0
-#define POZREGOUT_POWERX                    15
+#define POZREGOUT_POWERX                    14
 #define POZREGOUT_POWERXY                   0
 #define RELAY_STATUSX                       17
 #define RELAY_STATUSY                       3
-#define KOEFX                               10
+#define KOEFX                               6
 #define KOEFY                               3
 
 
@@ -96,16 +96,16 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.57"
+#define     VERSION                          "0.58"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
 #define SENDSTAT_DELAY                       60000 //poslani statistiky kazdou minutu
 #define READADC_DELAY                        2000  //cteni ADC
 
-#define RELAY_DELAY_ON                       600000 //interval prodlevy po rozepnuti rele
+#define RELAY_DELAY_ON                       60000 //interval prodlevy po rozepnuti rele
 #define RELAY_DELAY_OFF                      0      //interval prodlevy po sepnuti rele
-#define RELAY_DELAY_OUT                      60000  //interval prodlevy sepnuti rele po zmene vystupu na 1
+#define RELAY_DELAY_OUT                      30000  //interval prodlevy sepnuti rele po zmene vystupu na 1
 unsigned long lastRelayChange                = 0;   //zamezuje cyklickemu zapinani a vypinani rele
 unsigned long lastOutChange                  = 0;   //zamezuje zapinani rele po kratkem impulsu na vystupu
 
@@ -497,14 +497,14 @@ void relay() {
   if (manualRelay==1) {
       relayStatus = RELAY_ON;
       digitalWrite(RELAYPIN, relayStatus);
-      digitalWrite(LED2PIN, HIGH);
+      digitalWrite(LED2PIN, LOW);
       lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
       lcd.print("MON");
       sendRelayHA(0);
   } else if (manualRelay==0) {
       relayStatus = RELAY_OFF;
       digitalWrite(RELAYPIN, relayStatus);
-      digitalWrite(LED2PIN, LOW);
+      digitalWrite(LED2PIN, HIGH);
       lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
       lcd.print("MOF");
       sendRelayHA(1);
@@ -518,18 +518,21 @@ void relay() {
           lastOutChange = 0;
           relayStatus = RELAY_ON;
           digitalWrite(RELAYPIN, relayStatus);
-          digitalWrite(LED2PIN, HIGH);
+          digitalWrite(LED2PIN, LOW);
           lastRelayChange = millis();
           lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
           lcd.print(" ON");
           sendRelayHA(2);
         }
+      } else {
+        lcd.setCursor(13,3);
+        lcd.print((millis() - lastRelayChange) / 1000);
       }
     }else if (digitalRead(CHAROUTPIN)==LOW && relayStatus == RELAY_ON) { //zmena 1-0
       //if (millis() > RELAY_DELAY_OFF + lastRelayChange) { //0s
         relayStatus = RELAY_OFF;
         digitalWrite(RELAYPIN, relayStatus);
-        digitalWrite(LED2PIN, LOW);
+        digitalWrite(LED2PIN, HIGH);
         lastRelayChange = millis();
         lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
         lcd.print("OFF");
@@ -636,6 +639,7 @@ void readINA(void) {
 }
 
 bool sendDataHA(void *) {
+  digitalWrite(LED1PIN, LOW);
   digitalWrite(BUILTIN_LED, LOW);
   SenderClass sender;
 
@@ -714,11 +718,13 @@ bool sendDataHA(void *) {
   DEBUG_PRINTLN(F("Calling MQTT"));
 
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
+  digitalWrite(LED1PIN, HIGH);
   digitalWrite(BUILTIN_LED, HIGH);
   return true;
 }
 
 bool sendStatisticHA(void *) {
+  digitalWrite(LED1PIN, LOW);
   digitalWrite(BUILTIN_LED, LOW);
   //printSystemTime();
   DEBUG_PRINTLN(F(" - I am sending statistic to HA"));
@@ -731,16 +737,21 @@ bool sendStatisticHA(void *) {
   DEBUG_PRINTLN(F("Calling MQTT"));
   
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
+  digitalWrite(LED1PIN, HIGH);
   digitalWrite(BUILTIN_LED, HIGH);
   return true;
 }
 
 
 void sendRelayHA(byte akce) {
+  digitalWrite(LED1PIN, LOW);
+  digitalWrite(BUILTIN_LED, LOW);
   SenderClass sender;
   sender.add("relayChange", akce);
   
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
+  digitalWrite(LED1PIN, HIGH);
+  digitalWrite(BUILTIN_LED, HIGH);
 }
 
 #ifdef time
