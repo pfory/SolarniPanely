@@ -107,8 +107,10 @@ v dílně baterie, měnič, regulátor a UPS
 12V přes spínací relé do stávajícího rozvodu 12V
 
 později
-dokoupit panely 2 x 100Wp
+dokoupit panely 1 x 115Wp
 
 první panel na střeše jaro 2019
 druhý panel na střeše od 16.7.2019
-třetí panel - koupeno 15.8.2019 cena 2490,- neosolar.cz na střeše od
+třetí panel - koupeno 15.8.2019 cena 2490,- neosolar.cz na střeše od 20.8.2019
+
+baterie + svorky - koupena 9.9.2019 1197,-
