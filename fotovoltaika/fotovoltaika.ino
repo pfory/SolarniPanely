@@ -956,7 +956,7 @@ void displayValue(int x, int y, float value, bool des) {
     lcd.print(F(" "));
   } else if (value<0.f && value>-10.f) {
     //DEBUG_PRINT(F("_"));
-    lcd.print(F(" "));
+    //lcd.print(F(" "));
     lcd.print(F("-"));
   } else if (value<-10.f) {
     lcd.print(F("-"));
