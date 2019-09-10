@@ -96,18 +96,16 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.58"
+#define     VERSION                          "0.60"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
-#define SENDSTAT_DELAY                       60000 //poslani statistiky kazdou minutu
-#define READADC_DELAY                        2000  //cteni ADC
+#define SENDSTAT_DELAY                       60000  //poslani statistiky kazdou minutu
+#define READADC_DELAY                        2000   //cteni ADC
 
-#define RELAY_DELAY_ON                       60000 //interval prodlevy po rozepnuti rele
-#define RELAY_DELAY_OFF                      0      //interval prodlevy po sepnuti rele
-#define RELAY_DELAY_OUT                      30000  //interval prodlevy sepnuti rele po zmene vystupu na 1
+#define RELAY_DELAY_ON                       60000  //interval prodlevy po rozepnuti rele
+#define CHAROUT_DELAY                        600000
 unsigned long lastRelayChange                = 0;   //zamezuje cyklickemu zapinani a vypinani rele
-unsigned long lastOutChange                  = 0;   //zamezuje zapinani rele po kratkem impulsu na vystupu
 
 #define RELAY_ON                             HIGH
 #define RELAY_OFF                            LOW
@@ -183,10 +181,9 @@ int16_t   voltageRegInMax           = 0; //vystup z panelu, rozsah 0-20V
 int16_t   voltageRegOutMax          = 0; //vystup z regulatoru, rozsah 0-15V
 int16_t   voltageAcuMax             = 0; //vystup z regulatoru, rozsah 0-15V
 int16_t   voltage12VMax             = 0; //vystup z regulatoru, rozsah 0-15V
-float     voltageSupply           = 0;
+float     voltageSupply             = 0;
   
-byte      charOut                   = LOW;
-byte      charOutOld                = LOW;
+uint16_t  charOutSec                = CHAROUT_DELAY; //doba po kterou je vystup sepnuty
 
 //mereni proudu
 float     currentRegIn              = 0.f;
@@ -485,59 +482,46 @@ void loop() {
     reconnect();
   }
   client.loop();
-  
-  
-  charOut = digitalRead(CHAROUTPIN);
-  if (charOut!=charOutOld) {
-    charOutOld = charOut;
-  }
 }
 
 void relay() {
+  if (digitalRead(CHAROUTPIN)==HIGH) {
+    charOutSec += (charOutSec * READADC_DELAY) / 1000;
+  }
   if (manualRelay==1) {
       relayStatus = RELAY_ON;
       digitalWrite(RELAYPIN, relayStatus);
       digitalWrite(LED2PIN, LOW);
-      lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
-      lcd.print("MON");
+      dispRelayStatus(2);
       sendRelayHA(0);
   } else if (manualRelay==0) {
       relayStatus = RELAY_OFF;
       digitalWrite(RELAYPIN, relayStatus);
       digitalWrite(LED2PIN, HIGH);
-      lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
-      lcd.print("MOF");
+      dispRelayStatus(3);
       sendRelayHA(1);
   } else {
-    if (digitalRead(CHAROUTPIN)==HIGH && relayStatus == RELAY_OFF) { //zmena 0-1
+    if (digitalRead(CHAROUTPIN)==HIGH && relayStatus == RELAY_OFF && charOutSec >= CHAROUT_DELAY) { //zmena 0-1
+      lcd.setCursor(13,3);
       if (millis() > RELAY_DELAY_ON + lastRelayChange) { //10minut
-        if (lastOutChange == 0) {
-          lastOutChange = millis();
-        }
-        if (millis() > RELAY_DELAY_OUT + lastOutChange) { //60 sec
-          lastOutChange = 0;
-          relayStatus = RELAY_ON;
-          digitalWrite(RELAYPIN, relayStatus);
-          digitalWrite(LED2PIN, LOW);
-          lastRelayChange = millis();
-          lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
-          lcd.print(" ON");
-          sendRelayHA(2);
-        }
+        lcd.print("   ");
+        relayStatus = RELAY_ON;
+        digitalWrite(RELAYPIN, relayStatus);
+        digitalWrite(LED2PIN, LOW);
+        lastRelayChange = millis();
+        dispRelayStatus(1);
+        sendRelayHA(2);
       } else {
-        lcd.setCursor(13,3);
-        lcd.print((millis() - lastRelayChange) / 1000);
+        lcd.print((millis() - RELAY_DELAY_ON + lastRelayChange) / 1000);
       }
     }else if (digitalRead(CHAROUTPIN)==LOW && relayStatus == RELAY_ON) { //zmena 1-0
-      //if (millis() > RELAY_DELAY_OFF + lastRelayChange) { //0s
-        relayStatus = RELAY_OFF;
-        digitalWrite(RELAYPIN, relayStatus);
-        digitalWrite(LED2PIN, HIGH);
-        lastRelayChange = millis();
-        lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
-        lcd.print("OFF");
-        sendRelayHA(3);
-      //}
+      relayStatus = RELAY_OFF;
+      digitalWrite(RELAYPIN, relayStatus);
+      digitalWrite(LED2PIN, HIGH);
+      lastRelayChange = millis();
+      dispRelayStatus(0);
+      charOutSec = 0;
+      sendRelayHA(3);
     }
   }
 }
@@ -661,10 +645,10 @@ bool sendDataHA(void *) {
   // sender.add("adcAcuMax", adcAcuMax);
   // sender.add("adc12VMax", adc12VMax);
   
-  sender.add("chargerOUT",        charOut);
-  charOutOld = charOut;
+  sender.add("chargerOUT",        digitalRead(CHAROUTPIN));
   sender.add("relayStatus",       relayStatus);
   sender.add("lastRelayChange",   (uint32_t)lastRelayChange);
+  sender.add("manualRelay",       manualRelay);
   
   sender.add("voltageRegInMin",   voltageRegInMin);
   sender.add("voltageRegInMax",   voltageRegInMax);
@@ -991,4 +975,12 @@ void reconnect() {
       delay(5000);
     }
   }
+}
+
+void dispRelayStatus(byte stat) {
+  lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
+  if (stat==1) lcd.print(" ON");
+  else if (stat==0) lcd.print("OFF");
+  else if (stat==2) lcd.print("MON");
+  else if (stat==3) lcd.print("MOF");
 }
