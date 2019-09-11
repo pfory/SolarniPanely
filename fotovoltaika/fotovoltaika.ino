@@ -96,7 +96,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.63"
+#define     VERSION                          "0.66"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
@@ -104,7 +104,7 @@ Ticker ticker;
 #define READADC_DELAY                        2000   //cteni ADC
 
 #define RELAY_DELAY_ON                       60000  //interval prodlevy po rozepnuti rele
-#define CHAROUT_DELAY                        600    //po tuto dobu musi byt vystup sepnuty a pak sepne rele 10 min
+#define CHAROUT_DELAY                        600000 //po tuto dobu musi byt vystup sepnuty a pak sepne rele 10 min
 unsigned long lastRelayChange                = 0;   //zamezuje cyklickemu zapinani a vypinani rele
 
 #define RELAY_ON                             HIGH
@@ -151,14 +151,8 @@ uint32_t heartBeat                          = 0;
 
 char      mqtt_username[40]         = "datel";
 char      mqtt_key[20]              = "hanka12";
-//#define test                   
-#ifdef test                      
-char      mqtt_base[60]             = "/home/SolarMereniTest";
-char      static_ip[16]             = "192.168.1.117";
-#else                            
 char      mqtt_base[60]             = "/home/SolarMereni";
 char      static_ip[16]             = "192.168.1.116";
-#endif                           
 char      static_gw[16]             = "192.168.1.1";
 char      static_sn[16]             = "255.255.255.0";
 
@@ -171,19 +165,22 @@ char      static_sn[16]             = "255.255.255.0";
 //SDA                               D2
 //SCL                               D1
 
+bool outPin                         = LOW;
+
 
 //mereni napeti   
-int16_t   voltageRegInMin           = MAX; //vystup z panelu, rozsah 0-20V
-int16_t   voltageRegOutMin          = MAX; //vystup z regulatoru, rozsah 0-15V
-int16_t   voltageAcuMin             = MAX; //vystup z regulatoru, rozsah 0-15V
-int16_t   voltage12VMin             = MAX; //vystup z regulatoru, rozsah 0-15V
-int16_t   voltageRegInMax           = 0; //vystup z panelu, rozsah 0-20V
-int16_t   voltageRegOutMax          = 0; //vystup z regulatoru, rozsah 0-15V
-int16_t   voltageAcuMax             = 0; //vystup z regulatoru, rozsah 0-15V
-int16_t   voltage12VMax             = 0; //vystup z regulatoru, rozsah 0-15V
-float     voltageSupply             = 0;
+float      voltageRegInMin          = MAX; //vystup z panelu, rozsah 0-20V
+float      voltageRegOutMin         = MAX; //vystup z regulatoru, rozsah 0-15V
+float      voltageAcuMin            = MAX; //vystup z regulatoru, rozsah 0-15V
+float      voltage12VMin            = MAX; //vystup z regulatoru, rozsah 0-15V
+float      voltageRegInMax          = 0; //vystup z panelu, rozsah 0-20V
+float      voltageRegOutMax         = 0; //vystup z regulatoru, rozsah 0-15V
+float      voltageAcuMax            = 0; //vystup z regulatoru, rozsah 0-15V
+float      voltage12VMax            = 0; //vystup z regulatoru, rozsah 0-15V
+float        voltageSupply          = 0;
   
-uint32_t  charOutSec                = CHAROUT_DELAY; //doba v sec po kterou je vystup sepnuty
+uint32_t  charOutmSec               = CHAROUT_DELAY; //doba v milisec po kterou je vystup sepnuty
+uint32_t  lastCharOutmSec           = 0; //diference v ms od posledniho behu
 
 //mereni proudu
 float     currentRegIn              = 0.f;
@@ -482,52 +479,53 @@ void loop() {
     reconnect();
   }
   client.loop();
+
+  relay();
 }
 
 void relay() {
-  if (digitalRead(CHAROUTPIN)==HIGH) {
-    charOutSec += READADC_DELAY / 1000;
-  }
-  if (manualRelay==1) {
+  outPin = digitalRead(CHAROUTPIN);
+  
+  if (manualRelay==2) {
+    if (outPin==HIGH) {
+      if (lastCharOutmSec==0) {
+        lastCharOutmSec = millis();
+      } else {
+        charOutmSec += millis() - lastCharOutmSec;
+        lastCharOutmSec = millis();
+      }
+    }
+    if (outPin==HIGH && relayStatus == RELAY_OFF && charOutmSec >= CHAROUT_DELAY) { //zmena 0-1
       relayStatus = RELAY_ON;
-      digitalWrite(RELAYPIN, relayStatus);
-      digitalWrite(LED2PIN, LOW);
+      changeRelay(relayStatus);
+      lastRelayChange = millis();
+      dispRelayStatus(1);
+      sendRelayHA(1);
+    } else if (outPin==LOW && relayStatus == RELAY_ON) { //zmena 1-0
+      relayStatus = RELAY_OFF;
+      changeRelay(relayStatus);
+      lastRelayChange = millis();
+      dispRelayStatus(0);
+      charOutmSec = 0;
+      sendRelayHA(0);
+    }
+  } else if (manualRelay==1) {
+      relayStatus = RELAY_ON;
+      changeRelay(relayStatus);
       dispRelayStatus(2);
   } else if (manualRelay==0) {
       relayStatus = RELAY_OFF;
-      digitalWrite(RELAYPIN, relayStatus);
-      digitalWrite(LED2PIN, HIGH);
+      changeRelay(relayStatus);
       dispRelayStatus(3);
-  } else {
-    if (digitalRead(CHAROUTPIN)==HIGH && relayStatus == RELAY_OFF && charOutSec >= CHAROUT_DELAY) { //zmena 0-1
-      //lcd.setCursor(13,3);
-      //if (millis() > RELAY_DELAY_ON + lastRelayChange) { //10minut
-        //lcd.print("   ");
-        relayStatus = RELAY_ON;
-        digitalWrite(RELAYPIN, relayStatus);
-        digitalWrite(LED2PIN, LOW);
-        lastRelayChange = millis();
-        dispRelayStatus(1);
-        sendRelayHA(1);
-      // } else {
-        // lcd.print((millis() - RELAY_DELAY_ON + lastRelayChange) / 1000);
-      // }
-    }else if (digitalRead(CHAROUTPIN)==LOW && relayStatus == RELAY_ON) { //zmena 1-0
-      relayStatus = RELAY_OFF;
-      digitalWrite(RELAYPIN, relayStatus);
-      digitalWrite(LED2PIN, HIGH);
-      lastRelayChange = millis();
-      dispRelayStatus(0);
-      charOutSec = 0;
-      sendRelayHA(0);
-    }
   }
 }
 
 bool readADC(void *) {
-  int16_t voltage = ads2.readADC_Differential_0_1();
-  voltageRegOutMin   = min(voltage, voltageRegOutMin); 
-  voltageRegOutMax   = max(voltage, voltageRegOutMax); 
+  readINA();
+
+  //int16_t voltage = ads2.readADC_Differential_0_1();
+  //voltageRegOutMin   = min(voltage, voltageRegOutMin); 
+  //voltageRegOutMax   = max(voltage, voltageRegOutMax); 
   // voltage = ads1.readADC_Differential_2_3();
   // voltageRegInMin    = min(voltage, voltageRegInMin);
   // voltageRegOutMin   = min(voltage, voltageRegOutMin); 
@@ -537,12 +535,12 @@ bool readADC(void *) {
   // voltageRegOutMax   = max(voltage, voltageRegOutMax); 
   // voltageAcuMax      = max(voltage, voltageAcuMax);
   // voltage12VMax      = max(voltage, voltage12VMax);
-  voltageRegInMin    = 18.f;
-  voltageRegOutMin   = 12.f; 
+  voltageRegInMin    = 12.f;
+  voltageRegOutMin   = loadvoltage_1; 
   voltageAcuMin      = 12.f;
   voltage12VMin      = 12.f;
-  voltageRegInMax    = 18.f;
-  voltageRegOutMax   = 12.f; 
+  voltageRegInMax    = 12.f;
+  voltageRegOutMax   = loadvoltage_1; 
   voltageAcuMax      = 12.f;
   voltage12VMax      = 12.f;
   
@@ -579,10 +577,6 @@ bool readADC(void *) {
   DEBUG_PRINTLN(currentRegOut);
   
   intervalMSec += READADC_DELAY;
-  
-  readINA();
-
-  relay();
   
   lcdShow();
 
@@ -642,12 +636,11 @@ bool sendDataHA(void *) {
   // sender.add("adcRegOutMax", adcRegOutMax);
   // sender.add("adcAcuMax", adcAcuMax);
   // sender.add("adc12VMax", adc12VMax);
-  
-  sender.add("chargerOUT",        digitalRead(CHAROUTPIN));
+  sender.add("chargerOUT",        outPin);
   sender.add("relayStatus",       relayStatus);
   sender.add("lastRelayChange",   (uint32_t)lastRelayChange);
   sender.add("manualRelay",       manualRelay);
-  sender.add("charOutSec",        charOutSec);
+  sender.add("charOutSec",        charOutmSec / 1000);
   
   sender.add("voltageRegInMin",   voltageRegInMin);
   sender.add("voltageRegInMax",   voltageRegInMax);
@@ -731,11 +724,143 @@ void sendRelayHA(byte akce) {
   digitalWrite(BUILTIN_LED, LOW);
   SenderClass sender;
   sender.add("relayChange", akce);
+  sender.add("chargerOUT",        outPin);
   
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
   digitalWrite(LED1PIN, HIGH);
   digitalWrite(BUILTIN_LED, HIGH);
 }
+
+//---------------------------------------------D I S P L A Y ------------------------------------------------
+void lcdShow() {
+  if (display==DISPLAY_MAIN) {
+    //01234567890123456789     //Reg In    Acu    Out  
+    //  254W   100W   140W      //power
+    // 10.8A  10.1A  12.3A      //current
+    // 18.6V  12.0V  14.5V      //voltage
+    //15:23 50.6Ah  25.2Ah      //hour   capacity
+    lcd.setCursor(0,0);
+    lcd.print("P");
+    displayValue(POZREGIN_POWERX,POZREGIN_POWERXY, voltageRegInMax*currentRegIn, false);
+    lcd.print(POWER_UNIT);
+    displayValue(POZREGACU_POWERX,POZREGACU_POWERXY, voltageAcuMax*currentAcu, false);
+    lcd.print(POWER_UNIT);
+    displayValue(POZREGOUT_POWERX,POZREGOUT_POWERXY, voltageRegOutMax*currentRegOut, false);
+    lcd.print(POWER_UNIT);
+    lcd.setCursor(0,1);
+    lcd.print("I");
+    displayValue(POZREGIN_CURRENTX,POZREGIN_CURRENTY, currentRegIn, true);
+    lcd.print(CURRENT_UNIT);
+    displayValue(POZREGACU_CURRENTX,POZREGACU_CURRENTY, currentAcu, true);
+    lcd.print(CURRENT_UNIT);
+    displayValue(POZREGOUT_CURRENTX,POZREGOUT_CURRENTY, currentRegOut, true);
+    lcd.print(CURRENT_UNIT);
+    lcd.setCursor(0,2);
+    lcd.print("U");
+    displayValue(POZREGIN_VOLTAGEX,POZREGIN_VOLTAGEY, voltageRegInMax, true);
+    lcd.print(VOLTAGE_UNIT);
+    displayValue(POZREGACU_VOLTAGEX,POZREGACU_VOLTAGEY, voltageAcuMax, true);
+    lcd.print(VOLTAGE_UNIT);
+    displayValue(POZREGOUT_VOLTAGEX,POZREGOUT_VOLTAGEY, voltageRegOutMax, true);
+    lcd.print(VOLTAGE_UNIT);
+
+    lcd.setCursor(KOEFX, KOEFY);
+    lcd.print(voltageSupply/V2MV, 3);
+    lcd.print(VOLTAGE_UNIT);
+  }
+}
+
+
+void displayValue(int x, int y, float value, bool des) {
+  /*
+  value     des=true   des=false
+               01234        0123
+ 245.5         245.5         245 
+  89.3          89.3          89 
+  10.0          10.0          10 
+   9.9           9.9           9 
+   1.1           1.1           1 
+   0.9           0.9           0 
+   0.1           0.0           0 
+   0.0           0.0           0 
+  -0.1          -0.1          -0 
+  -0.9          -0.9          -0 
+  -1.0          -1.0          -1 
+  -9.9          -9.9          -9 
+ -10.0         -10.0         -10 
+ -25.2         -25.2         -25 
+-245.5         -245         -245
+   */
+  lcd.setCursor(x,y);
+  
+  //DEBUG_PRINTLN(F(value);
+  if (!des) {
+    value = round(value);
+  }
+
+  if (!des && value>-100.f) {
+    lcd.print(F(" "));
+  }
+  
+  if (value>=100.f) {
+  } else if (value>=10.f && value < 100.f) {
+    lcd.print(F(" "));
+  } else if (value<10.f && value>=0.f) {
+    //DEBUG_PRINT(F("_"));
+    lcd.print(F(" "));
+    lcd.print(F(" "));
+  } else if (value<0.f && value>-10.f) {
+    //DEBUG_PRINT(F("_"));
+    lcd.print(F(" "));
+    lcd.print(F("-"));
+  } else if (value<-10.f) {
+    lcd.print(F("-"));
+    des = false;
+  }
+  
+  lcd.print(abs((int)value));
+  if (des) {
+    lcd.print(F("."));
+    lcd.print(abs((int)(value*10)%10));
+  }
+}
+
+void reconnect() {
+  // Loop until we're reconnected
+  while (!client.connected()) {
+    DEBUG_PRINT("Attempting MQTT connection...");
+    // Attempt to connect
+    if (client.connect(mqtt_base, mqtt_username, mqtt_key)) {
+      DEBUG_PRINTLN("connected");
+      // Once connected, publish an announcement...
+      //client.publish("outTopic","hello world");
+      // ... and resubscribe
+      //client.subscribe(mqtt_base + '/' + 'inTopic');
+      client.subscribe((String(mqtt_base) + "/" + "manualRelay").c_str());
+      client.subscribe((String(mqtt_base) + "/" + "restart").c_str());
+    } else {
+      DEBUG_PRINT("failed, rc=");
+      DEBUG_PRINT(client.state());
+      DEBUG_PRINTLN(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
+}
+
+void dispRelayStatus(byte stat) {
+  lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
+  if (stat==1) lcd.print(" ON");
+  else if (stat==0) lcd.print("OFF");
+  else if (stat==2) lcd.print("MON");
+  else if (stat==3) lcd.print("MOF");
+}
+
+void changeRelay(byte status) {
+  digitalWrite(RELAYPIN, status);
+  digitalWrite(LED2PIN, !status);
+}
+
 
 #ifdef time
 /*-------- NTP code ----------*/
@@ -858,128 +983,3 @@ bool displayTime(void *) {
   return true;
 }
 #endif
-
-//---------------------------------------------D I S P L A Y ------------------------------------------------
-void lcdShow() {
-  if (display==DISPLAY_MAIN) {
-    //01234567890123456789     //Reg In    Acu    Out  
-    //  254W   100W   140W      //power
-    // 10.8A  10.1A  12.3A      //current
-    // 18.6V  12.0V  14.5V      //voltage
-    //15:23 50.6Ah  25.2Ah      //hour   capacity
-    lcd.setCursor(0,0);
-    lcd.print("P");
-    displayValue(POZREGIN_POWERX,POZREGIN_POWERXY, voltageRegInMax*currentRegIn, false);
-    lcd.print(POWER_UNIT);
-    displayValue(POZREGACU_POWERX,POZREGACU_POWERXY, voltageAcuMax*currentAcu, false);
-    lcd.print(POWER_UNIT);
-    displayValue(POZREGOUT_POWERX,POZREGOUT_POWERXY, voltageRegOutMax*currentRegOut, false);
-    lcd.print(POWER_UNIT);
-    lcd.setCursor(0,1);
-    lcd.print("I");
-    displayValue(POZREGIN_CURRENTX,POZREGIN_CURRENTY, currentRegIn, true);
-    lcd.print(CURRENT_UNIT);
-    displayValue(POZREGACU_CURRENTX,POZREGACU_CURRENTY, currentAcu, true);
-    lcd.print(CURRENT_UNIT);
-    displayValue(POZREGOUT_CURRENTX,POZREGOUT_CURRENTY, currentRegOut, true);
-    lcd.print(CURRENT_UNIT);
-    lcd.setCursor(0,2);
-    lcd.print("U");
-    displayValue(POZREGIN_VOLTAGEX,POZREGIN_VOLTAGEY, voltageRegInMax, true);
-    lcd.print(VOLTAGE_UNIT);
-    displayValue(POZREGACU_VOLTAGEX,POZREGACU_VOLTAGEY, voltageAcuMax, true);
-    lcd.print(VOLTAGE_UNIT);
-    displayValue(POZREGOUT_VOLTAGEX,POZREGOUT_VOLTAGEY, voltageRegOutMax, true);
-    lcd.print(VOLTAGE_UNIT);
-
-    lcd.setCursor(KOEFX, KOEFY);
-    lcd.print(voltageSupply/V2MV, 3);
-    lcd.print(VOLTAGE_UNIT);
-  }
-}
-
-
-void displayValue(int x, int y, float value, bool des) {
-  /*
-  value     des=true   des=false
-               01234        0123
- 245.5         245.5         245 
-  89.3          89.3          89 
-  10.0          10.0          10 
-   9.9           9.9           9 
-   1.1           1.1           1 
-   0.9           0.9           0 
-   0.1           0.0           0 
-   0.0           0.0           0 
-  -0.1          -0.1          -0 
-  -0.9          -0.9          -0 
-  -1.0          -1.0          -1 
-  -9.9          -9.9          -9 
- -10.0         -10.0         -10 
- -25.2         -25.2         -25 
--245.5         -245         -245
-   */
-  lcd.setCursor(x,y);
-  
-  //DEBUG_PRINTLN(F(value);
-  if (!des) {
-    value = round(value);
-  }
-
-  if (!des && value>-100.f) {
-    lcd.print(F(" "));
-  }
-  
-  if (value>=100.f) {
-  } else if (value>=10.f && value < 100.f) {
-    lcd.print(F(" "));
-  } else if (value<10.f && value>=0.f) {
-    //DEBUG_PRINT(F("_"));
-    lcd.print(F(" "));
-    lcd.print(F(" "));
-  } else if (value<0.f && value>-10.f) {
-    //DEBUG_PRINT(F("_"));
-    //lcd.print(F(" "));
-    lcd.print(F("-"));
-  } else if (value<-10.f) {
-    lcd.print(F("-"));
-    des = false;
-  }
-  
-  lcd.print(abs((int)value));
-  if (des) {
-    lcd.print(F("."));
-    lcd.print(abs((int)(value*10)%10));
-  }
-}
-
-void reconnect() {
-  // Loop until we're reconnected
-  while (!client.connected()) {
-    DEBUG_PRINT("Attempting MQTT connection...");
-    // Attempt to connect
-    if (client.connect(mqtt_base, mqtt_username, mqtt_key)) {
-      DEBUG_PRINTLN("connected");
-      // Once connected, publish an announcement...
-      //client.publish("outTopic","hello world");
-      // ... and resubscribe
-      //client.subscribe(mqtt_base + '/' + 'inTopic');
-      client.subscribe((String(mqtt_base) + "/" + "manualRelay").c_str());
-      client.subscribe((String(mqtt_base) + "/" + "restart").c_str());
-    } else {
-      DEBUG_PRINT("failed, rc=");
-      DEBUG_PRINT(client.state());
-      DEBUG_PRINTLN(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(5000);
-    }
-  }
-}
-
-void dispRelayStatus(byte stat) {
-  lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
-  if (stat==1) lcd.print(" ON");
-  else if (stat==0) lcd.print("OFF");
-  else if (stat==2) lcd.print("MON");
-  else if (stat==3) lcd.print("MOF");
-}
