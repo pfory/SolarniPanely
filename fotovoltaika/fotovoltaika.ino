@@ -50,7 +50,7 @@ time_t getNtpTime();
 
 //voltage and current meassurement
 Adafruit_ADS1115 ads1(0x48);  //mereni proudu ADDR to GND
-Adafruit_ADS1115 ads2(0x4A);  //mereni napeti ADDR to SDA
+Adafruit_ADS1115 ads2(0x49);  //mereni napeti ADDR to VCC
 Adafruit_ADS1115 ads3(0x4B);  //mereni napeti ADDR to SCL
 
 
@@ -96,7 +96,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.66"
+#define     VERSION                          "0.67"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
@@ -177,10 +177,11 @@ float      voltageRegInMax          = 0; //vystup z panelu, rozsah 0-20V
 float      voltageRegOutMax         = 0; //vystup z regulatoru, rozsah 0-15V
 float      voltageAcuMax            = 0; //vystup z regulatoru, rozsah 0-15V
 float      voltage12VMax            = 0; //vystup z regulatoru, rozsah 0-15V
-float        voltageSupply          = 0;
+float      voltageSupply            = 0;
   
-uint32_t  charOutmSec               = CHAROUT_DELAY; //doba v milisec po kterou je vystup sepnuty
-uint32_t  lastCharOutmSec           = 0; //diference v ms od posledniho behu
+uint32_t  charOutmSec               = CHAROUT_DELAY;  //doba v milisec po kterou je vystup sepnuty
+uint32_t  lastCharOutmSec           = 0;              //diference v ms od posledniho behu
+uint32_t  lastReadADC               = 0;              //interval mezi ctenim sensoru
 
 //mereni proudu
 float     currentRegIn              = 0.f;
@@ -198,9 +199,11 @@ int32_t   intervalMSec              = 0;
 #define         CHANNEL_REG_OUT_CURRENT         2
 #define         CHANNEL_VOLTAGE_SUPPLY          3
 
-#define         MVOLTDILEKADC1                   0.1875
-//#define         MVOLTDILEKADC2                   0.1875
+#define         MVOLTDILEKADC1                  0.1875
+#define         MVOLTDILEKADC2                  0.1875
 //#define         MVOLTDILEKADC3                   0.1875
+
+#define         KOEF_INPUT_VOLTAGE              4.302
 
 #define         MVAMPERIN                       40.f        // 40mV = 1A
 #define         MVAMPERACU                      100.f       // 100mV = 1A
@@ -485,6 +488,15 @@ void loop() {
 
 void relay() {
   outPin = digitalRead(CHAROUTPIN);
+
+  DEBUG_PRINT("outPin:");
+  DEBUG_PRINT(outPin);
+  DEBUG_PRINT(", ");
+  DEBUG_PRINT("charOutmSec:");
+  DEBUG_PRINT(charOutmSec);
+  DEBUG_PRINT(", ");
+  DEBUG_PRINT("relayStatus:");
+  DEBUG_PRINTLN(relayStatus);
   
   if (manualRelay==2) {
     if (outPin==HIGH) {
@@ -523,23 +535,27 @@ void relay() {
 bool readADC(void *) {
   readINA();
 
-  //int16_t voltage = ads2.readADC_Differential_0_1();
+  int32_t dilkuInputVoltage = ads2.readADC_Differential_0_1();
+  DEBUG_PRINT("dilkuInputVoltage:");
+  DEBUG_PRINT(dilkuInputVoltage);
+  float voltage    = ((float)dilkuInputVoltage * MVOLTDILEKADC2) / 1000.f * KOEF_INPUT_VOLTAGE; //in mV  example 26149 * 0.1875 = 4902,938mV
+  DEBUG_PRINT("voltageInput:");
+  DEBUG_PRINTLN(voltage);
+  
+  voltageRegInMin    = min(voltage, voltageRegInMin);
+  voltageRegInMax    = max(voltage, voltageRegInMax);
+  //voltageRegOutMin   = min(voltage, voltageRegOutMin); 
   //voltageRegOutMin   = min(voltage, voltageRegOutMin); 
   //voltageRegOutMax   = max(voltage, voltageRegOutMax); 
   // voltage = ads1.readADC_Differential_2_3();
-  // voltageRegInMin    = min(voltage, voltageRegInMin);
-  // voltageRegOutMin   = min(voltage, voltageRegOutMin); 
   // voltageAcuMin      = min(voltage, voltageAcuMin);
   // voltage12VMin      = min(voltage, voltage12VMin);
-  // voltageRegInMax    = max(voltage, voltageRegInMax);
   // voltageRegOutMax   = max(voltage, voltageRegOutMax); 
   // voltageAcuMax      = max(voltage, voltageAcuMax);
   // voltage12VMax      = max(voltage, voltage12VMax);
-  voltageRegInMin    = 12.f;
   voltageRegOutMin   = loadvoltage_1; 
   voltageAcuMin      = 12.f;
   voltage12VMin      = 12.f;
-  voltageRegInMax    = 12.f;
   voltageRegOutMax   = loadvoltage_1; 
   voltageAcuMax      = 12.f;
   voltage12VMax      = 12.f;
@@ -561,23 +577,32 @@ bool readADC(void *) {
   DEBUG_PRINT("voltageSupply");
   DEBUG_PRINTLN(voltageSupply);
   
+  if (lastReadADC==0) {
+    lastReadADC = millis();
+  }
+  
+  uint32_t diff = millis()-lastReadADC;
+  
   currentRegIn  = ((float)(dilkuInput * 2 - dilkuSupply) * MVOLTDILEKADC1) / MVAMPERIN; //in Amp example ((15170 * 2 - 25852) * 0.1875) / 40 = ((30340 - 25852) * 0.1875) / 40 = 4488 * 0.1875 / 40
-  currentRegInSum += currentRegIn * READADC_DELAY;
+  currentRegInSum += currentRegIn * diff;
   DEBUG_PRINT("currentRegIn");
   DEBUG_PRINTLN(currentRegIn);
   
   currentAcu    = ((float)(dilkuAcu * 2 - dilkuSupply)   * MVOLTDILEKADC1) / MVAMPERACU;
-  currentAcuSum += currentAcu * READADC_DELAY;
+  currentAcuSum += currentAcu * diff;
   DEBUG_PRINT("currentAcu");
   DEBUG_PRINTLN(currentAcu);
   
   currentRegOut = ((float)(dilkuOut * 2 - dilkuSupply)   * MVOLTDILEKADC1) / MVAMPEROUT;
-  currentRegOutSum += currentRegOut * READADC_DELAY;
+  currentRegOutSum += currentRegOut * diff;
   DEBUG_PRINT("currentRegOut");
   DEBUG_PRINTLN(currentRegOut);
   
-  intervalMSec += READADC_DELAY;
-  
+  intervalMSec += diff;
+ 
+  lastReadADC = millis();
+
+ 
   lcdShow();
 
   return true;
@@ -654,6 +679,7 @@ bool sendDataHA(void *) {
   sender.add("currentRegIn",      currentRegInSum   / (float)intervalMSec);
   sender.add("currentRegOut",     currentRegOutSum  / (float)intervalMSec);
   sender.add("currentAcu",        currentAcuSum     / (float)intervalMSec);
+  sender.add("intervalSec",       (float)intervalMSec/1000.f);
   
   sender.add("NapetiSbernice",    voltageSupply);
   sender.add("ch0Dilky",          ads1.readADC_SingleEnded(0));
