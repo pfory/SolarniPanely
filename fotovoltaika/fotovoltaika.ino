@@ -85,6 +85,8 @@ unsigned int display                        = 0;
 #define POZREGOUT_POWERXY                   0
 #define RELAY_STATUSX                       17
 #define RELAY_STATUSY                       3
+#define OUT_STATUSX                         13
+#define OUT_STATUSY                         3
 #define KOEFX                               6
 #define KOEFY                               3
 
@@ -96,7 +98,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.67"
+#define     VERSION                          "0.68"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
@@ -465,6 +467,8 @@ void setup() {
   lcd.clear();
   lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
   lcd.print("OFF");
+  lcd.setCursor(OUT_STATUSX,OUT_STATUSY);
+  lcd.print("OFF");
 }
 
 void loop() {
@@ -488,6 +492,7 @@ void loop() {
 
 void relay() {
   outPin = digitalRead(CHAROUTPIN);
+  dispOutStatus(outPin);
 
   DEBUG_PRINT("outPin:");
   DEBUG_PRINT(outPin);
@@ -881,6 +886,13 @@ void dispRelayStatus(byte stat) {
   else if (stat==2) lcd.print("MON");
   else if (stat==3) lcd.print("MOF");
 }
+
+void dispOutStatus(byte status) {
+  lcd.setCursor(OUT_STATUSX,OUT_STATUSY);
+  if (status==1) lcd.print(" ON");
+  else lcd.print("OFF");
+}
+
 
 void changeRelay(byte status) {
   digitalWrite(RELAYPIN, status);
