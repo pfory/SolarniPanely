@@ -542,8 +542,8 @@ bool readADC(void *) {
   DEBUG_PRINT("voltageInput:");
   DEBUG_PRINTLN(voltage);
   
-  voltageRegInMin    = min(voltage, voltageRegInMin);
-  voltageRegInMax    = max(voltage, voltageRegInMax);
+  voltageRegInMin    = 12.f; //min(voltage, voltageRegInMin);
+  voltageRegInMax    = 12.f; //max(voltage, voltageRegInMax);
   //voltageRegOutMin   = min(voltage, voltageRegOutMin); 
   //voltageRegOutMin   = min(voltage, voltageRegOutMin); 
   //voltageRegOutMax   = max(voltage, voltageRegOutMax); 
