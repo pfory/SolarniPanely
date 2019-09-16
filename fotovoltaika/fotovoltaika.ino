@@ -98,7 +98,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.69"
+#define     VERSION                          "0.70"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
@@ -168,6 +168,8 @@ char      static_sn[16]             = "255.255.255.0";
 //SCL                               D1
 
 bool outPin                         = LOW;
+bool lastOutPin                     = LOW;
+bool lastOutPinMillis                = 0;
 
 
 //mereni napeti   
@@ -492,6 +494,14 @@ void loop() {
 
 void relay() {
   outPin = digitalRead(CHAROUTPIN);
+  if (lastOutPin!=outPin) {
+    if (millis()-lastOutPinMillis<600) {
+      outPin = lastOutPin;
+    }
+    //sendOutPinHA(millis()-lastOutPinMillis);
+  }
+  lastOutPin = outPin;
+  lastOutPinMillis = millis();
   dispOutStatus(outPin);
 
   DEBUG_PRINT("outPin:");
@@ -766,6 +776,19 @@ void sendRelayHA(byte akce) {
   digitalWrite(LED1PIN, HIGH);
   digitalWrite(BUILTIN_LED, HIGH);
 }
+
+// void sendOutPinHA(uint32_t diff) {
+  // digitalWrite(LED1PIN, LOW);
+  // digitalWrite(BUILTIN_LED, LOW);
+  // SenderClass sender;
+  // sender.add("zmenaOutPin",       diff);
+  
+  // sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
+  // digitalWrite(LED1PIN, HIGH);
+  // digitalWrite(BUILTIN_LED, HIGH);
+// }
+
+
 
 //---------------------------------------------D I S P L A Y ------------------------------------------------
 void lcdShow() {
