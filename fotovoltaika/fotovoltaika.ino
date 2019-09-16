@@ -894,8 +894,12 @@ void dispRelayStatus(byte stat) {
 
 void dispOutStatus(byte status) {
   lcd.setCursor(OUT_STATUSX,OUT_STATUSY);
-  if (status==1) lcd.print(" ON");
-  else lcd.print("OFF");
+  if (outPin==HIGH && relayStatus == RELAY_OFF && charOutmSec < CHAROUT_DELAY) {
+    lcd.print((CHAROUT_DELAY - charOutmSec) / 1000 / 60);
+  } else {
+    if (status==1) lcd.print(" ON");
+    else lcd.print("OFF");
+  }
 }
 
 
