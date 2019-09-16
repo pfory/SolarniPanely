@@ -680,9 +680,17 @@ bool sendDataHA(void *) {
   sender.add("voltageAcuMax",     voltageAcuMax);
   sender.add("voltage12VMin",     voltage12VMin);
   sender.add("voltage12VMax",     voltage12VMax);
-
+  
+  sender.add("powerIn",           (currentRegInSum  / (float)intervalMSec) * voltageRegInMax);
+  
   sender.add("currentRegIn",      currentRegInSum   / (float)intervalMSec);
-  sender.add("currentRegOut",     currentRegOutSum  / (float)intervalMSec);
+  if (relayStatus==HIGH) {
+    sender.add("currentRegOut",   currentRegOutSum  / (float)intervalMSec);
+    sender.add("powerOut",        (currentRegOutSum / (float)intervalMSec) * voltageRegOutMax);
+  } else {
+    sender.add("currentRegOut",   0);
+    sender.add("powerOut",        0);
+  }
   sender.add("currentAcu",        currentAcuSum     / (float)intervalMSec);
   sender.add("intervalSec",       (float)intervalMSec/1000.f);
   
@@ -691,9 +699,6 @@ bool sendDataHA(void *) {
   sender.add("ch1Dilky",          ads1.readADC_SingleEnded(1));
   sender.add("ch2Dilky",          ads1.readADC_SingleEnded(2));
   sender.add("ch3Dilky",          ads1.readADC_SingleEnded(3));
-  
-  sender.add("powerIn",           (currentRegInSum  / (float)intervalMSec) * voltageRegInMax);
-  sender.add("powerOut",          (currentRegOutSum / (float)intervalMSec) * voltageRegOutMax);
   
   sender.add("busVoltage", busvoltage_1);
   sender.add("shuntVoltage", shuntvoltage_1);
