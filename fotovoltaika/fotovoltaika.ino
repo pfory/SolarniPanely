@@ -98,7 +98,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.71"
+#define     VERSION                          "0.72"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
@@ -109,7 +109,7 @@ Ticker ticker;
 //#define CHAROUT_DELAY                        3600 * 1000 //po tuto dobu musi byt vystup sepnuty a pak sepne rele 10 min
 unsigned long lastRelayChange                = 0;   //zamezuje cyklickemu zapinani a vypinani rele
 
-float   relayON                              = 13.f;
+float   relayON                              = 12.5;
 float   relayOFF                             = 12.f;
 
 
@@ -171,8 +171,6 @@ char      static_sn[16]             = "255.255.255.0";
 //SDA                               D2
 //SCL                               D1
 
-bool outPin                         = LOW;
-
 //mereni napeti   
 float      voltageRegInMin          = MAX; //vystup z panelu, rozsah 0-20V
 float      voltageRegOutMin         = MAX; //vystup z regulatoru, rozsah 0-15V
@@ -199,9 +197,9 @@ float     currentRegOutSum          = 0.f;
 int32_t   intervalMSec              = 0;
 
 
-#define         CHANNEL_REG_IN_CURRENT          0
+#define         CHANNEL_REG_IN_CURRENT          2
 #define         CHANNEL_REG_ACU_CURRENT         1
-#define         CHANNEL_REG_OUT_CURRENT         2
+#define         CHANNEL_REG_OUT_CURRENT         0
 #define         CHANNEL_VOLTAGE_SUPPLY          3
 
 #define         MVOLTDILEKADC1                  0.1875
@@ -500,25 +498,23 @@ void relay() {
       relayStatus = RELAY_ON;
       changeRelay(relayStatus);
       lastRelayChange = millis();
-      dispRelayStatus(1);
       sendRelayHA(1);
     } else if (loadvoltage_1 <= relayOFF && relayStatus == RELAY_ON) { //zmena 1-0
       relayStatus = RELAY_OFF;
       changeRelay(relayStatus);
       lastRelayChange = millis();
-      dispRelayStatus(0);
       //charOutmSec = 0;
       sendRelayHA(0);
     }
   } else if (manualRelay==1) {
       relayStatus = RELAY_ON;
       changeRelay(relayStatus);
-      dispRelayStatus(2);
   } else if (manualRelay==0) {
       relayStatus = RELAY_OFF;
       changeRelay(relayStatus);
-      dispRelayStatus(3);
   }
+  dispRelayStatus();
+  dispOutStatus();
 }
 
 bool readADC(void *) {
@@ -744,7 +740,7 @@ void sendRelayHA(byte akce) {
   digitalWrite(BUILTIN_LED, LOW);
   SenderClass sender;
   sender.add("relayChange", akce);
-  sender.add("chargerOUT",        outPin);
+  sender.add("chargerOUT",        digitalRead(CHAROUTPIN));
   
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
   digitalWrite(LED1PIN, HIGH);
@@ -881,23 +877,22 @@ void reconnect() {
   }
 }
 
-void dispRelayStatus(byte stat) {
+void dispRelayStatus() {
   lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
-  if (stat==1) lcd.print(" ON");
-  else if (stat==0) lcd.print("OFF");
-  else if (stat==2) lcd.print("MON");
-  else if (stat==3) lcd.print("MOF");
+  if (relayStatus==1) lcd.print(" ON");
+  else if (relayStatus==0) lcd.print("OFF");
+  else if (manualRelay==1) lcd.print("MON");
+  else if (manualRelay==0) lcd.print("MOF");
 }
 
-// void dispOutStatus(byte status) {
-  // lcd.setCursor(OUT_STATUSX,OUT_STATUSY);
-  // if (outPin==HIGH && relayStatus == RELAY_OFF && charOutmSec < CHAROUT_DELAY) {
-    // lcd.print((CHAROUT_DELAY - charOutmSec) / 1000 / 60);
-  // } else {
-    // if (status==1) lcd.print(" ON");
-    // else lcd.print("OFF");
-  // }
-// }
+ void dispOutStatus() {
+  lcd.setCursor(OUT_STATUSX,OUT_STATUSY);
+  if (digitalRead(CHAROUTPIN)==HIGH) {
+    lcd.print(" ON");
+  } else {
+    lcd.print("OFF");
+  }
+}
 
 
 void changeRelay(byte status) {
