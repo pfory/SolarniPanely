@@ -98,7 +98,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.68"
+#define     VERSION                          "0.69"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
@@ -106,7 +106,7 @@ Ticker ticker;
 #define READADC_DELAY                        2000   //cteni ADC
 
 #define RELAY_DELAY_ON                       60000  //interval prodlevy po rozepnuti rele
-#define CHAROUT_DELAY                        600000 //po tuto dobu musi byt vystup sepnuty a pak sepne rele 10 min
+#define CHAROUT_DELAY                        3600 * 1000 //po tuto dobu musi byt vystup sepnuty a pak sepne rele 10 min
 unsigned long lastRelayChange                = 0;   //zamezuje cyklickemu zapinani a vypinani rele
 
 #define RELAY_ON                             HIGH
@@ -588,17 +588,17 @@ bool readADC(void *) {
   
   uint32_t diff = millis()-lastReadADC;
   
-  currentRegIn  = ((float)(dilkuInput * 2 - dilkuSupply) * MVOLTDILEKADC1) / MVAMPERIN; //in Amp example ((15170 * 2 - 25852) * 0.1875) / 40 = ((30340 - 25852) * 0.1875) / 40 = 4488 * 0.1875 / 40
+  currentRegIn  = ((float)(dilkuInput * 2 - dilkuSupply) * MVOLTDILEKADC1) / MVAMPERIN / 2; //in Amp example ((15170 * 2 - 25852) * 0.1875) / 40 = ((30340 - 25852) * 0.1875) / 40 = 4488 * 0.1875 / 40
   currentRegInSum += currentRegIn * diff;
   DEBUG_PRINT("currentRegIn");
   DEBUG_PRINTLN(currentRegIn);
   
-  currentAcu    = ((float)(dilkuAcu * 2 - dilkuSupply)   * MVOLTDILEKADC1) / MVAMPERACU;
+  currentAcu    = ((float)(dilkuAcu * 2 - dilkuSupply)   * MVOLTDILEKADC1) / MVAMPERACU / 2;
   currentAcuSum += currentAcu * diff;
   DEBUG_PRINT("currentAcu");
   DEBUG_PRINTLN(currentAcu);
   
-  currentRegOut = ((float)(dilkuOut * 2 - dilkuSupply)   * MVOLTDILEKADC1) / MVAMPEROUT;
+  currentRegOut = ((float)(dilkuOut * 2 - dilkuSupply)   * MVOLTDILEKADC1) / MVAMPEROUT / 2;
   currentRegOutSum += currentRegOut * diff;
   DEBUG_PRINT("currentRegOut");
   DEBUG_PRINTLN(currentRegOut);
