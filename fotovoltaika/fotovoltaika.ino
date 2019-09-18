@@ -540,10 +540,10 @@ bool readADC(void *) {
   // voltageRegOutMax   = max(voltage, voltageRegOutMax); 
   // voltageAcuMax      = max(voltage, voltageAcuMax);
   // voltage12VMax      = max(voltage, voltage12VMax);
-  voltageRegOutMin   = loadvoltage_1; 
+  voltageRegOutMin   = 12.f; //loadvoltage_1; 
   voltageAcuMin      = 12.f;
   voltage12VMin      = 12.f;
-  voltageRegOutMax   = loadvoltage_1; 
+  voltageRegOutMax   = 12.f; //loadvoltage_1; 
   voltageAcuMax      = 12.f;
   voltage12VMax      = 12.f;
   
@@ -575,7 +575,8 @@ bool readADC(void *) {
   DEBUG_PRINT("currentRegIn");
   DEBUG_PRINTLN(currentRegIn);
   
-  currentAcu    = ((float)(dilkuAcu * 2 - dilkuSupply)   * MVOLTDILEKADC1) / MVAMPERACU / 2;
+  //currentAcu    = ((float)(dilkuAcu * 2 - dilkuSupply)   * MVOLTDILEKADC1) / MVAMPERACU / 2;
+  currentAcu = 0.f;
   currentAcuSum += currentAcu * diff;
   DEBUG_PRINT("currentAcu");
   DEBUG_PRINTLN(currentAcu);
