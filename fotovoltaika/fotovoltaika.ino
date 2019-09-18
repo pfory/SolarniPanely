@@ -98,7 +98,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.72"
+#define     VERSION                          "0.73"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
@@ -109,8 +109,8 @@ Ticker ticker;
 //#define CHAROUT_DELAY                        3600 * 1000 //po tuto dobu musi byt vystup sepnuty a pak sepne rele 10 min
 unsigned long lastRelayChange                = 0;   //zamezuje cyklickemu zapinani a vypinani rele
 
-float   relayON                              = 12.5;
-float   relayOFF                             = 12.f;
+float   relayONVoltage                       = 12.5;
+float   relayOFFVoltage                      = 12.f;
 
 
 #define RELAY_ON                             HIGH
@@ -176,11 +176,11 @@ float      voltageRegInMin          = MAX; //vystup z panelu, rozsah 0-20V
 float      voltageRegOutMin         = MAX; //vystup z regulatoru, rozsah 0-15V
 float      voltageAcuMin            = MAX; //vystup z regulatoru, rozsah 0-15V
 float      voltage12VMin            = MAX; //vystup z regulatoru, rozsah 0-15V
-float      voltageRegInMax          = 0; //vystup z panelu, rozsah 0-20V
-float      voltageRegOutMax         = 0; //vystup z regulatoru, rozsah 0-15V
-float      voltageAcuMax            = 0; //vystup z regulatoru, rozsah 0-15V
-float      voltage12VMax            = 0; //vystup z regulatoru, rozsah 0-15V
-float      voltageSupply            = 0;
+float      voltageRegInMax          = MIN; //vystup z panelu, rozsah 0-20V
+float      voltageRegOutMax         = MIN; //vystup z regulatoru, rozsah 0-15V
+float      voltageAcuMax            = MIN; //vystup z regulatoru, rozsah 0-15V
+float      voltage12VMax            = MIN; //vystup z regulatoru, rozsah 0-15V
+float      voltageSupply            = MIN;
   
 //uint32_t  charOutmSec               = CHAROUT_DELAY;  //doba v milisec po kterou je vystup sepnuty
 uint32_t  lastCharOutmSec           = 0;              //diference v ms od posledniho behu
@@ -494,12 +494,12 @@ void loop() {
 void relay() {
   if (manualRelay==2) {
     readINA();
-    if (loadvoltage_1 > relayON && relayStatus == RELAY_OFF) { // && charOutmSec >= CHAROUT_DELAY) { //zmena 0-1
+    if (relayStatus == RELAY_OFF && loadvoltage_1 > relayONVoltage) { // && charOutmSec >= CHAROUT_DELAY) { //zmena 0-1
       relayStatus = RELAY_ON;
       changeRelay(relayStatus);
       lastRelayChange = millis();
       sendRelayHA(1);
-    } else if (loadvoltage_1 <= relayOFF && relayStatus == RELAY_ON) { //zmena 1-0
+    } else if (relayStatus == RELAY_ON && loadvoltage_1 <= relayOFFVoltage) { //zmena 1-0
       relayStatus = RELAY_OFF;
       changeRelay(relayStatus);
       lastRelayChange = millis();
@@ -652,25 +652,40 @@ bool sendDataHA(void *) {
   sender.add("manualRelay",       manualRelay);
 //  sender.add("charOutSec",        charOutmSec / 1000);
   
-  sender.add("voltageRegInMin",   voltageRegInMin);
-  sender.add("voltageRegInMax",   voltageRegInMax);
-  sender.add("voltageRegOutMin",  voltageRegOutMin);
-  sender.add("voltageRegOutMax",  voltageRegOutMax);
-  sender.add("voltageAcuMin",     voltageAcuMin);
-  sender.add("voltageAcuMax",     voltageAcuMax);
-  sender.add("voltage12VMin",     voltage12VMin);
-  sender.add("voltage12VMax",     voltage12VMax);
-  
-  sender.add("powerIn",           (currentRegInSum  / (float)intervalMSec) * voltageRegInMax);
+  if (voltageRegInMin<MAX) {
+    sender.add("voltageRegInMin",   voltageRegInMin);
+  }
+  if (voltageRegInMax>MIN) {
+    sender.add("voltageRegInMax",   voltageRegInMax);
+    sender.add("powerIn",           (currentRegInSum  / (float)intervalMSec) * voltageRegInMax);
+  }
+  if (voltageRegOutMin<MAX) {
+    sender.add("voltageRegOutMin",  voltageRegOutMin);
+  }
+  if (voltageRegOutMax>MIN) {
+    sender.add("voltageRegOutMax",  voltageRegOutMax);
+  }
+  if (voltageAcuMin<MAX) {
+    sender.add("voltageAcuMin",     voltageAcuMin);
+  }
+  if (voltageAcuMax>MIN) {
+    sender.add("voltageAcuMax",     voltageAcuMax);
+  }
+  if (voltage12VMin<MAX) {
+    sender.add("voltage12VMin",     voltage12VMin);
+  }
+  if (voltage12VMax>MIN) {
+    sender.add("voltage12VMax",     voltage12VMax);
+  }
   
   sender.add("currentRegIn",      currentRegInSum   / (float)intervalMSec);
-  if (relayStatus==HIGH) {
-    sender.add("currentRegOut",   currentRegOutSum  / (float)intervalMSec);
-    sender.add("powerOut",        (currentRegOutSum / (float)intervalMSec) * voltageRegOutMax);
-  } else {
-    sender.add("currentRegOut",   0);
-    sender.add("powerOut",        0);
-  }
+  // if (relayStatus==HIGH) {
+    // sender.add("currentRegOut",   currentRegOutSum  / (float)intervalMSec);
+    // sender.add("powerOut",        (currentRegOutSum / (float)intervalMSec) * voltageRegOutMax);
+  // } else {
+    // sender.add("currentRegOut",   0);
+    // sender.add("powerOut",        0);
+  // }
   sender.add("currentAcu",        currentAcuSum     / (float)intervalMSec);
   sender.add("intervalSec",       (float)intervalMSec/1000.f);
   
@@ -698,10 +713,10 @@ bool sendDataHA(void *) {
   voltageRegOutMin  = MAX;
   voltageAcuMin     = MAX;   
   voltage12VMin     = MAX;   
-  voltageRegInMax   = 0; 
-  voltageRegOutMax  = 0;
-  voltageAcuMax     = 0;   
-  voltage12VMax     = 0;   
+  voltageRegInMax   = MIN; 
+  voltageRegOutMax  = MIN;
+  voltageAcuMax     = MIN;   
+  voltage12VMax     = MIN;   
   intervalMSec      = 0;
   currentAcuSum     = 0.f;
   currentRegInSum   = 0.f;
