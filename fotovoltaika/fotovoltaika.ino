@@ -116,7 +116,7 @@ float   relayOFFVoltage                      = 12.f;
 #define RELAY_ON                             HIGH
 #define RELAY_OFF                            LOW
 byte relayStatus                             = RELAY_OFF;
-byte manualRelay                             = 2;
+byte manualRelay                             = 0;
 
 #define MAX                                  32767
 #define MIN                                  -32767
@@ -166,8 +166,9 @@ char      static_sn[16]             = "255.255.255.0";
 #define LED2PIN                     D3 //stav rele
 #define LED1PIN                     D4 //
 #define CHAROUTPIN                  D7 //vystup z regulatoru, na testovacim je D7 asi spaleny
-#define RELAYPIN                    D8 //pin rele
-#define PIRPIN                      D6 //pin pir sensoru
+#define RELAY1PIN                   D8 //pin rele 1
+#define RELAY2PIN                   D6 //pin rele 2
+#define PIRPIN                      D5 //pin pir sensoru
 //SDA                               D2
 //SCL                               D1
 
@@ -198,8 +199,8 @@ int32_t   intervalMSec              = 0;
 
 
 #define         CHANNEL_REG_IN_CURRENT          2
-#define         CHANNEL_REG_ACU_CURRENT         1
-#define         CHANNEL_REG_OUT_CURRENT         0
+#define         CHANNEL_REG_ACU_CURRENT         0
+#define         CHANNEL_REG_OUT_CURRENT         1
 #define         CHANNEL_VOLTAGE_SUPPLY          3
 
 #define         MVOLTDILEKADC1                  0.1875
@@ -314,7 +315,8 @@ void setup() {
   pinMode(LED1PIN, OUTPUT);
   pinMode(LED2PIN, OUTPUT);
   pinMode(CHAROUTPIN, INPUT);
-  pinMode(RELAYPIN, OUTPUT);
+  pinMode(RELAY1PIN, OUTPUT);
+  pinMode(RELAY2PIN, OUTPUT);
   pinMode(PIRPIN, INPUT);
 
   rst_info *_reset_info = ESP.getResetInfoPtr();
@@ -911,7 +913,11 @@ void dispRelayStatus() {
 
 
 void changeRelay(byte status) {
-  digitalWrite(RELAYPIN, status);
+  digitalWrite(RELAY2PIN, status);
+  if (status==HIGH) {
+    delay(1000);
+  }
+  digitalWrite(RELAY1PIN, status);
   digitalWrite(LED2PIN, !status);
 }
 
