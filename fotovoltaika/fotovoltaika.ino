@@ -85,8 +85,8 @@ unsigned int display                        = 0;
 #define POZREGOUT_POWERXY                   0
 #define RELAY_STATUSX                       17
 #define RELAY_STATUSY                       3
-#define OUT_STATUSX                         13
-#define OUT_STATUSY                         3
+// #define OUT_STATUSX                         13
+// #define OUT_STATUSY                         3
 #define KOEFX                               6
 #define KOEFY                               3
 
@@ -470,8 +470,8 @@ void setup() {
   lcd.clear();
   lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
   lcd.print("OFF");
-  lcd.setCursor(OUT_STATUSX,OUT_STATUSY);
-  lcd.print("OFF");
+//  lcd.setCursor(OUT_STATUSX,OUT_STATUSY);
+//  lcd.print("OFF");
 }
 
 void loop() {
@@ -516,7 +516,7 @@ void relay() {
       changeRelay(relayStatus);
   }
   dispRelayStatus();
-  dispOutStatus();
+  //dispOutStatus();
 }
 
 bool readADC(void *) {
@@ -888,14 +888,14 @@ void dispRelayStatus() {
   else if (manualRelay==0) lcd.print("MOF");
 }
 
- void dispOutStatus() {
-  lcd.setCursor(OUT_STATUSX,OUT_STATUSY);
-  if (digitalRead(CHAROUTPIN)==HIGH) {
-    lcd.print(" ON");
-  } else {
-    lcd.print("OFF");
-  }
-}
+ // void dispOutStatus() {
+  // lcd.setCursor(OUT_STATUSX,OUT_STATUSY);
+  // if (digitalRead(CHAROUTPIN)==HIGH) {
+    // lcd.print(" ON");
+  // } else {
+    // lcd.print("OFF");
+  // }
+// }
 
 
 void changeRelay(byte status) {
