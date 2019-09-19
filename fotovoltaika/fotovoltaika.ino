@@ -682,13 +682,13 @@ bool sendDataHA(void *) {
   }
   
   sender.add("currentRegIn",      currentRegInSum   / (float)intervalMSec);
-  // if (relayStatus==HIGH) {
-    // sender.add("currentRegOut",   currentRegOutSum  / (float)intervalMSec);
-    // sender.add("powerOut",        (currentRegOutSum / (float)intervalMSec) * voltageRegOutMax);
-  // } else {
-    // sender.add("currentRegOut",   0);
-    // sender.add("powerOut",        0);
-  // }
+  if (relayStatus==HIGH) {
+    sender.add("currentRegOut",   currentRegOutSum  / (float)intervalMSec);
+    sender.add("powerOut",        (currentRegOutSum / (float)intervalMSec) * voltageRegOutMax);
+  } else {
+    sender.add("currentRegOut",   0);
+    sender.add("powerOut",        0);
+  }
   sender.add("currentAcu",        currentAcuSum     / (float)intervalMSec);
   sender.add("intervalSec",       (float)intervalMSec/1000.f);
   
