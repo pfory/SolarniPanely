@@ -85,8 +85,8 @@ unsigned int display                        = 0;
 #define POZREGOUT_POWERXY                   0
 #define RELAY_STATUSX                       17
 #define RELAY_STATUSY                       3
-#define OUT_STATUSX                         13
-#define OUT_STATUSY                         3
+// #define OUT_STATUSX                         13
+// #define OUT_STATUSY                         3
 #define KOEFX                               6
 #define KOEFY                               3
 
@@ -470,8 +470,8 @@ void setup() {
   lcd.clear();
   lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
   lcd.print("OFF");
-  lcd.setCursor(OUT_STATUSX,OUT_STATUSY);
-  lcd.print("OFF");
+//  lcd.setCursor(OUT_STATUSX,OUT_STATUSY);
+//  lcd.print("OFF");
 }
 
 void loop() {
@@ -516,7 +516,7 @@ void relay() {
       changeRelay(relayStatus);
   }
   dispRelayStatus();
-  dispOutStatus();
+  //dispOutStatus();
 }
 
 bool readADC(void *) {
@@ -540,10 +540,10 @@ bool readADC(void *) {
   // voltageRegOutMax   = max(voltage, voltageRegOutMax); 
   // voltageAcuMax      = max(voltage, voltageAcuMax);
   // voltage12VMax      = max(voltage, voltage12VMax);
-  voltageRegOutMin   = loadvoltage_1; 
+  voltageRegOutMin   = 12.f; //loadvoltage_1; 
   voltageAcuMin      = 12.f;
   voltage12VMin      = 12.f;
-  voltageRegOutMax   = loadvoltage_1; 
+  voltageRegOutMax   = 12.f; //loadvoltage_1; 
   voltageAcuMax      = 12.f;
   voltage12VMax      = 12.f;
   
@@ -575,7 +575,8 @@ bool readADC(void *) {
   DEBUG_PRINT("currentRegIn");
   DEBUG_PRINTLN(currentRegIn);
   
-  currentAcu    = ((float)(dilkuAcu * 2 - dilkuSupply)   * MVOLTDILEKADC1) / MVAMPERACU / 2;
+  //currentAcu    = ((float)(dilkuAcu * 2 - dilkuSupply)   * MVOLTDILEKADC1) / MVAMPERACU / 2;
+  currentAcu = 0.f;
   currentAcuSum += currentAcu * diff;
   DEBUG_PRINT("currentAcu");
   DEBUG_PRINTLN(currentAcu);
@@ -902,14 +903,14 @@ void dispRelayStatus() {
   else if (manualRelay==0) lcd.print("MOF");
 }
 
- void dispOutStatus() {
-  lcd.setCursor(OUT_STATUSX,OUT_STATUSY);
-  if (digitalRead(CHAROUTPIN)==HIGH) {
-    lcd.print(" ON");
-  } else {
-    lcd.print("OFF");
-  }
-}
+ // void dispOutStatus() {
+  // lcd.setCursor(OUT_STATUSX,OUT_STATUSY);
+  // if (digitalRead(CHAROUTPIN)==HIGH) {
+    // lcd.print(" ON");
+  // } else {
+    // lcd.print("OFF");
+  // }
+// }
 
 
 void changeRelay(byte status) {
