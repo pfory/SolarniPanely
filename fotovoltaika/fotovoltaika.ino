@@ -109,8 +109,8 @@ Ticker ticker;
 //#define CHAROUT_DELAY                        3600 * 1000 //po tuto dobu musi byt vystup sepnuty a pak sepne rele 10 min
 unsigned long lastRelayChange                = 0;   //zamezuje cyklickemu zapinani a vypinani rele
 
-float   relayON                              = 12.5;
-float   relayOFF                             = 12.f;
+float   relayONVoltage                       = 12.5;
+float   relayOFFVoltage                      = 12.f;
 
 
 #define RELAY_ON                             HIGH
@@ -496,12 +496,12 @@ void loop() {
 void relay() {
   if (manualRelay==2) {
     readINA();
-    if (loadvoltage_1 > relayON && relayStatus == RELAY_OFF) { // && charOutmSec >= CHAROUT_DELAY) { //zmena 0-1
+    if (relayStatus == RELAY_OFF && loadvoltage_1 > relayONVoltage) { // && charOutmSec >= CHAROUT_DELAY) { //zmena 0-1
       relayStatus = RELAY_ON;
       changeRelay(relayStatus);
       lastRelayChange = millis();
       sendRelayHA(1);
-    } else if (loadvoltage_1 <= relayOFF && relayStatus == RELAY_ON) { //zmena 1-0
+    } else if (relayStatus == RELAY_ON && loadvoltage_1 <= relayOFFVoltage) { //zmena 1-0
       relayStatus = RELAY_OFF;
       changeRelay(relayStatus);
       lastRelayChange = millis();
@@ -653,16 +653,31 @@ bool sendDataHA(void *) {
   sender.add("manualRelay",       manualRelay);
 //  sender.add("charOutSec",        charOutmSec / 1000);
   
-  sender.add("voltageRegInMin",   voltageRegInMin);
-  sender.add("voltageRegInMax",   voltageRegInMax);
-  sender.add("voltageRegOutMin",  voltageRegOutMin);
-  sender.add("voltageRegOutMax",  voltageRegOutMax);
-  sender.add("voltageAcuMin",     voltageAcuMin);
-  sender.add("voltageAcuMax",     voltageAcuMax);
-  sender.add("voltage12VMin",     voltage12VMin);
-  sender.add("voltage12VMax",     voltage12VMax);
-  
-  sender.add("powerIn",           (currentRegInSum  / (float)intervalMSec) * voltageRegInMax);
+  if (voltageRegInMin<MAX) {
+    sender.add("voltageRegInMin",   voltageRegInMin);
+  }
+  if (voltageRegInMax>MIN) {
+    sender.add("voltageRegInMax",   voltageRegInMax);
+    sender.add("powerIn",           (currentRegInSum  / (float)intervalMSec) * voltageRegInMax);
+  }
+  if (voltageRegOutMin<MAX) {
+    sender.add("voltageRegOutMin",  voltageRegOutMin);
+  }
+  if (voltageRegOutMax>MIN) {
+    sender.add("voltageRegOutMax",  voltageRegOutMax);
+  }
+  if (voltageAcuMin<MAX) {
+    sender.add("voltageAcuMin",     voltageAcuMin);
+  }
+  if (voltageAcuMax>MIN) {
+    sender.add("voltageAcuMax",     voltageAcuMax);
+  }
+  if (voltage12VMin<MAX) {
+    sender.add("voltage12VMin",     voltage12VMin);
+  }
+  if (voltage12VMax>MIN) {
+    sender.add("voltage12VMax",     voltage12VMax);
+  }
   
   sender.add("currentRegIn",      currentRegInSum   / (float)intervalMSec);
   if (relayStatus==HIGH) {
