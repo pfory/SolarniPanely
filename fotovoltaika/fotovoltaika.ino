@@ -98,7 +98,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.72"
+#define     VERSION                          "0.73"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
@@ -116,7 +116,7 @@ float   relayOFF                             = 12.f;
 #define RELAY_ON                             HIGH
 #define RELAY_OFF                            LOW
 byte relayStatus                             = RELAY_OFF;
-byte manualRelay                             = 0;
+byte manualRelay                             = 2;
 
 #define MAX                                  32767
 #define MIN                                  -32767
@@ -177,11 +177,11 @@ float      voltageRegInMin          = MAX; //vystup z panelu, rozsah 0-20V
 float      voltageRegOutMin         = MAX; //vystup z regulatoru, rozsah 0-15V
 float      voltageAcuMin            = MAX; //vystup z regulatoru, rozsah 0-15V
 float      voltage12VMin            = MAX; //vystup z regulatoru, rozsah 0-15V
-float      voltageRegInMax          = 0; //vystup z panelu, rozsah 0-20V
-float      voltageRegOutMax         = 0; //vystup z regulatoru, rozsah 0-15V
-float      voltageAcuMax            = 0; //vystup z regulatoru, rozsah 0-15V
-float      voltage12VMax            = 0; //vystup z regulatoru, rozsah 0-15V
-float      voltageSupply            = 0;
+float      voltageRegInMax          = MIN; //vystup z panelu, rozsah 0-20V
+float      voltageRegOutMax         = MIN; //vystup z regulatoru, rozsah 0-15V
+float      voltageAcuMax            = MIN; //vystup z regulatoru, rozsah 0-15V
+float      voltage12VMax            = MIN; //vystup z regulatoru, rozsah 0-15V
+float      voltageSupply            = MIN;
   
 //uint32_t  charOutmSec               = CHAROUT_DELAY;  //doba v milisec po kterou je vystup sepnuty
 uint32_t  lastCharOutmSec           = 0;              //diference v ms od posledniho behu
@@ -529,10 +529,10 @@ bool readADC(void *) {
   DEBUG_PRINT("voltageInput:");
   DEBUG_PRINTLN(voltage);
   
-  voltageRegInMin    = 12.f; //min(voltage, voltageRegInMin);
-  voltageRegInMax    = 12.f; //max(voltage, voltageRegInMax);
-  //voltageRegOutMin   = min(voltage, voltageRegOutMin); 
-  //voltageRegOutMin   = min(voltage, voltageRegOutMin); 
+  voltageRegInMin    = min(loadvoltage_2, voltageRegInMin);
+  voltageRegInMax    = max(loadvoltage_2, voltageRegInMax);
+  voltageRegOutMin   = min(loadvoltage_1, voltageRegOutMin); 
+  voltageRegOutMax   = max(loadvoltage_1, voltageRegOutMax); 
   //voltageRegOutMax   = max(voltage, voltageRegOutMax); 
   // voltage = ads1.readADC_Differential_2_3();
   // voltageAcuMin      = min(voltage, voltageAcuMin);
@@ -540,10 +540,8 @@ bool readADC(void *) {
   // voltageRegOutMax   = max(voltage, voltageRegOutMax); 
   // voltageAcuMax      = max(voltage, voltageAcuMax);
   // voltage12VMax      = max(voltage, voltage12VMax);
-  voltageRegOutMin   = 12.f; //loadvoltage_1; 
   voltageAcuMin      = 12.f;
   voltage12VMin      = 12.f;
-  voltageRegOutMax   = 12.f; //loadvoltage_1; 
   voltageAcuMax      = 12.f;
   voltage12VMax      = 12.f;
   
@@ -701,10 +699,10 @@ bool sendDataHA(void *) {
   voltageRegOutMin  = MAX;
   voltageAcuMin     = MAX;   
   voltage12VMin     = MAX;   
-  voltageRegInMax   = 0; 
-  voltageRegOutMax  = 0;
-  voltageAcuMax     = 0;   
-  voltage12VMax     = 0;   
+  voltageRegInMax   = MIN; 
+  voltageRegOutMax  = MIN;
+  voltageAcuMax     = MIN;   
+  voltage12VMax     = MIN;   
   intervalMSec      = 0;
   currentAcuSum     = 0.f;
   currentRegInSum   = 0.f;
