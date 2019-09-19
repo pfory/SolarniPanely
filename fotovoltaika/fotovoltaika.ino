@@ -67,20 +67,20 @@ unsigned int display                        = 0;
 
 #define POZREGIN_CURRENTX                   1
 #define POZREGIN_CURRENTY                   1
-#define POZREGACU_CURRENTX                  7
-#define POZREGACU_CURRENTY                  1
+//#define POZREGACU_CURRENTX                  7
+//#define POZREGACU_CURRENTY                  1
 #define POZREGOUT_CURRENTX                 13
 #define POZREGOUT_CURRENTY                  1
 #define POZREGIN_VOLTAGEX                   1
 #define POZREGIN_VOLTAGEY                   2
-#define POZREGACU_VOLTAGEX                  7
-#define POZREGACU_VOLTAGEY                  2
+//#define POZREGACU_VOLTAGEX                  7
+// #define POZREGACU_VOLTAGEY                  2
 #define POZREGOUT_VOLTAGEX                  13
 #define POZREGOUT_VOLTAGEY                  2
 #define POZREGIN_POWERX                     2
 #define POZREGIN_POWERXY                    0
-#define POZREGACU_POWERX                    8
-#define POZREGACU_POWERXY                   0
+// #define POZREGACU_POWERX                    8
+// #define POZREGACU_POWERXY                   0
 #define POZREGOUT_POWERX                    14
 #define POZREGOUT_POWERXY                   0
 #define RELAY_STATUSX                       17
@@ -98,7 +98,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.73"
+#define     VERSION                          "0.75"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
@@ -107,9 +107,9 @@ Ticker ticker;
 
 //#define RELAY_DELAY_ON                       60000  //interval prodlevy po rozepnuti rele
 //#define CHAROUT_DELAY                        3600 * 1000 //po tuto dobu musi byt vystup sepnuty a pak sepne rele 10 min
-unsigned long lastRelayChange                = 0;   //zamezuje cyklickemu zapinani a vypinani rele
+//unsigned long lastRelayChange                = 0;   //zamezuje cyklickemu zapinani a vypinani rele
 
-float   relayONVoltage                       = 12.5;
+float   relayONVoltage                       = 13.5;
 float   relayOFFVoltage                      = 12.f;
 
 
@@ -165,7 +165,7 @@ char      static_sn[16]             = "255.255.255.0";
 #define VIN                         A0 // define the Arduino pin A0 as voltage input (V in)
 #define LED2PIN                     D3 //stav rele
 #define LED1PIN                     D4 //
-#define CHAROUTPIN                  D7 //vystup z regulatoru, na testovacim je D7 asi spaleny
+//#define CHAROUTPIN                  D7 //vystup z regulatoru, na testovacim je D7 asi spaleny
 #define RELAY1PIN                   D8 //pin rele 1
 #define RELAY2PIN                   D6 //pin rele 2
 #define PIRPIN                      D5 //pin pir sensoru
@@ -175,31 +175,31 @@ char      static_sn[16]             = "255.255.255.0";
 //mereni napeti   
 float      voltageRegInMin          = MAX; //vystup z panelu, rozsah 0-20V
 float      voltageRegOutMin         = MAX; //vystup z regulatoru, rozsah 0-15V
-float      voltageAcuMin            = MAX; //vystup z regulatoru, rozsah 0-15V
-float      voltage12VMin            = MAX; //vystup z regulatoru, rozsah 0-15V
+//float      voltageAcuMin            = MAX; //vystup z regulatoru, rozsah 0-15V
+//float      voltage12VMin            = MAX; //vystup z regulatoru, rozsah 0-15V
 float      voltageRegInMax          = MIN; //vystup z panelu, rozsah 0-20V
 float      voltageRegOutMax         = MIN; //vystup z regulatoru, rozsah 0-15V
-float      voltageAcuMax            = MIN; //vystup z regulatoru, rozsah 0-15V
-float      voltage12VMax            = MIN; //vystup z regulatoru, rozsah 0-15V
+//float      voltageAcuMax            = MIN; //vystup z regulatoru, rozsah 0-15V
+//float      voltage12VMax            = MIN; //vystup z regulatoru, rozsah 0-15V
 float      voltageSupply            = MIN;
   
 //uint32_t  charOutmSec               = CHAROUT_DELAY;  //doba v milisec po kterou je vystup sepnuty
-uint32_t  lastCharOutmSec           = 0;              //diference v ms od posledniho behu
+//uint32_t  lastCharOutmSec           = 0;              //diference v ms od posledniho behu
 uint32_t  lastReadADC               = 0;              //interval mezi ctenim sensoru
 
 //mereni proudu
 float     currentRegIn              = 0.f;
-float     currentAcu                = 0.f;
+//float     currentAcu                = 0.f;
 float     currentRegOut             = 0.f;
       
 float     currentRegInSum           = 0.f;
-float     currentAcuSum             = 0.f;
+//float     currentAcuSum             = 0.f;
 float     currentRegOutSum          = 0.f;
 int32_t   intervalMSec              = 0;
 
 
 #define         CHANNEL_REG_IN_CURRENT          2
-#define         CHANNEL_REG_ACU_CURRENT         0
+//#define         CHANNEL_REG_ACU_CURRENT         0
 #define         CHANNEL_REG_OUT_CURRENT         1
 #define         CHANNEL_VOLTAGE_SUPPLY          3
 
@@ -207,25 +207,25 @@ int32_t   intervalMSec              = 0;
 #define         MVOLTDILEKADC2                  0.1875
 //#define         MVOLTDILEKADC3                   0.1875
 
-#define         KOEF_INPUT_VOLTAGE              4.302
+//#define         KOEF_INPUT_VOLTAGE              4.302
 
 #define         MVAMPERIN                       40.f        // 40mV = 1A
-#define         MVAMPERACU                      100.f       // 100mV = 1A
+//#define         MVAMPERACU                      100.f       // 100mV = 1A
 #define         MVAMPEROUT                      185.f       // 185mV = 1A
 
 Adafruit_INA219 ina219_1; //output
-Adafruit_INA219 ina219_2(0x41); //batery
+Adafruit_INA219 ina219_2(0x41); //input
 
-float     shuntvoltage_1            = 0;
-float     busvoltage_1              = 0;
-float     current_mA_1              = 0;
-float     loadvoltage_1             = 0;
-float     power_mW_1                = 0;
-float     shuntvoltage_2            = 0;
-float     busvoltage_2              = 0;
-float     current_mA_2              = 0;
-float     loadvoltage_2             = 0;
-float     power_mW_2                = 0;
+//float     shuntvoltage_1            = 0;
+// float     busvoltage_1              = 0;
+// float     current_mA_1              = 0;
+//float     loadvoltage_1             = 0;
+// float     power_mW_1                = 0;
+// float     shuntvoltage_2            = 0;
+// float     busvoltage_2              = 0;
+// float     current_mA_2              = 0;
+//float     loadvoltage_2             = 0;
+// float     power_mW_2                = 0;
   
 
 //gets called when WiFiManager enters configuration mode
@@ -314,7 +314,7 @@ void setup() {
   pinMode(BUILTIN_LED, OUTPUT);
   pinMode(LED1PIN, OUTPUT);
   pinMode(LED2PIN, OUTPUT);
-  pinMode(CHAROUTPIN, INPUT);
+  //pinMode(CHAROUTPIN, INPUT);
   pinMode(RELAY1PIN, OUTPUT);
   pinMode(RELAY2PIN, OUTPUT);
   pinMode(PIRPIN, INPUT);
@@ -496,15 +496,15 @@ void loop() {
 void relay() {
   if (manualRelay==2) {
     readINA();
-    if (relayStatus == RELAY_OFF && loadvoltage_1 > relayONVoltage) { // && charOutmSec >= CHAROUT_DELAY) { //zmena 0-1
+    if (relayStatus == RELAY_OFF && voltageRegOutMin > relayONVoltage) { // && charOutmSec >= CHAROUT_DELAY) { //zmena 0-1
       relayStatus = RELAY_ON;
       changeRelay(relayStatus);
-      lastRelayChange = millis();
+      //lastRelayChange = millis();
       sendRelayHA(1);
-    } else if (relayStatus == RELAY_ON && loadvoltage_1 <= relayOFFVoltage) { //zmena 1-0
+    } else if (relayStatus == RELAY_ON && voltageRegOutMax <= relayOFFVoltage) { //zmena 1-0
       relayStatus = RELAY_OFF;
       changeRelay(relayStatus);
-      lastRelayChange = millis();
+      //lastRelayChange = millis();
       //charOutmSec = 0;
       sendRelayHA(0);
     }
@@ -522,17 +522,13 @@ void relay() {
 bool readADC(void *) {
   readINA();
 
-  int32_t dilkuInputVoltage = ads2.readADC_Differential_0_1();
-  DEBUG_PRINT("dilkuInputVoltage:");
-  DEBUG_PRINT(dilkuInputVoltage);
-  float voltage    = ((float)dilkuInputVoltage * MVOLTDILEKADC2) / 1000.f * KOEF_INPUT_VOLTAGE; //in mV  example 26149 * 0.1875 = 4902,938mV
-  DEBUG_PRINT("voltageInput:");
-  DEBUG_PRINTLN(voltage);
+  // int32_t dilkuInputVoltage = ads2.readADC_Differential_0_1();
+  // DEBUG_PRINT("dilkuInputVoltage:");
+  // DEBUG_PRINT(dilkuInputVoltage);
+  // float voltage    = ((float)dilkuInputVoltage * MVOLTDILEKADC2) / 1000.f * KOEF_INPUT_VOLTAGE; //in mV  example 26149 * 0.1875 = 4902,938mV
+  // DEBUG_PRINT("voltageInput:");
+  // DEBUG_PRINTLN(voltage);
   
-  voltageRegInMin    = min(loadvoltage_2, voltageRegInMin);
-  voltageRegInMax    = max(loadvoltage_2, voltageRegInMax);
-  voltageRegOutMin   = min(loadvoltage_1, voltageRegOutMin); 
-  voltageRegOutMax   = max(loadvoltage_1, voltageRegOutMax); 
   //voltageRegOutMax   = max(voltage, voltageRegOutMax); 
   // voltage = ads1.readADC_Differential_2_3();
   // voltageAcuMin      = min(voltage, voltageAcuMin);
@@ -540,21 +536,21 @@ bool readADC(void *) {
   // voltageRegOutMax   = max(voltage, voltageRegOutMax); 
   // voltageAcuMax      = max(voltage, voltageAcuMax);
   // voltage12VMax      = max(voltage, voltage12VMax);
-  voltageAcuMin      = 12.f;
-  voltage12VMin      = 12.f;
-  voltageAcuMax      = 12.f;
-  voltage12VMax      = 12.f;
+  // voltageAcuMin      = 12.f;
+  // voltage12VMin      = 12.f;
+  // voltageAcuMax      = 12.f;
+  // voltage12VMax      = 12.f;
   
   int32_t dilkuSupply = ads1.readADC_SingleEnded(CHANNEL_VOLTAGE_SUPPLY);
   int32_t dilkuInput  = ads1.readADC_SingleEnded(CHANNEL_REG_IN_CURRENT);
-  int32_t dilkuAcu    = ads1.readADC_SingleEnded(CHANNEL_REG_ACU_CURRENT);
+//  int32_t dilkuAcu    = ads1.readADC_SingleEnded(CHANNEL_REG_ACU_CURRENT);
   int32_t dilkuOut    = ads1.readADC_SingleEnded(CHANNEL_REG_OUT_CURRENT);
   DEBUG_PRINT("dilkuSupply:");
   DEBUG_PRINT(dilkuSupply);
   DEBUG_PRINT(", dilkuInput:");
   DEBUG_PRINT(dilkuInput);
-  DEBUG_PRINT(", dilkuAcu:");
-  DEBUG_PRINT(dilkuAcu);
+//  DEBUG_PRINT(", dilkuAcu:");
+//  DEBUG_PRINT(dilkuAcu);
   DEBUG_PRINT(", dilkuOut:");
   DEBUG_PRINTLN(dilkuOut);
   
@@ -573,11 +569,11 @@ bool readADC(void *) {
   DEBUG_PRINT("currentRegIn");
   DEBUG_PRINTLN(currentRegIn);
   
-  //currentAcu    = ((float)(dilkuAcu * 2 - dilkuSupply)   * MVOLTDILEKADC1) / MVAMPERACU / 2;
-  currentAcu = 0.f;
-  currentAcuSum += currentAcu * diff;
-  DEBUG_PRINT("currentAcu");
-  DEBUG_PRINTLN(currentAcu);
+  // //currentAcu    = ((float)(dilkuAcu * 2 - dilkuSupply)   * MVOLTDILEKADC1) / MVAMPERACU / 2;
+  // currentAcu = 0.f;
+  // currentAcuSum += currentAcu * diff;
+  // DEBUG_PRINT("currentAcu");
+  // DEBUG_PRINTLN(currentAcu);
   
   currentRegOut = ((float)(dilkuOut * 2 - dilkuSupply)   * MVOLTDILEKADC1) / MVAMPEROUT / 2;
   currentRegOutSum += currentRegOut * diff;
@@ -595,33 +591,39 @@ bool readADC(void *) {
 }
 
 void readINA(void) {
-  shuntvoltage_1 = ina219_1.getShuntVoltage_mV();
-  busvoltage_1 = ina219_1.getBusVoltage_V();
-  current_mA_1 = ina219_1.getCurrent_mA();
-  power_mW_1 = ina219_1.getPower_mW();
-  loadvoltage_1 = busvoltage_1 + (shuntvoltage_1 / 1000);
+  // shuntvoltage_1 = ina219_1.getShuntVoltage_mV();
+  // busvoltage_1 = ina219_1.getBusVoltage_V();
+  // current_mA_1 = ina219_1.getCurrent_mA();
+  // power_mW_1 = ina219_1.getPower_mW();
+  // loadvoltage_1 = busvoltage_1 + (shuntvoltage_1 / 1000);
+  float loadvoltage_1 = ina219_1.getBusVoltage_V();
   
-  Serial.println("OUTPUT:");
-  Serial.print("Bus Voltage:   "); Serial.print(busvoltage_1); Serial.println(" V");
-  Serial.print("Shunt Voltage: "); Serial.print(shuntvoltage_1); Serial.println(" mV");
-  Serial.print("Load Voltage:  "); Serial.print(loadvoltage_1); Serial.println(" V");
-  Serial.print("Current:       "); Serial.print(current_mA_1); Serial.println(" mA");
-  Serial.print("Power:         "); Serial.print(power_mW_1); Serial.println(" mW");
-  Serial.println("");
+  // Serial.println("OUTPUT:");
+  // Serial.print("Bus Voltage:   "); Serial.print(busvoltage_1); Serial.println(" V");
+  // Serial.print("Shunt Voltage: "); Serial.print(shuntvoltage_1); Serial.println(" mV");
+  Serial.println("Load Voltage:  "); Serial.print(loadvoltage_1); Serial.println(" V");
+  // Serial.print("Current:       "); Serial.print(current_mA_1); Serial.println(" mA");
+  // Serial.print("Power:         "); Serial.print(power_mW_1); Serial.println(" mW");
+  // Serial.println("");
 
-  shuntvoltage_2 = ina219_2.getShuntVoltage_mV();
-  busvoltage_2 = ina219_2.getBusVoltage_V();
-  current_mA_2 = ina219_2.getCurrent_mA();
-  power_mW_2 = ina219_2.getPower_mW();
-  loadvoltage_2 = busvoltage_2 + (shuntvoltage_2 / 1000);
+  // shuntvoltage_2 = ina219_2.getShuntVoltage_mV();
+  // busvoltage_2 = ina219_2.getBusVoltage_V();
+  // current_mA_2 = ina219_2.getCurrent_mA();
+  // power_mW_2 = ina219_2.getPower_mW();
+  // loadvoltage_2 = busvoltage_2 + (shuntvoltage_2 / 1000);
+  float loadvoltage_2 = ina219_2.getBusVoltage_V();
   
-  Serial.println("OUTPUT BATERY:");
-  Serial.print("Bus Voltage:   "); Serial.print(busvoltage_2); Serial.println(" V");
-  Serial.print("Shunt Voltage: "); Serial.print(shuntvoltage_2); Serial.println(" mV");
-  Serial.print("Load Voltage:  "); Serial.print(loadvoltage_2); Serial.println(" V");
-  Serial.print("Current:       "); Serial.print(current_mA_2); Serial.println(" mA");
-  Serial.print("Power:         "); Serial.print(power_mW_2); Serial.println(" mW");
-  Serial.println("");
+  // Serial.println("OUTPUT BATERY:");
+  // Serial.print("Bus Voltage:   "); Serial.print(busvoltage_2); Serial.println(" V");
+  // Serial.print("Shunt Voltage: "); Serial.print(shuntvoltage_2); Serial.println(" mV");
+  Serial.println("Load Voltage:  "); Serial.print(loadvoltage_2); Serial.println(" V");
+  // Serial.print("Current:       "); Serial.print(current_mA_2); Serial.println(" mA");
+  // Serial.print("Power:         "); Serial.print(power_mW_2); Serial.println(" mW");
+  // Serial.println("");
+  voltageRegInMin    = min(loadvoltage_2, voltageRegInMin);
+  voltageRegInMax    = max(loadvoltage_2, voltageRegInMax);
+  voltageRegOutMin   = min(loadvoltage_1, voltageRegOutMin); 
+  voltageRegOutMax   = max(loadvoltage_1, voltageRegOutMax); 
 
 }
 
@@ -647,9 +649,9 @@ bool sendDataHA(void *) {
   // sender.add("adcRegOutMax", adcRegOutMax);
   // sender.add("adcAcuMax", adcAcuMax);
   // sender.add("adc12VMax", adc12VMax);
-  sender.add("chargerOUT",        digitalRead(CHAROUTPIN));
+  //sender.add("chargerOUT",        digitalRead(CHAROUTPIN));
   sender.add("relayStatus",       relayStatus);
-  sender.add("lastRelayChange",   (uint32_t)lastRelayChange);
+  //sender.add("lastRelayChange",   (uint32_t)lastRelayChange);
   sender.add("manualRelay",       manualRelay);
 //  sender.add("charOutSec",        charOutmSec / 1000);
   
@@ -666,18 +668,18 @@ bool sendDataHA(void *) {
   if (voltageRegOutMax>MIN) {
     sender.add("voltageRegOutMax",  voltageRegOutMax);
   }
-  if (voltageAcuMin<MAX) {
-    sender.add("voltageAcuMin",     voltageAcuMin);
-  }
-  if (voltageAcuMax>MIN) {
-    sender.add("voltageAcuMax",     voltageAcuMax);
-  }
-  if (voltage12VMin<MAX) {
-    sender.add("voltage12VMin",     voltage12VMin);
-  }
-  if (voltage12VMax>MIN) {
-    sender.add("voltage12VMax",     voltage12VMax);
-  }
+  // if (voltageAcuMin<MAX) {
+    // sender.add("voltageAcuMin",     voltageAcuMin);
+  // }
+  // if (voltageAcuMax>MIN) {
+    // sender.add("voltageAcuMax",     voltageAcuMax);
+  // }
+  // if (voltage12VMin<MAX) {
+    // sender.add("voltage12VMin",     voltage12VMin);
+  // }
+  // if (voltage12VMax>MIN) {
+    // sender.add("voltage12VMax",     voltage12VMax);
+  // }
   
   sender.add("currentRegIn",      currentRegInSum   / (float)intervalMSec);
   if (relayStatus==HIGH) {
@@ -687,7 +689,7 @@ bool sendDataHA(void *) {
     sender.add("currentRegOut",   0);
     sender.add("powerOut",        0);
   }
-  sender.add("currentAcu",        currentAcuSum     / (float)intervalMSec);
+  // sender.add("currentAcu",        currentAcuSum     / (float)intervalMSec);
   sender.add("intervalSec",       (float)intervalMSec/1000.f);
   
   sender.add("NapetiSbernice",    voltageSupply);
@@ -696,30 +698,30 @@ bool sendDataHA(void *) {
   sender.add("ch2Dilky",          ads1.readADC_SingleEnded(2));
   sender.add("ch3Dilky",          ads1.readADC_SingleEnded(3));
   
-  sender.add("busVoltage", busvoltage_1);
-  sender.add("shuntVoltage", shuntvoltage_1);
-  sender.add("loadVoltage", loadvoltage_1);
-  sender.add("current", current_mA_1);
-  sender.add("power", power_mW_1);
+  // sender.add("busVoltage", busvoltage_1);
+  // sender.add("shuntVoltage", shuntvoltage_1);
+  // sender.add("loadVoltage", loadvoltage_1);
+  // sender.add("current", current_mA_1);
+  // sender.add("power", power_mW_1);
   
-  sender.add("busVoltage_2", busvoltage_2);
-  sender.add("shuntVoltage_2", shuntvoltage_2);
-  sender.add("loadVoltage_2", loadvoltage_2);
-  sender.add("current_2", current_mA_2);
-  sender.add("power_2", power_mW_2);
+  // sender.add("busVoltage_2", busvoltage_2);
+  // sender.add("shuntVoltage_2", shuntvoltage_2);
+  // sender.add("loadVoltage_2", loadvoltage_2);
+  // sender.add("current_2", current_mA_2);
+  // sender.add("power_2", power_mW_2);
 
 
 
   voltageRegInMin   = MAX;
   voltageRegOutMin  = MAX;
-  voltageAcuMin     = MAX;   
-  voltage12VMin     = MAX;   
+  // voltageAcuMin     = MAX;   
+  // voltage12VMin     = MAX;   
   voltageRegInMax   = MIN; 
   voltageRegOutMax  = MIN;
-  voltageAcuMax     = MIN;   
-  voltage12VMax     = MIN;   
+  // voltageAcuMax     = MIN;   
+  // voltage12VMax     = MIN;   
   intervalMSec      = 0;
-  currentAcuSum     = 0.f;
+ // currentAcuSum     = 0.f;
   currentRegInSum   = 0.f;
   currentRegOutSum  = 0.f;
   
@@ -756,7 +758,7 @@ void sendRelayHA(byte akce) {
   digitalWrite(BUILTIN_LED, LOW);
   SenderClass sender;
   sender.add("relayChange", akce);
-  sender.add("chargerOUT",        digitalRead(CHAROUTPIN));
+  //sender.add("chargerOUT",        digitalRead(CHAROUTPIN));
   
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
   digitalWrite(LED1PIN, HIGH);
@@ -788,24 +790,24 @@ void lcdShow() {
     lcd.print("P");
     displayValue(POZREGIN_POWERX,POZREGIN_POWERXY, voltageRegInMax*currentRegIn, false);
     lcd.print(POWER_UNIT);
-    displayValue(POZREGACU_POWERX,POZREGACU_POWERXY, voltageAcuMax*currentAcu, false);
-    lcd.print(POWER_UNIT);
+    // displayValue(POZREGACU_POWERX,POZREGACU_POWERXY, voltageAcuMax*currentAcu, false);
+    // lcd.print(POWER_UNIT);
     displayValue(POZREGOUT_POWERX,POZREGOUT_POWERXY, voltageRegOutMax*currentRegOut, false);
     lcd.print(POWER_UNIT);
     lcd.setCursor(0,1);
     lcd.print("I");
     displayValue(POZREGIN_CURRENTX,POZREGIN_CURRENTY, currentRegIn, true);
     lcd.print(CURRENT_UNIT);
-    displayValue(POZREGACU_CURRENTX,POZREGACU_CURRENTY, currentAcu, true);
-    lcd.print(CURRENT_UNIT);
+    // displayValue(POZREGACU_CURRENTX,POZREGACU_CURRENTY, currentAcu, true);
+    // lcd.print(CURRENT_UNIT);
     displayValue(POZREGOUT_CURRENTX,POZREGOUT_CURRENTY, currentRegOut, true);
     lcd.print(CURRENT_UNIT);
     lcd.setCursor(0,2);
     lcd.print("U");
     displayValue(POZREGIN_VOLTAGEX,POZREGIN_VOLTAGEY, voltageRegInMax, true);
     lcd.print(VOLTAGE_UNIT);
-    displayValue(POZREGACU_VOLTAGEX,POZREGACU_VOLTAGEY, voltageAcuMax, true);
-    lcd.print(VOLTAGE_UNIT);
+    // displayValue(POZREGACU_VOLTAGEX,POZREGACU_VOLTAGEY, voltageAcuMax, true);
+    // lcd.print(VOLTAGE_UNIT);
     displayValue(POZREGOUT_VOLTAGEX,POZREGOUT_VOLTAGEY, voltageRegOutMax, true);
     lcd.print(VOLTAGE_UNIT);
 
