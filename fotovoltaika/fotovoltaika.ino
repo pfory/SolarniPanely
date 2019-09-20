@@ -211,7 +211,7 @@ int32_t   intervalMSec              = 0;
 
 #define         MVAMPERIN                       40.f        // 40mV = 1A
 //#define         MVAMPERACU                      100.f       // 100mV = 1A
-#define         MVAMPEROUT                      185.f       // 185mV = 1A
+#define         MVAMPEROUT                      100.f       // 100mV = 1A
 
 Adafruit_INA219 ina219_1; //output
 Adafruit_INA219 ina219_2(0x41); //input
