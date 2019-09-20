@@ -110,7 +110,7 @@ Ticker ticker;
 //unsigned long lastRelayChange                = 0;   //zamezuje cyklickemu zapinani a vypinani rele
 
 float   relayONVoltage                       = 13.5;
-float   relayOFFVoltage                      = 12.f;
+float   relayOFFVoltage                      = 11.f;
 
 
 #define RELAY_ON                             HIGH
@@ -211,7 +211,7 @@ int32_t   intervalMSec              = 0;
 
 #define         MVAMPERIN                       40.f        // 40mV = 1A
 //#define         MVAMPERACU                      100.f       // 100mV = 1A
-#define         MVAMPEROUT                      185.f       // 185mV = 1A
+#define         MVAMPEROUT                      100.f       // 100mV = 1A
 
 Adafruit_INA219 ina219_1; //output
 Adafruit_INA219 ina219_2(0x41); //input
