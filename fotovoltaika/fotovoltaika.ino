@@ -98,7 +98,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.75"
+#define     VERSION                          "0.76"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
@@ -110,7 +110,7 @@ Ticker ticker;
 //unsigned long lastRelayChange                = 0;   //zamezuje cyklickemu zapinani a vypinani rele
 
 float   relayONVoltage                       = 13.5;
-float   relayOFFVoltage                      = 12.f;
+float   relayOFFVoltage                      = 11.f;
 
 
 #define RELAY_ON                             HIGH
@@ -314,7 +314,8 @@ void setup() {
   pinMode(BUILTIN_LED, OUTPUT);
   pinMode(LED1PIN, OUTPUT);
   pinMode(LED2PIN, OUTPUT);
-  //pinMode(CHAROUTPIN, INPUT);
+  digitalWrite(LED1PIN, LOW);
+  digitalWrite(LED2PIN, LOW);
   pinMode(RELAY1PIN, OUTPUT);
   pinMode(RELAY2PIN, OUTPUT);
   pinMode(PIRPIN, INPUT);
@@ -656,10 +657,10 @@ bool sendDataHA(void *) {
 //  sender.add("charOutSec",        charOutmSec / 1000);
   
   if (voltageRegInMin<MAX) {
-    sender.add("voltageRegInMin",   voltageRegInMin);
+    sender.add("voltageRegInMin",   voltageRegOutMin - voltageRegInMin);
   }
   if (voltageRegInMax>MIN) {
-    sender.add("voltageRegInMax",   voltageRegInMax);
+    sender.add("voltageRegInMax",   voltageRegOutMax - voltageRegInMax);
     sender.add("powerIn",           (currentRegInSum  / (float)intervalMSec) * voltageRegInMax);
   }
   if (voltageRegOutMin<MAX) {
