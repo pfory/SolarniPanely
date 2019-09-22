@@ -98,7 +98,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.76"
+#define     VERSION                          "0.77"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
@@ -213,8 +213,8 @@ int32_t   intervalMSec              = 0;
 //#define         MVAMPERACU                      100.f       // 100mV = 1A
 #define         MVAMPEROUT                      100.f       // 100mV = 1A
 
-Adafruit_INA219 ina219_1; //output
-Adafruit_INA219 ina219_2(0x41); //input
+Adafruit_INA219 ina219_2; //intput
+Adafruit_INA219 ina219_1(0x41); //output
 
 //float     shuntvoltage_1            = 0;
 // float     busvoltage_1              = 0;
@@ -451,7 +451,7 @@ void setup() {
   ina219_1.begin();
   ina219_2.begin();
   // To use a slightly lower 32V, 1A range (higher precision on amps):
-  ina219_1.setCalibration_32V_1A();
+  ina219_1.setCalibration_16V_400mA();
   ina219_2.setCalibration_32V_2A();
   // Or to use a lower 16V, 400mA range (higher precision on volts and amps):
   //ina219.setCalibration_16V_400mA();
@@ -597,7 +597,7 @@ void readINA(void) {
   // current_mA_1 = ina219_1.getCurrent_mA();
   // power_mW_1 = ina219_1.getPower_mW();
   // loadvoltage_1 = busvoltage_1 + (shuntvoltage_1 / 1000);
-  float loadvoltage_1 = ina219_1.getBusVoltage_V();
+  float loadvoltage_1 = ina219_1.getBusVoltage_V() * 2;
   
   // Serial.println("OUTPUT:");
   // Serial.print("Bus Voltage:   "); Serial.print(busvoltage_1); Serial.println(" V");
@@ -612,7 +612,7 @@ void readINA(void) {
   // current_mA_2 = ina219_2.getCurrent_mA();
   // power_mW_2 = ina219_2.getPower_mW();
   // loadvoltage_2 = busvoltage_2 + (shuntvoltage_2 / 1000);
-  float loadvoltage_2 = ina219_2.getBusVoltage_V();
+  float loadvoltage_2 = 12.f; //loadvoltage_1 - ina219_2.getBusVoltage_V();
   
   // Serial.println("OUTPUT BATERY:");
   // Serial.print("Bus Voltage:   "); Serial.print(busvoltage_2); Serial.println(" V");
@@ -657,10 +657,10 @@ bool sendDataHA(void *) {
 //  sender.add("charOutSec",        charOutmSec / 1000);
   
   if (voltageRegInMin<MAX) {
-    sender.add("voltageRegInMin",   voltageRegOutMin - voltageRegInMin);
+    sender.add("voltageRegInMin",   voltageRegInMin);
   }
   if (voltageRegInMax>MIN) {
-    sender.add("voltageRegInMax",   voltageRegOutMax - voltageRegInMax);
+    sender.add("voltageRegInMax",   voltageRegInMax);
     sender.add("powerIn",           (currentRegInSum  / (float)intervalMSec) * voltageRegInMax);
   }
   if (voltageRegOutMin<MAX) {
