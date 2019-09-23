@@ -98,7 +98,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.77"
+#define     VERSION                          "0.78"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
@@ -117,6 +117,8 @@ float   relayOFFVoltage                      = 11.f;
 #define RELAY_OFF                            LOW
 byte relayStatus                             = RELAY_OFF;
 byte manualRelay                             = 2;
+#define CURRENT4ON                           3.f //3A
+
 
 #define MAX                                  32767
 #define MIN                                  -32767
@@ -188,7 +190,7 @@ float      voltageSupply            = MIN;
 uint32_t  lastReadADC               = 0;              //interval mezi ctenim sensoru
 
 //mereni proudu
-float     currentRegIn              = 0.f;
+float     currentRegIn              = 0.f;   //Ampers
 //float     currentAcu                = 0.f;
 float     currentRegOut             = 0.f;
       
@@ -318,6 +320,8 @@ void setup() {
   digitalWrite(LED2PIN, LOW);
   pinMode(RELAY1PIN, OUTPUT);
   pinMode(RELAY2PIN, OUTPUT);
+  digitalWrite(RELAY1PIN, LOW);
+  digitalWrite(RELAY2PIN, LOW);
   pinMode(PIRPIN, INPUT);
 
   rst_info *_reset_info = ESP.getResetInfoPtr();
@@ -471,8 +475,6 @@ void setup() {
   lcd.clear();
   lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
   lcd.print("OFF");
-//  lcd.setCursor(OUT_STATUSX,OUT_STATUSY);
-//  lcd.print("OFF");
 }
 
 void loop() {
@@ -494,19 +496,19 @@ void loop() {
   relay();
 }
 
+//---------------------------------------------R E L A Y ------------------------------------------------
 void relay() {
   if (manualRelay==2) {
     readINA();
-    if (relayStatus == RELAY_OFF && voltageRegOutMin > relayONVoltage) { // && charOutmSec >= CHAROUT_DELAY) { //zmena 0-1
+    //-----------------------------------zmena 0-1--------------------------------------------
+    if (relayStatus == RELAY_OFF && (voltageRegOutMin > relayONVoltage || currentRegIn > CURRENT4ON)) {
       relayStatus = RELAY_ON;
       changeRelay(relayStatus);
-      //lastRelayChange = millis();
       sendRelayHA(1);
-    } else if (relayStatus == RELAY_ON && voltageRegOutMax <= relayOFFVoltage) { //zmena 1-0
+    //-----------------------------------zmena 1-0--------------------------------------------
+    } else if (relayStatus == RELAY_ON && voltageRegOutMax <= relayOFFVoltage) { 
       relayStatus = RELAY_OFF;
       changeRelay(relayStatus);
-      //lastRelayChange = millis();
-      //charOutmSec = 0;
       sendRelayHA(0);
     }
   } else if (manualRelay==1) {
@@ -517,7 +519,6 @@ void relay() {
       changeRelay(relayStatus);
   }
   dispRelayStatus();
-  //dispOutStatus();
 }
 
 bool readADC(void *) {
