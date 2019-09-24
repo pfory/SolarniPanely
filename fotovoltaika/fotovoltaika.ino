@@ -98,7 +98,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.78"
+#define     VERSION                          "0.79"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
@@ -316,8 +316,8 @@ void setup() {
   pinMode(BUILTIN_LED, OUTPUT);
   pinMode(LED1PIN, OUTPUT);
   pinMode(LED2PIN, OUTPUT);
-  digitalWrite(LED1PIN, LOW);
-  digitalWrite(LED2PIN, LOW);
+  digitalWrite(LED1PIN, HIGH); //nesviti
+  digitalWrite(LED2PIN, HIGH);
   pinMode(RELAY1PIN, OUTPUT);
   pinMode(RELAY2PIN, OUTPUT);
   digitalWrite(RELAY1PIN, LOW);
@@ -899,10 +899,19 @@ void reconnect() {
 
 void dispRelayStatus() {
   lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
-  if (relayStatus==1) lcd.print(" ON");
-  else if (relayStatus==0) lcd.print("OFF");
-  else if (manualRelay==1) lcd.print("MON");
-  else if (manualRelay==0) lcd.print("MOF");
+  if (relayStatus==1) {
+    lcd.print(" ON");
+    digitalWrite(LED2PIN, LOW);
+  } else if (relayStatus==0) {
+    lcd.print("OFF");
+    digitalWrite(LED2PIN, HIGH);
+  } else if (manualRelay==1) {
+    lcd.print("MON");
+    digitalWrite(LED2PIN, LOW);
+  } else if (manualRelay==0) {
+    lcd.print("MOF");
+    digitalWrite(LED2PIN, HIGH);
+  }
 }
 
  // void dispOutStatus() {
@@ -921,7 +930,6 @@ void changeRelay(byte status) {
     delay(1000);
   }
   digitalWrite(RELAY1PIN, status);
-  digitalWrite(LED2PIN, !status);
 }
 
 
