@@ -69,26 +69,26 @@ unsigned int display                        = 0;
 #define POZREGIN_CURRENTY                   1
 //#define POZREGACU_CURRENTX                  7
 //#define POZREGACU_CURRENTY                  1
-#define POZREGOUT_CURRENTX                 13
+#define POZREGOUT_CURRENTX                  8
 #define POZREGOUT_CURRENTY                  1
 #define POZREGIN_VOLTAGEX                   1
 #define POZREGIN_VOLTAGEY                   2
 //#define POZREGACU_VOLTAGEX                  7
 // #define POZREGACU_VOLTAGEY                  2
-#define POZREGOUT_VOLTAGEX                  13
+#define POZREGOUT_VOLTAGEX                  1
 #define POZREGOUT_VOLTAGEY                  2
 #define POZREGIN_POWERX                     2
 #define POZREGIN_POWERXY                    0
 // #define POZREGACU_POWERX                    8
 // #define POZREGACU_POWERXY                   0
-#define POZREGOUT_POWERX                    14
+#define POZREGOUT_POWERX                    9
 #define POZREGOUT_POWERXY                   0
 #define RELAY_STATUSX                       17
 #define RELAY_STATUSY                       3
 // #define OUT_STATUSX                         13
 // #define OUT_STATUSY                         3
-#define KOEFX                               6
-#define KOEFY                               3
+#define KOEFX                               8
+#define KOEFY                               2
 
 
 char                  mqtt_server[40]       = "192.168.1.56";
@@ -483,11 +483,11 @@ void loop() {
   ArduinoOTA.handle();
 #endif
 
-  /*if (digitalRead(PIRPIN)==1) {
+  if (digitalRead(PIRPIN)==1) {
     lcd.backlight();
   } else {
     lcd.noBacklight();
-  }*/
+  }
   if (!client.connected()) {
     reconnect();
   }
@@ -784,10 +784,10 @@ void sendRelayHA(byte akce) {
 void lcdShow() {
   if (display==DISPLAY_MAIN) {
     //01234567890123456789     //Reg In    Acu    Out  
-    //  254W   100W   140W      //power
-    // 10.8A  10.1A  12.3A      //current
-    // 18.6V  12.0V  14.5V      //voltage
-    //15:23 50.6Ah  25.2Ah      //hour   capacity
+    //P  254W  100W   50Ah     //power
+    //I 10.8A 10.1A   25Ah     //current
+    //U 12.6V 5.45V            //voltage
+    //15:23  4561      OFF     //hour   
     lcd.setCursor(0,0);
     lcd.print("P");
     displayValue(POZREGIN_POWERX,POZREGIN_POWERXY, voltageRegInMax*currentRegIn, false);
@@ -806,8 +806,8 @@ void lcdShow() {
     lcd.print(CURRENT_UNIT);
     lcd.setCursor(0,2);
     lcd.print("U");
-    displayValue(POZREGIN_VOLTAGEX,POZREGIN_VOLTAGEY, voltageRegInMax, true);
-    lcd.print(VOLTAGE_UNIT);
+    //displayValue(POZREGIN_VOLTAGEX,POZREGIN_VOLTAGEY, voltageRegInMax, true);
+    //lcd.print(VOLTAGE_UNIT);
     // displayValue(POZREGACU_VOLTAGEX,POZREGACU_VOLTAGEY, voltageAcuMax, true);
     // lcd.print(VOLTAGE_UNIT);
     displayValue(POZREGOUT_VOLTAGEX,POZREGOUT_VOLTAGEY, voltageRegOutMax, true);
