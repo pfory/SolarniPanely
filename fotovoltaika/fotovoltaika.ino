@@ -104,6 +104,7 @@ uint16_t              mqtt_port             = 1883;
 //for LED status
 Ticker ticker;
 
+
 //SW name & version
 #define     VERSION                          "0.80"
 #define     SW_NAME                          "Fotovoltaika"
