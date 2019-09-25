@@ -66,6 +66,17 @@ volatile bool showDoubleDot                 = false;
 unsigned int display                        = 0;
 #define DISPLAY_MAIN                         0
 
+//navrhar - https://maxpromer.github.io/LCD-Character-Creator/
+byte customChar[] = {
+  B01110,
+  B01010,
+  B01110,
+  B00000,
+  B00000,
+  B00000,
+  B00000,
+  B00000
+};
 
 #define POZREGIN_CURRENTX                   1
 #define POZREGIN_CURRENTY                   1
@@ -91,12 +102,12 @@ unsigned int display                        = 0;
 // #define OUT_STATUSY                         3
 #define KOEFX                               8
 #define KOEFY                               2
-#define TEMPERATURE_X                       6
+#define TEMPERATURE_X                       4
 #define TEMPERATURE_Y                       3
-#define RUNMINTODAY_X                      16 
+#define RUNMINTODAY_X                      14 
 #define RUNMINTODAY_Y                       2
-#define AHPANELTODAY_X                     16 
-#define AHPANELTODAY_Y                      2
+#define AHPANELTODAY_X                     14 
+#define AHPANELTODAY_Y                      1
 
 char                  mqtt_server[40]       = "192.168.1.56";
 uint16_t              mqtt_port             = 1883;
@@ -280,14 +291,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
     val += (char)payload[i];
   }
   DEBUG_PRINTLN();
-  lcd.clear();
-  lcd.print(topic);
-  lcd.print(": ");
-  lcd.print(val);
-  delay(2000);
-  lcd.clear();
   
   if (strcmp(topic, "/home/SolarMereni/manualRelay")==0) {
+    printMessageToLCD(topic, val);
     DEBUG_PRINT("set manual control relay to ");
     manualRelay = val.toInt();
     if (val.toInt()==1) {
@@ -296,6 +302,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
       DEBUG_PRINTLN(F("OFF"));
     }
   } else if (strcmp(topic, "/home/SolarMereni/restart")==0) {
+    printMessageToLCD(topic, val);
     DEBUG_PRINT("RESTART");
     ESP.restart();
   } else if (strcmp(topic, mqtt_topic_weather)==0) {
@@ -307,6 +314,16 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 
 }
+
+void printMessageToLCD(char* t, String v) {
+  lcd.clear();
+  lcd.print(t);
+  lcd.print(": ");
+  lcd.print(v);
+  delay(2000);
+  lcd.clear();
+}
+
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -324,18 +341,6 @@ void setup() {
   // DEBUG_PRINT("Factor ");
   // DEBUG_PRINTLN(FACTOR);
   
-  //navrhar - https://maxpromer.github.io/LCD-Character-Creator/
-  byte customChar[] = {
-  B00000,
-  B00110,
-  B01001,
-  B01001,
-  B00110,
-  B00000,
-  B00000,
-  B00000
-  };
-  lcd.createChar(0, customChar);
 
   lcd.init();               // initialize the lcd 
   lcd.backlight();
@@ -344,6 +349,7 @@ void setup() {
   lcd.print(SW_NAME);  
   PRINT_SPACE
   lcd.print(VERSION);
+  lcd.createChar(0, customChar);
 
   
   pinMode(BUILTIN_LED, OUTPUT);
@@ -530,7 +536,7 @@ void loop() {
   calcStat();
   
   //nulovani statistik o pulnoci
-  if (hour==0 && runMsToday>0) {
+  if (hour()==0 && runMsToday>0) {
     runMsToday = 0;
   }
 }
@@ -856,10 +862,10 @@ void lcdShow() {
     lcd.print(voltageSupply/V2MV, 3);
     lcd.print(VOLTAGE_UNIT);
 
-    displayValue(RUNMINTODAY_X,RUNMINTODAY_Y, runMsToday / 1000 / 60, false);
+    displayValue(RUNMINTODAY_X,RUNMINTODAY_Y, 0, false); //runMsToday / 1000 / 60, false);
     lcd.print(MIN_UNIT);
 
-    displayValue(AHPANELTODAY_X,AHPANELTODAY_Y, AhPanelToday, false);
+    displayValue(AHPANELTODAY_X,AHPANELTODAY_Y, 0, false);
     lcd.print(AH_UNIT);
 
     
@@ -1108,7 +1114,7 @@ void calcStat() {
   uint32_t diff = millis() - lastRunStat;
   if (relayStatus == RELAY_ON) {
     runMsToday += diff;
-    AhPanelToday += (powerIn * diff) / 1000 / 12
+    AhPanelToday += (currentRegOut * diff) / 1000 / 12;
   }
   
 }
