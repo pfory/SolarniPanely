@@ -46,6 +46,8 @@ time_t getNtpTime();
 #define         CURRENT_UNIT     "A"
 #define         VOLTAGE_UNIT     "V"
 #define         POWER_UNIT       "W"
+#define         MIN_UNIT         "m"
+#define         AH_UNIT          "Ah"
 #define         V2MV              1000.f  //prevod volt na milivolt Y(in milivolt) = X(in volt) * V2MV
 
 //voltage and current meassurement
@@ -91,6 +93,10 @@ unsigned int display                        = 0;
 #define KOEFY                               2
 #define TEMPERATURE_X                       6
 #define TEMPERATURE_Y                       3
+#define RUNMINTODAY_X                      16 
+#define RUNMINTODAY_Y                       2
+#define AHPANELTODAY_X                     16 
+#define AHPANELTODAY_Y                      2
 
 char                  mqtt_server[40]       = "192.168.1.56";
 uint16_t              mqtt_port             = 1883;
@@ -203,8 +209,8 @@ int32_t   intervalMSec              = 0;
 
 int32_t   runMsToday                = 0;
 int32_t   lastRunStat               = 0;
-float     powerPanelToday           = 0;
-float     powerOutToday             = 0;
+float     AhPanelToday              = 0;
+float     AhOutToday                = 0;
 
 
 #define         CHANNEL_REG_IN_CURRENT          2
@@ -849,6 +855,14 @@ void lcdShow() {
     lcd.setCursor(KOEFX, KOEFY);
     lcd.print(voltageSupply/V2MV, 3);
     lcd.print(VOLTAGE_UNIT);
+
+    displayValue(RUNMINTODAY_X,RUNMINTODAY_Y, runMsToday / 1000 / 60, false);
+    lcd.print(MIN_UNIT);
+
+    displayValue(AHPANELTODAY_X,AHPANELTODAY_Y, AhPanelToday, false);
+    lcd.print(AH_UNIT);
+
+    
   }
 }
 
@@ -1094,6 +1108,7 @@ void calcStat() {
   uint32_t diff = millis() - lastRunStat;
   if (relayStatus == RELAY_ON) {
     runMsToday += diff;
+    AhPanelToday += (powerIn * diff) / 1000 / 12
   }
   
 }
