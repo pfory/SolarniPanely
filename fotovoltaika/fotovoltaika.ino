@@ -89,7 +89,8 @@ unsigned int display                        = 0;
 // #define OUT_STATUSY                         3
 #define KOEFX                               8
 #define KOEFY                               2
-
+#define TEMPERATURE_X                       6
+#define TEMPERATURE_Y                       3
 
 char                  mqtt_server[40]       = "192.168.1.56";
 uint16_t              mqtt_port             = 1883;
@@ -98,7 +99,7 @@ uint16_t              mqtt_port             = 1883;
 Ticker ticker;
 
 //SW name & version
-#define     VERSION                          "0.79"
+#define     VERSION                          "0.80"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
@@ -163,6 +164,7 @@ char      mqtt_base[60]             = "/home/SolarMereni";
 char      static_ip[16]             = "192.168.1.116";
 char      static_gw[16]             = "192.168.1.1";
 char      static_sn[16]             = "255.255.255.0";
+char      mqtt_topic_weather[25]    = "/home/Meteo/Temperature";
 
 #define VIN                         A0 // define the Arduino pin A0 as voltage input (V in)
 #define LED2PIN                     D3 //stav rele
@@ -198,6 +200,11 @@ float     currentRegInSum           = 0.f;
 //float     currentAcuSum             = 0.f;
 float     currentRegOutSum          = 0.f;
 int32_t   intervalMSec              = 0;
+
+int32_t   runMsToday                = 0;
+int32_t   lastRunStat               = 0;
+float     powerPanelToday           = 0;
+float     powerOutToday             = 0;
 
 
 #define         CHANNEL_REG_IN_CURRENT          2
@@ -285,7 +292,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
   } else if (strcmp(topic, "/home/SolarMereni/restart")==0) {
     DEBUG_PRINT("RESTART");
     ESP.restart();
+  } else if (strcmp(topic, mqtt_topic_weather)==0) {
+      DEBUG_PRINT("Temperature from Meteo: ");
+      DEBUG_PRINTLN(val.toFloat());
+      displayValue(TEMPERATURE_X,TEMPERATURE_Y, (int)round(val.toFloat()), false);
+      lcd.write(byte(0));
+      lcd.print("C");
   }
+
 }
 
 WiFiClient espClient;
@@ -303,6 +317,19 @@ void setup() {
   // DEBUG_PRINTLN(QOV);
   // DEBUG_PRINT("Factor ");
   // DEBUG_PRINTLN(FACTOR);
+  
+  //navrhar - https://maxpromer.github.io/LCD-Character-Creator/
+  byte customChar[] = {
+  B00000,
+  B00110,
+  B01001,
+  B01001,
+  B00110,
+  B00000,
+  B00000,
+  B00000
+  };
+  lcd.createChar(0, customChar);
 
   lcd.init();               // initialize the lcd 
   lcd.backlight();
@@ -494,6 +521,12 @@ void loop() {
   client.loop();
 
   relay();
+  calcStat();
+  
+  //nulovani statistik o pulnoci
+  if (hour==0 && runMsToday>0) {
+    runMsToday = 0;
+  }
 }
 
 //---------------------------------------------R E L A Y ------------------------------------------------
@@ -786,8 +819,8 @@ void lcdShow() {
     //01234567890123456789     //Reg In    Acu    Out  
     //P  254W  100W   50Ah     //power
     //I 10.8A 10.1A   25Ah     //current
-    //U 12.6V 5.45V            //voltage
-    //15:23  4561      OFF     //hour   
+    //U 12.6V 5.45V   120m     //voltage
+    //15:23 -10°C      OFF     //hour  temperature  relay status 
     lcd.setCursor(0,0);
     lcd.print("P");
     displayValue(POZREGIN_POWERX,POZREGIN_POWERXY, voltageRegInMax*currentRegIn, false);
@@ -887,6 +920,7 @@ void reconnect() {
       //client.subscribe(mqtt_base + '/' + 'inTopic');
       client.subscribe((String(mqtt_base) + "/" + "manualRelay").c_str());
       client.subscribe((String(mqtt_base) + "/" + "restart").c_str());
+      client.subscribe(mqtt_topic_weather);
     } else {
       DEBUG_PRINT("failed, rc=");
       DEBUG_PRINT(client.state());
@@ -1054,3 +1088,12 @@ bool displayTime(void *) {
   return true;
 }
 #endif
+
+
+void calcStat() {
+  uint32_t diff = millis() - lastRunStat;
+  if (relayStatus == RELAY_ON) {
+    runMsToday += diff;
+  }
+  
+}
