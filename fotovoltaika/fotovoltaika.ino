@@ -218,8 +218,8 @@ float     currentRegInSum           = 0.f;
 float     currentRegOutSum          = 0.f;
 int32_t   intervalMSec              = 0;
 
-int32_t   runMsToday                = 0;
-int32_t   lastRunStat               = 0;
+uint32_t   runMsToday               = 0;
+uint32_t   lastRunStat              = 0;
 float     AhPanelToday              = 0;
 float     AhOutToday                = 0;
 
@@ -503,7 +503,9 @@ void setup() {
   timer.every(SEND_DELAY, sendDataHA);
   timer.every(SENDSTAT_DELAY, sendStatisticHA);
   timer.every(READADC_DELAY, readADC);
+#ifdef time  
   timer.every(500, displayTime);
+#endif
   void * a;
   sendStatisticHA(a);
 
@@ -835,19 +837,23 @@ void lcdShow() {
     //15:23 -10°C      OFF     //hour  temperature  relay status 
     lcd.setCursor(0,0);
     lcd.print("P");
-    displayValue(POZREGIN_POWERX,POZREGIN_POWERXY, voltageRegInMax*currentRegIn, false);
+    //displayValue(POZREGIN_POWERX,POZREGIN_POWERXY, voltageRegInMax*currentRegIn, false);
+    displayValue2(POZREGIN_POWERX,POZREGIN_POWERXY, voltageRegInMax*currentRegIn, 3, 0);
     lcd.print(POWER_UNIT);
     // displayValue(POZREGACU_POWERX,POZREGACU_POWERXY, voltageAcuMax*currentAcu, false);
     // lcd.print(POWER_UNIT);
-    displayValue(POZREGOUT_POWERX,POZREGOUT_POWERXY, voltageRegOutMax*currentRegOut, false);
+    //displayValue(POZREGOUT_POWERX,POZREGOUT_POWERXY, voltageRegOutMax*currentRegOut, false);
+    displayValue(POZREGOUT_POWERX,POZREGOUT_POWERXY, voltageRegOutMax*currentRegOut, 3, 0);
     lcd.print(POWER_UNIT);
     lcd.setCursor(0,1);
     lcd.print("I");
-    displayValue(POZREGIN_CURRENTX,POZREGIN_CURRENTY, currentRegIn, true);
+    //displayValue(POZREGIN_CURRENTX,POZREGIN_CURRENTY, currentRegIn, true);
+    displayValue(POZREGIN_CURRENTX,POZREGIN_CURRENTY, currentRegIn, 2, 1);
     lcd.print(CURRENT_UNIT);
     // displayValue(POZREGACU_CURRENTX,POZREGACU_CURRENTY, currentAcu, true);
     // lcd.print(CURRENT_UNIT);
-    displayValue(POZREGOUT_CURRENTX,POZREGOUT_CURRENTY, currentRegOut, true);
+    //displayValue(POZREGOUT_CURRENTX,POZREGOUT_CURRENTY, currentRegOut, true);
+    displayValue(POZREGOUT_CURRENTX,POZREGOUT_CURRENTY, currentRegOut, 2, 1);
     lcd.print(CURRENT_UNIT);
     lcd.setCursor(0,2);
     lcd.print("U");
@@ -855,7 +861,8 @@ void lcdShow() {
     //lcd.print(VOLTAGE_UNIT);
     // displayValue(POZREGACU_VOLTAGEX,POZREGACU_VOLTAGEY, voltageAcuMax, true);
     // lcd.print(VOLTAGE_UNIT);
-    displayValue(POZREGOUT_VOLTAGEX,POZREGOUT_VOLTAGEY, voltageRegOutMax, true);
+    //displayValue(POZREGOUT_VOLTAGEX,POZREGOUT_VOLTAGEY, voltageRegOutMax, true);
+    displayValue(POZREGOUT_VOLTAGEX,POZREGOUT_VOLTAGEY, voltageRegOutMax, 2, 1);
     lcd.print(VOLTAGE_UNIT);
 
     lcd.setCursor(KOEFX, KOEFY);
@@ -927,6 +934,29 @@ void displayValue(int x, int y, float value, bool des) {
   }
 }
 
+void displayValue2(int x, int y, float value, byte cela, byte des) {
+  char buffer [18];
+  if (des==0) {
+    value = round(value);
+  }
+ 
+  char format[5];
+  char cislo[2];
+  itoa (cela, cislo, 10);
+  strcpy(format, "%");
+  strcat(format, cislo);
+  strcat(format, "d\n");
+
+  sprintf (buffer, format, (int)value); // send data to the buffer
+  lcd.setCursor(x,y);
+  lcd.print(buffer); // display line on buffer
+
+  if (des>0) {
+    lcd.print(F("."));
+    lcd.print(abs((int)(value*(10*des))%(10*des)));
+  }
+}
+
 void reconnect() {
   // Loop until we're reconnected
   while (!client.connected()) {
@@ -967,15 +997,6 @@ void dispRelayStatus() {
     digitalWrite(LED2PIN, HIGH);
   }
 }
-
- // void dispOutStatus() {
-  // lcd.setCursor(OUT_STATUSX,OUT_STATUSY);
-  // if (digitalRead(CHAROUTPIN)==HIGH) {
-    // lcd.print(" ON");
-  // } else {
-    // lcd.print("OFF");
-  // }
-// }
 
 
 void changeRelay(byte status) {
@@ -1064,47 +1085,21 @@ void sendNTPpacket(IPAddress &address)
   EthernetUdp.endPacket();
 }
 
-//display time on LCD
-void lcd2digits(int number) {
-  if (number >= 0 && number < 10) {
-    lcd.write('0');
-  }
-  lcd.print(number);
-}
-
-void print2digits(int number) {
-  if (number >= 0 && number < 10) {
-    DEBUG_WRITE('0');
-  }
-  DEBUG_PRINT(number);
-}
-
-
 void printSystemTime(){
-  DEBUG_PRINT(day());
-  DEBUG_PRINT(".");
-  DEBUG_PRINT(month());
-  DEBUG_PRINT(".");
-  DEBUG_PRINT(year());
-  DEBUG_PRINT(" ");
-  print2digits(hour());
-  DEBUG_PRINT(":");
-  print2digits(minute());
-  DEBUG_PRINT(":");
-  print2digits(second());
+  char buffer[20];
+  sprintf(buffer, "%02d.%02d.%4d %02d:%02d:%02d", day(), month(), year(), hour(), minute(), second());
+  DEBUG_PRINT(buffer);
 }
 
 bool displayTime(void *) {
   lcd.setCursor(TIMEX, TIMEY); //col,row
-  lcd2digits(hour());
+  char buffer[6];
   if (showDoubleDot) {
-    showDoubleDot = false;
-    lcd.write(':');
+    sprintf(buffer, "%02d:%02d", hour(), minute());
   } else {
-    showDoubleDot = true;
-    lcd.write(' ');
+    sprintf(buffer, "%02d %02d", hour(), minute());
   }
-  lcd2digits(minute());
+  lcd.print(buffer);
   return true;
 }
 #endif
