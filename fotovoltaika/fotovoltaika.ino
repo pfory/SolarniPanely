@@ -274,7 +274,7 @@ void setup() {
 #endif
 
   
-  #ifdef ota
+#ifdef ota
   //OTA
   // Port defaults to 8266
   // ArduinoOTA.setPort(8266);

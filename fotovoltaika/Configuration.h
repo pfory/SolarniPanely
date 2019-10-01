@@ -6,7 +6,7 @@
 #define     SW_NAME                          "Fotovoltaika"
 
 #define timers
-//#define ota
+#define ota
 #define verbose
 
 #define AUTOCONNECTNAME   HOSTNAMEOTA
