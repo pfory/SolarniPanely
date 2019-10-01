@@ -13,6 +13,7 @@
 #define AUTOCONNECTPWD    "password"
 
 #ifdef ota
+#include <ArduinoOTA.h>
 #define HOSTNAMEOTA   "fotovoltaika"
 #endif
 

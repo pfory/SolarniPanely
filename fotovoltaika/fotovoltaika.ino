@@ -166,7 +166,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   } else if (strcmp(topic, mqtt_topic_weather)==0) {
       DEBUG_PRINT("Temperature from Meteo: ");
       DEBUG_PRINTLN(val.toFloat());
-      displayValue(TEMPERATURE_X,TEMPERATURE_Y, (int)round(val.toFloat()), false);
+      displayValue(TEMPERATURE_X,TEMPERATURE_Y, (int)round(val.toFloat()), 3, 0);
       lcd.write(byte(0));
       lcd.print("C");
   }
@@ -570,7 +570,7 @@ void lcdShow() {
     lcd.setCursor(0,0);
     lcd.print("P");
     //displayValue(POZREGIN_POWERX,POZREGIN_POWERXY, voltageRegInMax*currentRegIn, false);
-    displayValue2(POZREGIN_POWERX,POZREGIN_POWERXY, voltageRegInMax*currentRegIn, 3, 0);
+    displayValue(POZREGIN_POWERX,POZREGIN_POWERXY, voltageRegInMax*currentRegIn, 3, 0);
     lcd.print(POWER_UNIT);
     //displayValue(POZREGOUT_POWERX,POZREGOUT_POWERXY, voltageRegOutMax*currentRegOut, false);
     displayValue(POZREGOUT_POWERX,POZREGOUT_POWERXY, voltageRegOutMax*currentRegOut, 3, 0);
@@ -592,72 +592,17 @@ void lcdShow() {
     lcd.print(voltageSupply/V2MV, 3);
     lcd.print(VOLTAGE_UNIT);
 
-    displayValue(RUNMINTODAY_X,RUNMINTODAY_Y, 0, false); //runMsToday / 1000 / 60, false);
+    displayValue(RUNMINTODAY_X,RUNMINTODAY_Y, 0, 4, 0); //runMsToday / 1000 / 60, false);
     lcd.print(MIN_UNIT);
 
-    displayValue(AHPANELTODAY_X,AHPANELTODAY_Y, 0, false);
+    displayValue(AHPANELTODAY_X,AHPANELTODAY_Y, 0, 3, 0);
     lcd.print(AH_UNIT);
 
     
   }
 }
 
-
-void displayValue(int x, int y, float value, bool des) {
-  /*
-  value     des=true   des=false
-               01234        0123
- 245.5         245.5         245 
-  89.3          89.3          89 
-  10.0          10.0          10 
-   9.9           9.9           9 
-   1.1           1.1           1 
-   0.9           0.9           0 
-   0.1           0.0           0 
-   0.0           0.0           0 
-  -0.1          -0.1          -0 
-  -0.9          -0.9          -0 
-  -1.0          -1.0          -1 
-  -9.9          -9.9          -9 
- -10.0         -10.0         -10 
- -25.2         -25.2         -25 
--245.5         -245         -245
-   */
-  lcd.setCursor(x,y);
-  
-  //DEBUG_PRINTLN(F(value);
-  if (!des) {
-    value = round(value);
-  }
-
-  if (!des && value>-100.f) {
-    lcd.print(F(" "));
-  }
-  
-  if (value>=100.f) {
-  } else if (value>=10.f && value < 100.f) {
-    lcd.print(F(" "));
-  } else if (value<10.f && value>=0.f) {
-    //DEBUG_PRINT(F("_"));
-    lcd.print(F(" "));
-    lcd.print(F(" "));
-  } else if (value<0.f && value>-10.f) {
-    //DEBUG_PRINT(F("_"));
-    lcd.print(F(" "));
-    lcd.print(F("-"));
-  } else if (value<-10.f) {
-    lcd.print(F("-"));
-    des = false;
-  }
-  
-  lcd.print(abs((int)value));
-  if (des) {
-    lcd.print(F("."));
-    lcd.print(abs((int)(value*10)%10));
-  }
-}
-
-void displayValue2(int x, int y, float value, byte cela, byte des) {
+void displayValue(int x, int y, float value, byte cela, byte des) {
   char buffer [18];
   if (des==0) {
     value = round(value);
@@ -679,6 +624,63 @@ void displayValue2(int x, int y, float value, byte cela, byte des) {
     lcd.print(abs((int)(value*(10*des))%(10*des)));
   }
 }
+
+
+// void displayValue(int x, int y, float value, bool des) {
+  // /*
+  // value     des=true   des=false
+               // 01234        0123
+ // 245.5         245.5         245 
+  // 89.3          89.3          89 
+  // 10.0          10.0          10 
+   // 9.9           9.9           9 
+   // 1.1           1.1           1 
+   // 0.9           0.9           0 
+   // 0.1           0.0           0 
+   // 0.0           0.0           0 
+  // -0.1          -0.1          -0 
+  // -0.9          -0.9          -0 
+  // -1.0          -1.0          -1 
+  // -9.9          -9.9          -9 
+ // -10.0         -10.0         -10 
+ // -25.2         -25.2         -25 
+// -245.5         -245         -245
+   // */
+  // lcd.setCursor(x,y);
+  
+  // //DEBUG_PRINTLN(F(value);
+  // if (!des) {
+    // value = round(value);
+  // }
+
+  // if (!des && value>-100.f) {
+    // lcd.print(F(" "));
+  // }
+  
+  // if (value>=100.f) {
+  // } else if (value>=10.f && value < 100.f) {
+    // lcd.print(F(" "));
+  // } else if (value<10.f && value>=0.f) {
+    // //DEBUG_PRINT(F("_"));
+    // lcd.print(F(" "));
+    // lcd.print(F(" "));
+  // } else if (value<0.f && value>-10.f) {
+    // //DEBUG_PRINT(F("_"));
+    // lcd.print(F(" "));
+    // lcd.print(F("-"));
+  // } else if (value<-10.f) {
+    // lcd.print(F("-"));
+    // des = false;
+  // }
+  
+  // lcd.print(abs((int)value));
+  // if (des) {
+    // lcd.print(F("."));
+    // lcd.print(abs((int)(value*10)%10));
+  // }
+// }
+
+
 
 void reconnect() {
   // Loop until we're reconnected
