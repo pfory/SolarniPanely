@@ -47,8 +47,8 @@ time_t getNtpTime();
 
 //voltage and current meassurement
 Adafruit_ADS1115 ads1(0x48);  //mereni proudu ADDR to GND
-Adafruit_ADS1115 ads2(0x49);  //mereni napeti ADDR to VCC
-Adafruit_ADS1115 ads3(0x4B);  //mereni napeti ADDR to SCL
+//Adafruit_ADS1115 ads2(0x49);  //mereni napeti ADDR to VCC
+//Adafruit_ADS1115 ads3(0x4B);  //mereni napeti ADDR to SCL
 
 
 #include <LiquidCrystal_I2C.h>
@@ -326,16 +326,16 @@ void setup() {
   //                                                             ADS1015         ADS1115
   //                                                             -------         -------
   ads1.setGain(GAIN_TWOTHIRDS);        // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
-  ads2.setGain(GAIN_TWOTHIRDS);        // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
-  ads3.setGain(GAIN_TWOTHIRDS);        // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
+  //ads2.setGain(GAIN_TWOTHIRDS);        // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
+  //ads3.setGain(GAIN_TWOTHIRDS);        // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
   // ads.setGain(GAIN_ONE);            // 1x gain   +/- 4.096V  1 bit = 2mV      0.125mV
   // ads.setGain(GAIN_TWO);            // 2x gain   +/- 2.048V  1 bit = 1mV      0.0625mV
   // ads.setGain(GAIN_FOUR);           // 4x gain   +/- 1.024V  1 bit = 0.5mV    0.03125mV
   // ads.setGain(GAIN_EIGHT);          // 8x gain   +/- 0.512V  1 bit = 0.25mV   0.015625mV
   // ads.setGain(GAIN_SIXTEEN);        // 16x gain  +/- 0.256V  1 bit = 0.125mV  0.0078125mV
   ads1.begin();
-  ads2.begin();
-  ads3.begin();
+  //ads2.begin();
+  //ads3.begin();
   
     // Initialize the INA219.
   // By default the initialization will use the largest range (32V, 2A).  However
