@@ -709,16 +709,16 @@ void reconnect() {
 
 void dispRelayStatus() {
   lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
-  if (relayStatus==1) {
+  if (relayStatus==RELAY_ON) {
     lcd.print(" ON");
     digitalWrite(LED2PIN, LOW);
-  } else if (relayStatus==0) {
+  } else if (relayStatus==RELAY_OFF) {
     lcd.print("OFF");
     digitalWrite(LED2PIN, HIGH);
-  } else if (manualRelay==1) {
+  } else if (manualRelay==RELAY_ON) {
     lcd.print("MON");
     digitalWrite(LED2PIN, LOW);
-  } else if (manualRelay==0) {
+  } else if (manualRelay==RELAY_OFF) {
     lcd.print("MOF");
     digitalWrite(LED2PIN, HIGH);
   }
