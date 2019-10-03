@@ -35,10 +35,8 @@
 #endif 
 
 
-#define VIN                         A0 // define the Arduino pin A0 as voltage input (V in)
 #define LED2PIN                     D3 //stav rele
 #define LED1PIN                     D4 //
-//#define CHAROUTPIN                  D7 //vystup z regulatoru, na testovacim je D7 asi spaleny
 #define RELAY1PIN                   D8 //pin rele 1
 #define RELAY2PIN                   D6 //pin rele 2
 #define PIRPIN                      D5 //pin pir sensoru
@@ -69,7 +67,7 @@ char         mqtt_topic_weather[25]         = "/home/Meteo/Temperature";
 
 #define POZREGIN_CURRENTX                   1
 #define POZREGIN_CURRENTY                   1
-#define POZREGOUT_CURRENTX                  8
+#define POZREGOUT_CURRENTX                  7
 #define POZREGOUT_CURRENTY                  1
 #define POZREGIN_VOLTAGEX                   1
 #define POZREGIN_VOLTAGEY                   2
@@ -77,17 +75,17 @@ char         mqtt_topic_weather[25]         = "/home/Meteo/Temperature";
 #define POZREGOUT_VOLTAGEY                  2
 #define POZREGIN_POWERX                     2
 #define POZREGIN_POWERXY                    0
-#define POZREGOUT_POWERX                    9
+#define POZREGOUT_POWERX                    8
 #define POZREGOUT_POWERXY                   0
 #define RELAY_STATUSX                       17
 #define RELAY_STATUSY                       3
 #define KOEFX                               8
 #define KOEFY                               2
-#define TEMPERATURE_X                       4
+#define TEMPERATURE_X                       6
 #define TEMPERATURE_Y                       3
-#define RUNMINTODAY_X                      14 
+#define RUNMINTODAY_X                      15 
 #define RUNMINTODAY_Y                       2
-#define AHPANELTODAY_X                     14 
+#define AHPANELTODAY_X                     15 
 #define AHPANELTODAY_Y                      1
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
