@@ -79,7 +79,7 @@ char         mqtt_topic_weather[25]         = "/home/Meteo/Temperature";
 #define POZREGOUT_POWERXY                   0
 #define RELAY_STATUSX                       17
 #define RELAY_STATUSY                       3
-#define KOEFX                               8
+#define KOEFX                               7
 #define KOEFY                               2
 #define TEMPERATURE_X                       6
 #define TEMPERATURE_Y                       3
