@@ -211,6 +211,7 @@ void setup() {
   digitalWrite(RELAY1PIN, LOW);
   digitalWrite(RELAY2PIN, LOW);
   pinMode(PIRPIN, INPUT);
+  attachInterrupt(digitalPinToInterrupt(PIRPIN), PIREvent, CHANGE);
 
   rst_info *_reset_info = ESP.getResetInfoPtr();
   uint8_t _reset_reason = _reset_info->reason;
@@ -373,11 +374,11 @@ void loop() {
   ArduinoOTA.handle();
 #endif
 
-  if (digitalRead(PIRPIN)==1) {
-    lcd.backlight();
-  } else {
-    lcd.noBacklight();
-  }
+  // if (digitalRead(PIRPIN)==1) {
+    // lcd.backlight();
+  // } else {
+    // lcd.noBacklight();
+  // }
   if (!client.connected()) {
     reconnect();
   }
@@ -563,9 +564,9 @@ void sendRelayHA(byte akce) {
 void lcdShow() {
   if (display==DISPLAY_MAIN) {
     //01234567890123456789     //Reg In    Acu    Out  
-    //P  254W  100W   50Ah     //power
-    //I 10.8A 10.1A   25Ah     //current
-    //U 12.6V 5.45V   120m     //voltage
+    //P 254W  100W    50Ah     //power
+    //I10.8A 10.1A    25Ah     //current
+    //U12.6V 5.45V    120m     //voltage
     //15:23 -10°C      OFF     //hour  temperature  relay status 
     lcd.setCursor(0,0);
     lcd.print("P");
@@ -589,7 +590,7 @@ void lcdShow() {
     lcd.print(VOLTAGE_UNIT);
 
     lcd.setCursor(KOEFX, KOEFY);
-    lcd.print(voltageSupply/V2MV, 3);
+    lcd.print(voltageSupply/V2MV, 2);
     lcd.print(VOLTAGE_UNIT);
 
     displayValue(RUNMINTODAY_X,RUNMINTODAY_Y, 0, 4, 0); //runMsToday / 1000 / 60, false);
@@ -610,10 +611,10 @@ void displayValue(int x, int y, float value, byte cela, byte des) {
  
   char format[5];
   char cislo[2];
-  itoa (cela, cislo, 10);
+  itoa(cela, cislo, 10);
   strcpy(format, "%");
   strcat(format, cislo);
-  strcat(format, "d\n");
+  strcat(format, "d");
 
   sprintf (buffer, format, (int)value); // send data to the buffer
   lcd.setCursor(x,y);
@@ -708,16 +709,16 @@ void reconnect() {
 
 void dispRelayStatus() {
   lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
-  if (relayStatus==1) {
+  if (relayStatus==RELAY_ON) {
     lcd.print(" ON");
     digitalWrite(LED2PIN, LOW);
-  } else if (relayStatus==0) {
+  } else if (relayStatus==RELAY_OFF) {
     lcd.print("OFF");
     digitalWrite(LED2PIN, HIGH);
-  } else if (manualRelay==1) {
+  } else if (manualRelay==RELAY_ON) {
     lcd.print("MON");
     digitalWrite(LED2PIN, LOW);
-  } else if (manualRelay==0) {
+  } else if (manualRelay==RELAY_OFF) {
     lcd.print("MOF");
     digitalWrite(LED2PIN, HIGH);
   }
@@ -825,6 +826,7 @@ bool displayTime(void *) {
     sprintf(buffer, "%02d %02d", hour(), minute());
   }
   lcd.print(buffer);
+  showDoubleDot = !showDoubleDot;
   return true;
 }
 #endif
@@ -837,4 +839,14 @@ void calcStat() {
     AhPanelToday += (currentRegOut * diff) / 1000 / 12;
   }
   
+}
+
+void PIREvent() {
+  if (digitalRead(PIRPIN)==1) {
+    DEBUG_PRINTLN("DISPLAY_ON");
+    lcd.backlight();
+  } else {
+    DEBUG_PRINTLN("DISPLAY OFF");
+    lcd.noBacklight();
+  }
 }
