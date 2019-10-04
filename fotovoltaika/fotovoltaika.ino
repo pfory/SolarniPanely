@@ -132,7 +132,7 @@ void tick()
   //toggle state
   int state = digitalRead(BUILTIN_LED);  // get the current state of GPIO1 pin
   digitalWrite(BUILTIN_LED, !state);     // set pin to the opposite state
-  digitalWrite(LED1PIN, !state);          // set pin to the opposite state
+  digitalWrite(STATUS_LED, !state);          // set pin to the opposite state
 }
 
 
@@ -202,16 +202,16 @@ void setup() {
   lcd.createChar(0, customChar);
 
   pinMode(BUILTIN_LED, OUTPUT);
-  pinMode(LED1PIN, OUTPUT);
+  pinMode(STATUS_LED, OUTPUT);
   pinMode(LED2PIN, OUTPUT);
-  digitalWrite(LED1PIN, HIGH); //nesviti
+  digitalWrite(STATUS_LED, HIGH); //nesviti
   digitalWrite(LED2PIN, HIGH);
   pinMode(RELAY1PIN, OUTPUT);
   pinMode(RELAY2PIN, OUTPUT);
   digitalWrite(RELAY1PIN, LOW);
   digitalWrite(RELAY2PIN, LOW);
   pinMode(PIRPIN, INPUT);
-  attachInterrupt(digitalPinToInterrupt(PIRPIN), PIREvent, CHANGE);
+  //attachInterrupt(digitalPinToInterrupt(PIRPIN), PIREvent, CHANGE);
 
   rst_info *_reset_info = ESP.getResetInfoPtr();
   uint8_t _reset_reason = _reset_info->reason;
@@ -362,7 +362,7 @@ void setup() {
   ticker.detach();
   //keep LED on
   digitalWrite(BUILTIN_LED, HIGH);
-  digitalWrite(LED1PIN, HIGH);
+  digitalWrite(STATUS_LED, HIGH);
   lcd.clear();
   lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
   lcd.print("OFF");
@@ -374,11 +374,12 @@ void loop() {
   ArduinoOTA.handle();
 #endif
 
-  // if (digitalRead(PIRPIN)==1) {
-    // lcd.backlight();
-  // } else {
-    // lcd.noBacklight();
-  // }
+  if (digitalRead(PIRPIN)==1) {
+    lcd.backlight();
+  } else {
+    lcd.noBacklight();
+  }
+
   if (!client.connected()) {
     reconnect();
   }
@@ -477,7 +478,7 @@ void readINA(void) {
 }
 
 bool sendDataHA(void *) {
-  digitalWrite(LED1PIN, LOW);
+  digitalWrite(STATUS_LED, LOW);
   digitalWrite(BUILTIN_LED, LOW);
   SenderClass sender;
 
@@ -524,13 +525,13 @@ bool sendDataHA(void *) {
   DEBUG_PRINTLN(F("Calling MQTT"));
 
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
-  digitalWrite(LED1PIN, HIGH);
+  digitalWrite(STATUS_LED, HIGH);
   digitalWrite(BUILTIN_LED, HIGH);
   return true;
 }
 
 bool sendStatisticHA(void *) {
-  digitalWrite(LED1PIN, LOW);
+  digitalWrite(STATUS_LED, LOW);
   digitalWrite(BUILTIN_LED, LOW);
   //printSystemTime();
   DEBUG_PRINTLN(F(" - I am sending statistic to HA"));
@@ -543,20 +544,20 @@ bool sendStatisticHA(void *) {
   DEBUG_PRINTLN(F("Calling MQTT"));
   
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
-  digitalWrite(LED1PIN, HIGH);
+  digitalWrite(STATUS_LED, HIGH);
   digitalWrite(BUILTIN_LED, HIGH);
   return true;
 }
 
 
 void sendRelayHA(byte akce) {
-  digitalWrite(LED1PIN, LOW);
+  digitalWrite(STATUS_LED, LOW);
   digitalWrite(BUILTIN_LED, LOW);
   SenderClass sender;
   sender.add("relayChange", akce);
  
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
-  digitalWrite(LED1PIN, HIGH);
+  digitalWrite(STATUS_LED, HIGH);
   digitalWrite(BUILTIN_LED, HIGH);
 }
 
@@ -839,14 +840,4 @@ void calcStat() {
     AhPanelToday += (currentRegOut * diff) / 1000 / 12;
   }
   
-}
-
-void PIREvent() {
-  if (digitalRead(PIRPIN)==1) {
-    DEBUG_PRINTLN("DISPLAY_ON");
-    lcd.backlight();
-  } else {
-    DEBUG_PRINTLN("DISPLAY OFF");
-    lcd.noBacklight();
-  }
 }
