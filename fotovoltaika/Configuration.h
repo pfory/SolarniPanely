@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                          "0.80"
+#define     VERSION                          "0.81"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define timers
@@ -35,13 +35,15 @@
 #endif 
 
 
-#define LED2PIN                     D3 //stav rele
-#define LED1PIN                     D4 //
-#define RELAY1PIN                   D8 //pin rele 1
-#define RELAY2PIN                   D6 //pin rele 2
-#define PIRPIN                      D5 //pin pir sensoru
-//SDA                               D2
-//SCL                               D1
+//All of the IO pins have interrupt/pwm/I2C/one-wire support except D0.
+#define STATUS_LED                          BUILTIN_LED //status LED
+#define LED2PIN                             D3 //stav rele, 10k Pull-up     GPIO00
+#define RELAY1PIN                           D8 //pin rele 1                 GPIO16
+#define RELAY2PIN                           D6 //pin rele 2, MISO           GPIO12
+#define PIRPIN                              D5 //pin pir sensoru, SCK       GPIO14
+//SDA                                       D2 //                           GPIO04
+//SCL                                       D1 //                           GPIO05
+//BUILTIN_LED                               D4 //10k Pull-up, BUILTIN_LED   GPIO02
 
 char                  mqtt_server[40]       = "192.168.1.56";
 uint16_t              mqtt_port             = 1883;
