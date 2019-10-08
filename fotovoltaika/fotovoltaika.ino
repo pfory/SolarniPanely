@@ -102,11 +102,13 @@ float     currentRegInSum           = 0.f;
 float     currentRegOutSum          = 0.f;
 int32_t   intervalMSec              = 0;
 
-uint32_t   runMsToday               = 0;
-uint32_t   lastRunStat              = 0;
+uint32_t  runMsToday                = 0;
+uint32_t  lastRunStat               = 0;
 float     AhPanelToday              = 0;
 float     AhOutToday                = 0;
 
+bool      todayClear                = false;
+bool      dispClear                 = false;
 
 
 Adafruit_INA219 ina219_2; //intput
@@ -387,11 +389,10 @@ void loop() {
 
   relay();
   calcStat();
-  
-  //nulovani statistik o pulnoci
-  if (hour()==0 && runMsToday>0) {
-    runMsToday = 0;
-  }
+ 
+  nulStat();
+  displayClear();
+ 
 }
 
 //---------------------------------------------R E L A Y ------------------------------------------------
@@ -417,6 +418,28 @@ void relay() {
       changeRelay(relayStatus);
   }
   dispRelayStatus();
+}
+
+
+void nulStat() {
+ //nulovani statistik o pulnoci
+  if (hour()==0 && !todayClear) {
+    todayClear =true;
+    runMsToday = 0;
+  } else if (hour()>0) {
+    todayClear = false;
+  }
+}
+
+void displayClear() {
+  if (minute()==0 && second()==0) {
+    if (!dispClear) { 
+      lcd.clear();
+      dispClear = true;
+    }
+  } else {
+    dispClear = false;
+  }
 }
 
 bool readADC(void *) {
