@@ -426,6 +426,7 @@ void nulStat() {
   if (hour()==0 && !todayClear) {
     todayClear =true;
     runMsToday = 0;
+    AhPanelToday = 0;
   } else if (hour()>0) {
     todayClear = false;
   }
@@ -617,10 +618,10 @@ void lcdShow() {
     lcd.print(voltageSupply/V2MV, 2);
     lcd.print(VOLTAGE_UNIT);
 
-    displayValue(RUNMINTODAY_X,RUNMINTODAY_Y, 0, 4, 0); //runMsToday / 1000 / 60, false);
+    displayValue(RUNMINTODAY_X,RUNMINTODAY_Y, runMsToday / 1000 / 60, 4, 0);  //runMsToday in ms -> s -> min
     lcd.print(MIN_UNIT);
 
-    displayValue(AHPANELTODAY_X,AHPANELTODAY_Y, 0, 3, 0);
+    displayValue(AHPANELTODAY_X,AHPANELTODAY_Y, AhPanelToday / 1000 / 3600, 3, 0);  //AhPanelToday in Wms -> Ws -> Wh
     lcd.print(AH_UNIT);
 
     
@@ -859,8 +860,8 @@ bool displayTime(void *) {
 void calcStat() {
   uint32_t diff = millis() - lastRunStat;
   if (relayStatus == RELAY_ON) {
-    runMsToday += diff;
-    AhPanelToday += (currentRegOut * diff) / 1000 / 12;
+    runMsToday += diff; //ms
+    AhPanelToday += (currentRegOut * diff); //Wms
   }
   
 }
