@@ -152,7 +152,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   DEBUG_PRINTLN();
   
-  if (strcmp(topic, "/home/SolarMereni/manualRelay")==0) {
+  if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_relay)).c_str())==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("set manual control relay to ");
     manualRelay = val.toInt();
@@ -161,7 +161,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     } else {
       DEBUG_PRINTLN(F("OFF"));
     }
-  } else if (strcmp(topic, "/home/SolarMereni/restart")==0) {
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str())==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("RESTART");
     ESP.restart();
@@ -278,29 +278,8 @@ void setup() {
 
   
 #ifdef ota
-  //OTA
-  // Port defaults to 8266
-  // ArduinoOTA.setPort(8266);
-
-  // Hostname defaults to esp8266-[ChipID]
   ArduinoOTA.setHostname(HOSTNAMEOTA);
-
-  // No authentication by default
-  // ArduinoOTA.setPassword("admin");
-
-  // Password can be set with it's md5 value as well
-  // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
-  // ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
-
   ArduinoOTA.onStart([]() {
-    // String type;
-    // if (ArduinoOTA.getCommand() == U_FLASH)
-      // type = "sketch";
-    // else // U_SPIFFS
-      // type = "filesystem";
-
-    // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-    //DEBUG_PRINTLN("Start updating " + type);
     DEBUG_PRINTLN("Start updating ");
   });
   ArduinoOTA.onEnd([]() {
