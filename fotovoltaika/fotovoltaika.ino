@@ -102,8 +102,7 @@ float     currentRegInSum           = 0.f;
 float     currentRegOutSum          = 0.f;
 int32_t   intervalMSec              = 0;
 
-uint32_t  runMsToday                = 0;
-uint32_t  lastRunStat               = 0;
+long      runSecToday               = 0;
 float     AhPanelToday              = 0;
 float     AhOutToday                = 0;
 
@@ -334,6 +333,7 @@ void setup() {
   timer.every(SEND_DELAY, sendDataHA);
   timer.every(SENDSTAT_DELAY, sendStatisticHA);
   timer.every(READADC_DELAY, readADC);
+  timer.every(1000, calcStat);
 #ifdef time  
   timer.every(500, displayTime);
 #endif
@@ -367,7 +367,6 @@ void loop() {
   client.loop();
 
   relay();
-  calcStat();
  
   nulStat();
   displayClear();
@@ -404,7 +403,7 @@ void nulStat() {
  //nulovani statistik o pulnoci
   if (hour()==0 && !todayClear) {
     todayClear =true;
-    runMsToday = 0;
+    runSecToday = 0;
     AhPanelToday = 0;
   } else if (hour()>0) {
     todayClear = false;
@@ -597,10 +596,10 @@ void lcdShow() {
     lcd.print(voltageSupply/V2MV, 2);
     lcd.print(VOLTAGE_UNIT);
 
-    displayValue(RUNMINTODAY_X,RUNMINTODAY_Y, runMsToday / 1000 / 60, 4, 0);  //runMsToday in ms -> s -> min
+    displayValue(RUNMINTODAY_X,RUNMINTODAY_Y, runSecToday / 60, 4, 0);  //runMsToday in s -> min
     lcd.print(MIN_UNIT);
 
-    displayValue(AHPANELTODAY_X,AHPANELTODAY_Y, AhPanelToday / 1000 / 3600, 3, 0);  //AhPanelToday in Wms -> Ws -> Wh
+    displayValue(AHPANELTODAY_X,AHPANELTODAY_Y, AhPanelToday / 3600, 3, 0);  //AhPanelToday in Ws -> Wh
     lcd.print(AH_UNIT);
 
     
@@ -630,63 +629,6 @@ void displayValue(int x, int y, float value, byte cela, byte des) {
   }
 }
 
-
-// void displayValue(int x, int y, float value, bool des) {
-  // /*
-  // value     des=true   des=false
-               // 01234        0123
- // 245.5         245.5         245 
-  // 89.3          89.3          89 
-  // 10.0          10.0          10 
-   // 9.9           9.9           9 
-   // 1.1           1.1           1 
-   // 0.9           0.9           0 
-   // 0.1           0.0           0 
-   // 0.0           0.0           0 
-  // -0.1          -0.1          -0 
-  // -0.9          -0.9          -0 
-  // -1.0          -1.0          -1 
-  // -9.9          -9.9          -9 
- // -10.0         -10.0         -10 
- // -25.2         -25.2         -25 
-// -245.5         -245         -245
-   // */
-  // lcd.setCursor(x,y);
-  
-  // //DEBUG_PRINTLN(F(value);
-  // if (!des) {
-    // value = round(value);
-  // }
-
-  // if (!des && value>-100.f) {
-    // lcd.print(F(" "));
-  // }
-  
-  // if (value>=100.f) {
-  // } else if (value>=10.f && value < 100.f) {
-    // lcd.print(F(" "));
-  // } else if (value<10.f && value>=0.f) {
-    // //DEBUG_PRINT(F("_"));
-    // lcd.print(F(" "));
-    // lcd.print(F(" "));
-  // } else if (value<0.f && value>-10.f) {
-    // //DEBUG_PRINT(F("_"));
-    // lcd.print(F(" "));
-    // lcd.print(F("-"));
-  // } else if (value<-10.f) {
-    // lcd.print(F("-"));
-    // des = false;
-  // }
-  
-  // lcd.print(abs((int)value));
-  // if (des) {
-    // lcd.print(F("."));
-    // lcd.print(abs((int)(value*10)%10));
-  // }
-// }
-
-
-
 void reconnect() {
   // Loop until we're reconnected
   while (!client.connected()) {
@@ -698,8 +640,8 @@ void reconnect() {
       //client.publish("outTopic","hello world");
       // ... and resubscribe
       //client.subscribe(mqtt_base + '/' + 'inTopic');
-      client.subscribe((String(mqtt_base) + "/" + "manualRelay").c_str());
-      client.subscribe((String(mqtt_base) + "/" + "restart").c_str());
+      client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_relay)).c_str());
+      client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str());
       client.subscribe(mqtt_topic_weather);
     } else {
       DEBUG_PRINT("failed, rc=");
@@ -836,11 +778,10 @@ bool displayTime(void *) {
 #endif
 
 
-void calcStat() {
-  uint32_t diff = millis() - lastRunStat;
+bool calcStat(void *) {  //run each second from timer
   if (relayStatus == RELAY_ON) {
-    runMsToday += diff; //ms
-    AhPanelToday += (currentRegOut * diff); //Wms
+    runSecToday ++;
+    AhPanelToday += currentRegOut; //Ws
   }
-  
+  return true;
 }
