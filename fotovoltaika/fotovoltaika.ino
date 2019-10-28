@@ -446,19 +446,26 @@ void displayClear() {
 bool readADC(void *) {
   //readINA();
 
-  int32_t dilkuSupply = ads1.readADC_SingleEnded(CHANNEL_VOLTAGE_SUPPLY);
-  int32_t dilkuInput  = ads1.readADC_SingleEnded(CHANNEL_REG_IN_CURRENT);
-  int32_t dilkuOut    = ads1.readADC_SingleEnded(CHANNEL_REG_OUT_CURRENT);
+  int32_t dilkuSupply            = ads1.readADC_SingleEnded(CHANNEL_VOLTAGE_SUPPLY);
+  int32_t dilkuInputCurrent      = ads1.readADC_SingleEnded(CHANNEL_REG_IN_CURRENT);
+  int32_t dilkuOutputCurrent     = ads1.readADC_SingleEnded(CHANNEL_REG_OUT_CURRENT);
   DEBUG_PRINT("dilkuSupply:");
   DEBUG_PRINT(dilkuSupply);
-  DEBUG_PRINT(", dilkuInput:");
-  DEBUG_PRINT(dilkuInput);
-  DEBUG_PRINT(", dilkuOut:");
-  DEBUG_PRINTLN(dilkuOut);
+  DEBUG_PRINT(", dilkuInputCurrent:");
+  DEBUG_PRINT(dilkuInputCurrent);
+  DEBUG_PRINT(", dilkuOutputCurrent:");
+  DEBUG_PRINTLN(dilkuOutputCurrent);
   
   voltageSupply    = ((float)dilkuSupply * MVOLTDILEKADC1); //in mV  example 26149 * 0.1875 = 4902,938mV
   DEBUG_PRINT("voltageSupply");
   DEBUG_PRINTLN(voltageSupply);
+
+  int32_t dilkuInputVoltage      = ads2.readADC_Differential_0_1();
+  int32_t dilkuOutputVoltage     = ads2.readADC_Differential_2_3();
+  DEBUG_PRINT("dilkuInputVoltage:");
+  DEBUG_PRINT(dilkuInputVoltage);
+  DEBUG_PRINT(", dilkuOutputVoltage:");
+  DEBUG_PRINT(dilkuOutputVoltage);
   
   if (lastReadADC==0) {
     lastReadADC = millis();
@@ -466,12 +473,12 @@ bool readADC(void *) {
   
   uint32_t diff = millis()-lastReadADC;
   
-  currentRegIn  = ((float)(dilkuInput * 2 - dilkuSupply) * MVOLTDILEKADC1) / MVAMPERIN / 2; //in Amp example ((15170 * 2 - 25852) * 0.1875) / 40 = ((30340 - 25852) * 0.1875) / 40 = 4488 * 0.1875 / 40
+  currentRegIn  = ((float)(dilkuInputCurrent * 2 - dilkuSupply) * MVOLTDILEKADC1) / MVAMPERIN / 2; //in Amp example ((15170 * 2 - 25852) * 0.1875) / 40 = ((30340 - 25852) * 0.1875) / 40 = 4488 * 0.1875 / 40
   currentRegInSum += currentRegIn * diff;
   DEBUG_PRINT("currentRegIn");
   DEBUG_PRINTLN(currentRegIn);
   
-  currentRegOut = ((float)(dilkuOut * 2 - dilkuSupply)   * MVOLTDILEKADC1) / MVAMPEROUT / 2;
+  currentRegOut = ((float)(dilkuOutputCurrent * 2 - dilkuSupply)   * MVOLTDILEKADC1) / MVAMPEROUT / 2;
   currentRegOutSum += currentRegOut * diff;
   DEBUG_PRINT("currentRegOut");
   DEBUG_PRINTLN(currentRegOut);
