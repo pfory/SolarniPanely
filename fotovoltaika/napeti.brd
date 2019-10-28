@@ -1848,23 +1848,13 @@ design rules under a new name.</description>
 <contactref element="ADC11150X4B" pad="8"/>
 <contactref element="ADC11150X4A" pad="8"/>
 <wire x1="35.56" y1="38.1" x2="15.24" y2="38.1" width="0.8128" layer="16"/>
-<contactref element="ADC11150X4B" pad="5"/>
-<wire x1="15.24" y1="30.48" x2="12.7" y2="30.48" width="0.8128" layer="16"/>
-<wire x1="12.7" y1="30.48" x2="11.43" y2="31.75" width="0.8128" layer="16"/>
-<wire x1="11.43" y1="31.75" x2="11.43" y2="36.83" width="0.8128" layer="16"/>
-<wire x1="11.43" y1="36.83" x2="12.7" y2="38.1" width="0.8128" layer="16"/>
-<wire x1="12.7" y1="38.1" x2="15.24" y2="38.1" width="0.8128" layer="16"/>
 <contactref element="X5" pad="3"/>
 <wire x1="35.56" y1="38.1" x2="40.64" y2="38.1" width="0.8128" layer="16"/>
 </signal>
 <signal name="SCL">
 <contactref element="ADC11150X4B" pad="7"/>
 <contactref element="ADC11150X4A" pad="7"/>
-<wire x1="35.56" y1="35.56" x2="31.75" y2="35.56" width="0.8128" layer="16"/>
-<wire x1="31.75" y1="35.56" x2="15.24" y2="35.56" width="0.8128" layer="16"/>
-<contactref element="ADC11150X4A" pad="5"/>
-<wire x1="35.56" y1="30.48" x2="31.75" y2="30.48" width="0.8128" layer="16"/>
-<wire x1="31.75" y1="30.48" x2="31.75" y2="35.56" width="0.8128" layer="16"/>
+<wire x1="35.56" y1="35.56" x2="15.24" y2="35.56" width="0.8128" layer="16"/>
 <contactref element="X5" pad="4"/>
 <wire x1="35.56" y1="35.56" x2="40.64" y2="35.56" width="0.8128" layer="16"/>
 </signal>

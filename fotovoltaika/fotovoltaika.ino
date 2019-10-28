@@ -37,7 +37,7 @@ static const char     ntpServerName[]       = "tik.cesnet.cz";
 //const int timeZone = 2;     // Central European Time
 //Central European Time (Frankfurt, Paris)
 TimeChangeRule        CEST                  = {"CEST", Last, Sun, Mar, 2, 120};     //Central European Summer Time
-TimeChangeRule        CET                   = {"CET", Last, Sun, Oct, 3, 60};       //Central European Standard Time
+TimeChangeRule        CET                   = {"CET",  Last, Sun, Oct, 3, 60 };     //Central European Standard Time
 Timezone CE(CEST, CET);
 unsigned int          localPort             = 8888;  // local port to listen for UDP packets
 time_t getNtpTime();
@@ -46,8 +46,8 @@ time_t getNtpTime();
 #endif
 
 //voltage and current meassurement
-Adafruit_ADS1115 ads1(0x48);  //mereni proudu ADDR to GND
-//Adafruit_ADS1115 ads2(0x49);  //mereni napeti ADDR to VCC
+Adafruit_ADS1115 ads1(0x48);  //mereni proudu ADDR to GND - pravý
+Adafruit_ADS1115 ads2(0x49);  //mereni napeti ADDR to VCC - levý
 //Adafruit_ADS1115 ads3(0x4B);  //mereni napeti ADDR to SCL
 
 
@@ -78,7 +78,7 @@ float   relayOFFVoltage                      = 11.f;
 
 
 byte relayStatus                             = RELAY_OFF;
-byte manualRelay                             = 2;
+byte manualRelay                             = 0;
 
 
 //ADC_MODE(ADC_VCC);
@@ -329,7 +329,7 @@ void setup() {
   //                                                             ADS1015         ADS1115
   //                                                             -------         -------
   ads1.setGain(GAIN_TWOTHIRDS);        // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
-  //ads2.setGain(GAIN_TWOTHIRDS);        // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
+  ads2.setGain(GAIN_TWOTHIRDS);        // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
   //ads3.setGain(GAIN_TWOTHIRDS);        // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
   // ads.setGain(GAIN_ONE);            // 1x gain   +/- 4.096V  1 bit = 2mV      0.125mV
   // ads.setGain(GAIN_TWO);            // 2x gain   +/- 2.048V  1 bit = 1mV      0.0625mV
@@ -337,7 +337,7 @@ void setup() {
   // ads.setGain(GAIN_EIGHT);          // 8x gain   +/- 0.512V  1 bit = 0.25mV   0.015625mV
   // ads.setGain(GAIN_SIXTEEN);        // 16x gain  +/- 0.256V  1 bit = 0.125mV  0.0078125mV
   ads1.begin();
-  //ads2.begin();
+  ads2.begin();
   //ads3.begin();
   
     // Initialize the INA219.
@@ -398,7 +398,7 @@ void loop() {
 //---------------------------------------------R E L A Y ------------------------------------------------
 void relay() {
   if (manualRelay==2) {
-    readINA();
+    //readINA();
     //-----------------------------------zmena 0-1--------------------------------------------
     if (relayStatus == RELAY_OFF && (voltageRegOutMin > relayONVoltage || currentRegIn > CURRENT4ON)) {
       relayStatus = RELAY_ON;
@@ -444,7 +444,7 @@ void displayClear() {
 }
 
 bool readADC(void *) {
-  readINA();
+  //readINA();
 
   int32_t dilkuSupply = ads1.readADC_SingleEnded(CHANNEL_VOLTAGE_SUPPLY);
   int32_t dilkuInput  = ads1.readADC_SingleEnded(CHANNEL_REG_IN_CURRENT);
