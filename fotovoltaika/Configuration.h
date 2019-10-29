@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                          "0.82"
+#define     VERSION                          "0.83"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define timers
@@ -111,9 +111,9 @@ static const char* const      mqtt_topic_relayOFFVoltage     = "relayOFFVoltage"
 #define MAX                                  32767
 #define MIN                                  -32767
 
-#define         CHANNEL_REG_IN_CURRENT          1
-#define         CHANNEL_REG_OUT_CURRENT         2
-#define         CHANNEL_VOLTAGE_SUPPLY          3
+#define         CHANNEL_REG_IN_CURRENT          0
+#define         CHANNEL_REG_OUT_CURRENT         1
+#define         CHANNEL_VOLTAGE_SUPPLY          2
 
 #define         MVOLTDILEKADC1                  0.1875
 #define         MVOLTDILEKADC2                  0.1875

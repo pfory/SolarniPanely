@@ -477,6 +477,16 @@ bool readADC(void *) {
   DEBUG_PRINT(", dilkuOutputVoltage:");
   DEBUG_PRINT(dilkuOutputVoltage);
   
+  voltageRegInMin    = 12.f;
+  voltageRegInMax    = 12.f;
+  
+  float loadvoltage = 13.0f;
+  
+  voltageRegOutMin   = min(loadvoltage, voltageRegOutMin);
+  voltageRegOutMax   = max(loadvoltage, voltageRegOutMax);
+
+
+  
   if (lastReadADC==0) {
     lastReadADC = millis();
   }
@@ -503,20 +513,20 @@ bool readADC(void *) {
   return true;
 }
 
-void readINA(void) {
-  float loadvoltage_1 = ina219_1.getBusVoltage_V() * 2;
+// void readINA(void) {
+  // float loadvoltage_1 = ina219_1.getBusVoltage_V() * 2;
   
-  Serial.println("Load Voltage:  "); Serial.print(loadvoltage_1); Serial.println(" V");
+  // Serial.println("Load Voltage:  "); Serial.print(loadvoltage_1); Serial.println(" V");
 
-  float loadvoltage_2 = 12.f; //loadvoltage_1 - ina219_2.getBusVoltage_V();
+  // float loadvoltage_2 = 12.f; //loadvoltage_1 - ina219_2.getBusVoltage_V();
   
-  Serial.println("Load Voltage:  "); Serial.print(loadvoltage_2); Serial.println(" V");
-  voltageRegInMin    = min(loadvoltage_2, voltageRegInMin);
-  voltageRegInMax    = max(loadvoltage_2, voltageRegInMax);
-  voltageRegOutMin   = min(loadvoltage_1, voltageRegOutMin); 
-  voltageRegOutMax   = max(loadvoltage_1, voltageRegOutMax); 
+  // Serial.println("Load Voltage:  "); Serial.print(loadvoltage_2); Serial.println(" V");
+  // voltageRegInMin    = min(loadvoltage_2, voltageRegInMin);
+  // voltageRegInMax    = max(loadvoltage_2, voltageRegInMax);
+  // voltageRegOutMin   = min(loadvoltage_1, voltageRegOutMin); 
+  // voltageRegOutMax   = max(loadvoltage_1, voltageRegOutMax); 
 
-}
+// }
 
 bool sendDataHA(void *) {
   digitalWrite(STATUS_LED, LOW);
