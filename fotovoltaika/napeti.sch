@@ -5052,10 +5052,10 @@ Number of pins: &lt;b&gt;4&lt;/b&gt;&lt;b&gt;&lt;P&gt;
 <parts>
 <part name="ADC11150X4B" library="con-amp-quick" library_urn="urn:adsk.eagle:library:125" deviceset="M10" device="" package3d_urn="urn:adsk.eagle:package:5963/1"/>
 <part name="ADC11150X4A" library="con-amp-quick" library_urn="urn:adsk.eagle:library:125" deviceset="M10" device="" package3d_urn="urn:adsk.eagle:package:5963/1"/>
-<part name="R1" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="0204/7" package3d_urn="urn:adsk.eagle:package:23498/1" value="15k"/>
+<part name="R1" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="0204/7" package3d_urn="urn:adsk.eagle:package:23498/1" value="10k"/>
 <part name="R2" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="0204/7" package3d_urn="urn:adsk.eagle:package:23498/1" value="4k7"/>
-<part name="R3" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="0204/7" package3d_urn="urn:adsk.eagle:package:23498/1" value="10k"/>
-<part name="R4" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="0204/7" package3d_urn="urn:adsk.eagle:package:23498/1" value="4k7"/>
+<part name="R3" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="0204/7" package3d_urn="urn:adsk.eagle:package:23498/1" value="6k8"/>
+<part name="R4" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="0204/7" package3d_urn="urn:adsk.eagle:package:23498/1" value="2k2"/>
 <part name="R5" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="0204/7" package3d_urn="urn:adsk.eagle:package:23498/1" value="10k"/>
 <part name="R6" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="0204/7" package3d_urn="urn:adsk.eagle:package:23498/1" value="4k7"/>
 <part name="R7" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="0204/7" package3d_urn="urn:adsk.eagle:package:23498/1"/>
@@ -5195,8 +5195,7 @@ Number of pins: &lt;b&gt;4&lt;/b&gt;&lt;b&gt;&lt;P&gt;
 <net name="SDA" class="0">
 <segment>
 <pinref part="ADC11150X4B" gate="G$1" pin="8"/>
-<wire x1="30.48" y1="71.12" x2="35.56" y2="71.12" width="0.1524" layer="91"/>
-<wire x1="35.56" y1="71.12" x2="50.8" y2="71.12" width="0.1524" layer="91"/>
+<wire x1="30.48" y1="71.12" x2="50.8" y2="71.12" width="0.1524" layer="91"/>
 <wire x1="50.8" y1="71.12" x2="50.8" y2="86.36" width="0.1524" layer="91"/>
 <pinref part="ADC11150X4A" gate="G$1" pin="8"/>
 <wire x1="78.74" y1="71.12" x2="86.36" y2="71.12" width="0.1524" layer="91"/>
@@ -5206,10 +5205,6 @@ Number of pins: &lt;b&gt;4&lt;/b&gt;&lt;b&gt;&lt;P&gt;
 <wire x1="63.5" y1="71.12" x2="50.8" y2="71.12" width="0.1524" layer="91"/>
 <junction x="50.8" y="71.12"/>
 <label x="53.34" y="99.06" size="1.778" layer="95"/>
-<pinref part="ADC11150X4B" gate="G$1" pin="5"/>
-<wire x1="30.48" y1="63.5" x2="35.56" y2="63.5" width="0.1524" layer="91"/>
-<wire x1="35.56" y1="63.5" x2="35.56" y2="71.12" width="0.1524" layer="91"/>
-<junction x="35.56" y="71.12"/>
 <pinref part="X5" gate="-3" pin="S"/>
 </segment>
 </net>
@@ -5220,18 +5215,13 @@ Number of pins: &lt;b&gt;4&lt;/b&gt;&lt;b&gt;&lt;P&gt;
 <wire x1="53.34" y1="68.58" x2="53.34" y2="73.66" width="0.1524" layer="91"/>
 <pinref part="ADC11150X4A" gate="G$1" pin="7"/>
 <wire x1="53.34" y1="73.66" x2="53.34" y2="86.36" width="0.1524" layer="91"/>
-<wire x1="78.74" y1="68.58" x2="83.82" y2="68.58" width="0.1524" layer="91"/>
-<wire x1="83.82" y1="68.58" x2="88.9" y2="68.58" width="0.1524" layer="91"/>
+<wire x1="78.74" y1="68.58" x2="88.9" y2="68.58" width="0.1524" layer="91"/>
 <wire x1="88.9" y1="68.58" x2="88.9" y2="86.36" width="0.1524" layer="91"/>
 <wire x1="88.9" y1="86.36" x2="66.04" y2="86.36" width="0.1524" layer="91"/>
 <wire x1="66.04" y1="86.36" x2="66.04" y2="73.66" width="0.1524" layer="91"/>
 <wire x1="66.04" y1="73.66" x2="53.34" y2="73.66" width="0.1524" layer="91"/>
 <junction x="53.34" y="73.66"/>
 <label x="60.96" y="99.06" size="1.778" layer="95"/>
-<pinref part="ADC11150X4A" gate="G$1" pin="5"/>
-<wire x1="78.74" y1="63.5" x2="83.82" y2="63.5" width="0.1524" layer="91"/>
-<wire x1="83.82" y1="63.5" x2="83.82" y2="68.58" width="0.1524" layer="91"/>
-<junction x="83.82" y="68.58"/>
 <pinref part="X5" gate="-4" pin="S"/>
 </segment>
 </net>

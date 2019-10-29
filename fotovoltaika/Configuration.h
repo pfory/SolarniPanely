@@ -105,8 +105,8 @@ static const char* const      mqtt_topic_restart             = "restart";
 #define MAX                                  32767
 #define MIN                                  -32767
 
-#define         CHANNEL_REG_IN_CURRENT          2
-#define         CHANNEL_REG_OUT_CURRENT         1
+#define         CHANNEL_REG_IN_CURRENT          1
+#define         CHANNEL_REG_OUT_CURRENT         2
 #define         CHANNEL_VOLTAGE_SUPPLY          3
 
 #define         MVOLTDILEKADC1                  0.1875
