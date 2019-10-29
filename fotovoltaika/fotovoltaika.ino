@@ -26,6 +26,7 @@
 #include <Wire.h>
 #include <Adafruit_ADS1015.h>
 #include <Adafruit_INA219.h>
+#include <FS.h>          //this needs to be first
 
 
 #define time
@@ -73,7 +74,17 @@ byte customChar[] = {
 //for LED status
 Ticker ticker;
 
-float   relayONVoltage                       = 13.5;
+bool isDebugEnabled()
+{
+#ifdef verbose
+  return true;
+#endif // verbose
+  return false;
+}
+
+
+float   relayONVoltageBig                    = 13.5;
+float   relayONVoltageSmall                  = 12.5;
 float   relayOFFVoltage                      = 11.f;
 
 
@@ -170,8 +181,22 @@ void callback(char* topic, byte* payload, unsigned int length) {
       displayValue(TEMPERATURE_X,TEMPERATURE_Y, (int)round(val.toFloat()), 3, 0);
       lcd.write(byte(0));
       lcd.print("C");
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_relayOFFVoltage)).c_str())==0) {
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("set OFF voltage to ");
+    relayOFFVoltage = val.toFloat();
+    saveConfig();
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_relayONVoltageBig)).c_str())==0) {
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("set ON big voltage to ");
+    relayOFFVoltage = val.toFloat();
+    saveConfig();
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_relayONVoltageSmall)).c_str())==0) {
+    printMessageToLCD(topic, val);
+    DEBUG_PRINT("set ON small voltage to ");
+    relayOFFVoltage = val.toFloat();
+    saveConfig();
   }
-
 }
 
 void printMessageToLCD(char* t, String v) {
@@ -233,6 +258,13 @@ void setup() {
   client.setCallback(callback);
 
   ticker.attach(1, tick);
+
+  WiFi.printDiag(Serial);
+    
+  bool validConf = readConfig();
+  if (!validConf) {
+    DEBUG_PRINTLN(F("ERROR config corrupted"));
+  }
   
   WiFiManager wifiManager;
   //reset settings - for testing
@@ -378,7 +410,7 @@ void relay() {
   if (manualRelay==2) {
     //readINA();
     //-----------------------------------zmena 0-1--------------------------------------------
-    if (relayStatus == RELAY_OFF && (voltageRegOutMin > relayONVoltage || currentRegIn > CURRENT4ON)) {
+    if (relayStatus == RELAY_OFF && (voltageRegOutMin > relayONVoltageBig || currentRegIn > CURRENT4ONBIG || (currentRegIn > CURRENT4ONSMALL) && voltageRegOutMin >= relayONVoltageSmall )) {
       relayStatus = RELAY_ON;
       changeRelay(relayStatus);
       sendRelayHA(1);
@@ -649,6 +681,9 @@ void reconnect() {
       //client.subscribe(mqtt_base + '/' + 'inTopic');
       client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_relay)).c_str());
       client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str());
+      client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_relayONVoltageBig)).c_str());
+      client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_relayONVoltageSmall)).c_str());
+      client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_relayOFFVoltage)).c_str());
       client.subscribe(mqtt_topic_weather);
     } else {
       DEBUG_PRINT("failed, rc=");
@@ -791,4 +826,93 @@ bool calcStat(void *) {  //run each second from timer
     AhPanelToday += currentRegOut; //Ws
   }
   return true;
+}
+
+bool readConfig() {
+  DEBUG_PRINT(F("Mounting FS..."));
+
+  if (SPIFFS.begin()) {
+    DEBUG_PRINTLN(F(" mounted!"));
+    if (SPIFFS.exists(CFGFILE)) {
+      // file exists, reading and loading
+      DEBUG_PRINTLN(F("Reading config file"));
+      File configFile = SPIFFS.open(CFGFILE, "r");
+      if (configFile) {
+        DEBUG_PRINTLN(F("Opened config file"));
+
+        char json[500];
+        while (configFile.available()) {
+         int l = configFile.readBytesUntil('\n', json, sizeof(json));
+         json[l] = 0;
+         DEBUG_PRINTLN(json);
+        }
+
+        DynamicJsonDocument doc(1024);
+        deserializeJson(doc, json);
+        relayONVoltageBig = doc["relayONVoltageBig"];
+        DEBUG_PRINT(F("relayONVoltageBig: "));
+        DEBUG_PRINTLN(relayONVoltageBig);
+        relayONVoltageSmall = doc["relayONVoltageSmall"];
+        DEBUG_PRINT(F("relayONVoltageSmall: "));
+        DEBUG_PRINTLN(relayONVoltageSmall);
+        relayOFFVoltage = doc["relayOFFVoltage"];
+        DEBUG_PRINT(F("relayOFFVoltage: "));
+        DEBUG_PRINTLN(relayOFFVoltage);
+        
+       
+        return true;
+      }
+      DEBUG_PRINTLN(F("ERROR: unable to open config file"));
+    } else {
+      DEBUG_PRINTLN(F("ERROR: config file not exist"));
+    }
+  } else {
+    DEBUG_PRINTLN(F(" ERROR: failed to mount FS!"));
+  }
+  return false;
+}
+
+bool saveConfig() {
+  DEBUG_PRINTLN(F("Saving config..."));
+
+  // if SPIFFS is not usable
+  if (!SPIFFS.begin() || !SPIFFS.exists(CFGFILE) ||
+      !SPIFFS.open(CFGFILE, "w"))
+  {
+    DEBUG_PRINTLN(F("Need to format SPIFFS: "));
+    SPIFFS.end();
+    SPIFFS.begin();
+    DEBUG_PRINTLN(SPIFFS.format());
+  }
+
+  StaticJsonDocument<1024> doc;
+
+  doc["relayONVoltageBig"]         = relayONVoltageBig;
+  doc["relayONVoltageSmall"]       = relayONVoltageSmall;
+  doc["relayOFFVoltage"]           = relayOFFVoltage;
+
+  lcd.clear();
+ 
+  File configFile = SPIFFS.open(CFGFILE, "w+");
+  if (!configFile) {
+    DEBUG_PRINTLN(F("Failed to open config file for writing"));
+    SPIFFS.end();
+    lcd.print("Failed to open config file for writing");
+    delay(2000);
+    lcd.clear();
+    return false;
+  } else {
+    if (isDebugEnabled) {
+      serializeJson(doc, Serial);
+    }
+    serializeJson(doc, configFile);
+    //json.printTo(configFile);
+    configFile.close();
+    SPIFFS.end();
+    DEBUG_PRINTLN(F("\nSaved successfully"));
+    lcd.print("Config saved.");
+    delay(2000);
+    lcd.clear();
+    return true;
+  }
 }

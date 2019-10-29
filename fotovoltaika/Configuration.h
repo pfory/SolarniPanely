@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                          "0.81"
+#define     VERSION                          "0.82"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define timers
@@ -57,6 +57,9 @@ static const char* const      static_sn                      = "255.255.255.0";
 static const char* const      mqtt_topic_weather             = "/home/Meteo/Temperature";
 static const char* const      mqtt_topic_relay               = "manualRelay";
 static const char* const      mqtt_topic_restart             = "restart";
+static const char* const      mqtt_topic_relayONVoltageBig   = "relayONVoltageBig";
+static const char* const      mqtt_topic_relayONVoltageSmall = "relayONVoltageSmall";
+static const char* const      mqtt_topic_relayOFFVoltage     = "relayOFFVoltage";
 
 
 #define         CURRENT_UNIT     "A"
@@ -69,6 +72,8 @@ static const char* const      mqtt_topic_restart             = "restart";
 #define LCDADDRESS  0x27
 #define LCDCOLS     20
 #define LCDROWS     4
+
+#define CFGFILE "/config.json"
 
 #define POZREGIN_CURRENTX                   1
 #define POZREGIN_CURRENTY                   1
@@ -100,7 +105,8 @@ static const char* const      mqtt_topic_restart             = "restart";
 #define RELAY_ON                             HIGH
 #define RELAY_OFF                            LOW
 
-#define CURRENT4ON                           3.f //3A
+#define CURRENT4ONBIG                        3.f //3A
+#define CURRENT4ONSMALL                      2.f //2A
 
 #define MAX                                  32767
 #define MIN                                  -32767
