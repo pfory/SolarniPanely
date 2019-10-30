@@ -89,9 +89,9 @@ static const char* const      mqtt_topic_relayOFFVoltage     = "relayOFFVoltage"
 #define POZREGOUT_POWERXY                   0
 #define RELAY_STATUSX                       17
 #define RELAY_STATUSY                       3
-#define KOEFX                               7
-#define KOEFY                               2
-#define TEMPERATURE_X                       6
+#define KOEFX                               6
+#define KOEFY                               3
+#define TEMPERATURE_X                      11
 #define TEMPERATURE_Y                       3
 #define RUNMINTODAY_X                      15 
 #define RUNMINTODAY_Y                       2
