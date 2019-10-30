@@ -118,6 +118,9 @@ static const char* const      mqtt_topic_relayOFFVoltage     = "relayOFFVoltage"
 #define         MVOLTDILEKADC1                  0.1875
 #define         MVOLTDILEKADC2                  0.1875
 
+#define         KOEF_OUTPUT_VOLTAGE             5
+#define         KOEF_INTPUT_VOLTAGE             5
+
 #define         MVAMPERIN                       40.f        // 40mV = 1A
 #define         MVAMPEROUT                      100.f       // 100mV = 1A
 

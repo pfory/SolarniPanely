@@ -25,7 +25,7 @@
 #include "Sender.h"
 #include <Wire.h>
 #include <Adafruit_ADS1015.h>
-#include <Adafruit_INA219.h>
+//#include <Adafruit_INA219.h>
 #include <FS.h>          //this needs to be first
 
 
@@ -121,8 +121,8 @@ bool      todayClear                = false;
 bool      dispClear                 = false;
 
 
-Adafruit_INA219 ina219_2; //intput
-Adafruit_INA219 ina219_1(0x41); //output
+//Adafruit_INA219 ina219_2; //intput
+//Adafruit_INA219 ina219_1(0x41); //output
 
 //gets called when WiFiManager enters configuration mode
 void configModeCallback (WiFiManager *myWiFiManager) {
@@ -353,11 +353,11 @@ void setup() {
     // Initialize the INA219.
   // By default the initialization will use the largest range (32V, 2A).  However
   // you can call a setCalibration function to change this range (see comments).
-  ina219_1.begin();
-  ina219_2.begin();
+  //ina219_1.begin();
+  //ina219_2.begin();
   // To use a slightly lower 32V, 1A range (higher precision on amps):
-  ina219_1.setCalibration_16V_400mA();
-  ina219_2.setCalibration_32V_2A();
+  //ina219_1.setCalibration_16V_400mA();
+  //ina219_2.setCalibration_32V_2A();
   // Or to use a lower 16V, 400mA range (higher precision on volts and amps):
   //ina219.setCalibration_16V_400mA();
   
@@ -470,23 +470,22 @@ bool readADC(void *) {
   DEBUG_PRINT("voltageSupply");
   DEBUG_PRINTLN(voltageSupply);
 
-  int32_t dilkuInputVoltage      = ads2.readADC_Differential_0_1();
-  int32_t dilkuOutputVoltage     = ads2.readADC_Differential_2_3();
+  int32_t dilkuInputVoltage      = ads2.readADC_Differential_0_1();  //solar panel
+  int32_t dilkuOutputVoltage     = ads2.readADC_Differential_2_3();  //output
   DEBUG_PRINT("dilkuInputVoltage:");
   DEBUG_PRINT(dilkuInputVoltage);
   DEBUG_PRINT(", dilkuOutputVoltage:");
   DEBUG_PRINT(dilkuOutputVoltage);
   
-  voltageRegInMin    = 12.f;
-  voltageRegInMax    = 12.f;
-  
-  float loadvoltage = 13.0f;
+  float loadvoltage = dilkuOutputVoltage * MVOLTDILEKADC2 * KOEF_OUTPUT_VOLTAGE; // 13.0f;
   
   voltageRegOutMin   = min(loadvoltage, voltageRegOutMin);
   voltageRegOutMax   = max(loadvoltage, voltageRegOutMax);
 
+  loadvoltage = dilkuOutputVoltage * MVOLTDILEKADC2 * KOEF_INPUT_VOLTAGE; // 13.0f;
+  voltageRegInMin    = 12.f; //min(loadvoltage, voltageRegIMin);
+  voltageRegInMax    = 12.f; //max(loadvoltage, voltageRegInMax);
 
-  
   if (lastReadADC==0) {
     lastReadADC = millis();
   }
