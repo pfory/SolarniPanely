@@ -81,7 +81,7 @@ static const char* const      mqtt_topic_relayOFFVoltage     = "relayOFFVoltage"
 #define POZREGOUT_CURRENTY                  1
 #define POZREGIN_VOLTAGEX                   1
 #define POZREGIN_VOLTAGEY                   2
-#define POZREGOUT_VOLTAGEX                  1
+#define POZREGOUT_VOLTAGEX                  7
 #define POZREGOUT_VOLTAGEY                  2
 #define POZREGIN_POWERX                     2
 #define POZREGIN_POWERXY                    0
@@ -118,8 +118,8 @@ static const char* const      mqtt_topic_relayOFFVoltage     = "relayOFFVoltage"
 #define         MVOLTDILEKADC1                  0.1875
 #define         MVOLTDILEKADC2                  0.1875
 
-#define         KOEF_OUTPUT_VOLTAGE             5
-#define         KOEF_INTPUT_VOLTAGE             5
+#define         KOEF_OUTPUT_VOLTAGE             -3.179
+#define         KOEF_INPUT_VOLTAGE              5
 
 #define         MVAMPERIN                       40.f        // 40mV = 1A
 #define         MVAMPEROUT                      100.f       // 100mV = 1A

@@ -467,7 +467,7 @@ bool readADC(void *) {
   DEBUG_PRINTLN(dilkuOutputCurrent);
   
   voltageSupply    = ((float)dilkuSupply * MVOLTDILEKADC1); //in mV  example 26149 * 0.1875 = 4902,938mV
-  DEBUG_PRINT("voltageSupply");
+  DEBUG_PRINT("voltageSupply:");
   DEBUG_PRINTLN(voltageSupply);
 
   int32_t dilkuInputVoltage      = ads2.readADC_Differential_0_1();  //solar panel
@@ -477,7 +477,7 @@ bool readADC(void *) {
   DEBUG_PRINT(", dilkuOutputVoltage:");
   DEBUG_PRINT(dilkuOutputVoltage);
   
-  float loadvoltage = dilkuOutputVoltage * MVOLTDILEKADC2 * KOEF_OUTPUT_VOLTAGE; // 13.0f;
+  float loadvoltage = (dilkuOutputVoltage * MVOLTDILEKADC2 * KOEF_OUTPUT_VOLTAGE) / V2MV; // 13.0f;
   
   voltageRegOutMin   = min(loadvoltage, voltageRegOutMin);
   voltageRegOutMax   = max(loadvoltage, voltageRegOutMax);
@@ -494,12 +494,12 @@ bool readADC(void *) {
   
   currentRegIn  = ((float)(dilkuInputCurrent * 2 - dilkuSupply) * MVOLTDILEKADC1) / MVAMPERIN / 2; //in Amp example ((15170 * 2 - 25852) * 0.1875) / 40 = ((30340 - 25852) * 0.1875) / 40 = 4488 * 0.1875 / 40
   currentRegInSum += currentRegIn * diff;
-  DEBUG_PRINT("currentRegIn");
+  DEBUG_PRINT("currentRegIn:");
   DEBUG_PRINTLN(currentRegIn);
   
   currentRegOut = ((float)(dilkuOutputCurrent * 2 - dilkuSupply)   * MVOLTDILEKADC1) / MVAMPEROUT / 2;
   currentRegOutSum += currentRegOut * diff;
-  DEBUG_PRINT("currentRegOut");
+  DEBUG_PRINT("currentRegOut:");
   DEBUG_PRINTLN(currentRegOut);
   
   intervalMSec += diff;
@@ -511,21 +511,6 @@ bool readADC(void *) {
 
   return true;
 }
-
-// void readINA(void) {
-  // float loadvoltage_1 = ina219_1.getBusVoltage_V() * 2;
-  
-  // Serial.println("Load Voltage:  "); Serial.print(loadvoltage_1); Serial.println(" V");
-
-  // float loadvoltage_2 = 12.f; //loadvoltage_1 - ina219_2.getBusVoltage_V();
-  
-  // Serial.println("Load Voltage:  "); Serial.print(loadvoltage_2); Serial.println(" V");
-  // voltageRegInMin    = min(loadvoltage_2, voltageRegInMin);
-  // voltageRegInMax    = max(loadvoltage_2, voltageRegInMax);
-  // voltageRegOutMin   = min(loadvoltage_1, voltageRegOutMin); 
-  // voltageRegOutMax   = max(loadvoltage_1, voltageRegOutMax); 
-
-// }
 
 bool sendDataHA(void *) {
   digitalWrite(STATUS_LED, LOW);
@@ -590,6 +575,9 @@ bool sendStatisticHA(void *) {
   sender.add("VersionSWFotovoltaika", VERSION);
   sender.add("HeartBeat", heartBeat++);
   sender.add("RSSI", WiFi.RSSI());
+  sender.add("relayOFFVoltage", relayOFFVoltage);
+  sender.add("relayONVoltageBig", relayONVoltageBig);
+  sender.add("relayONVoltageSmall", relayONVoltageSmall);
   
   DEBUG_PRINTLN(F("Calling MQTT"));
   
@@ -636,12 +624,14 @@ void lcdShow() {
     lcd.print(CURRENT_UNIT);
     lcd.setCursor(0,2);
     lcd.print("U");
+    displayValue(POZREGIN_VOLTAGEX,POZREGIN_VOLTAGEY, voltageRegInMax, 2, 1);
+    lcd.print(VOLTAGE_UNIT);
     //displayValue(POZREGOUT_VOLTAGEX,POZREGOUT_VOLTAGEY, voltageRegOutMax, true);
     displayValue(POZREGOUT_VOLTAGEX,POZREGOUT_VOLTAGEY, voltageRegOutMax, 2, 1);
     lcd.print(VOLTAGE_UNIT);
 
     lcd.setCursor(KOEFX, KOEFY);
-    lcd.print(voltageSupply/V2MV, 2);
+    lcd.print(voltageSupply/V2MV, 1);
     lcd.print(VOLTAGE_UNIT);
 
     displayValue(RUNMINTODAY_X,RUNMINTODAY_Y, runSecToday / 60, 4, 0);  //runMsToday in s -> min
@@ -706,17 +696,17 @@ void reconnect() {
 
 void dispRelayStatus() {
   lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
-  if (relayStatus==RELAY_ON) {
-    lcd.print(" ON");
-    digitalWrite(LED2PIN, LOW);
-  } else if (relayStatus==RELAY_OFF) {
-    lcd.print("OFF");
-    digitalWrite(LED2PIN, HIGH);
-  } else if (manualRelay==RELAY_ON) {
+  if (manualRelay==RELAY_ON) {
     lcd.print("MON");
     digitalWrite(LED2PIN, LOW);
   } else if (manualRelay==RELAY_OFF) {
     lcd.print("MOF");
+    digitalWrite(LED2PIN, HIGH);
+  } else if (relayStatus==RELAY_ON) {
+    lcd.print(" ON");
+    digitalWrite(LED2PIN, LOW);
+  } else if (relayStatus==RELAY_OFF) {
+    lcd.print("OFF");
     digitalWrite(LED2PIN, HIGH);
   }
 }
