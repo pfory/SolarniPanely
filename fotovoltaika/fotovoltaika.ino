@@ -98,9 +98,11 @@ uint32_t heartBeat                          = 0;
 
 //mereni napeti   
 float      voltageRegInMin          = MAX; //vystup z panelu, rozsah 0-20V
+float      voltageRegIn             = 0; 
 float      voltageRegOutMin         = MAX; //vystup z regulatoru, rozsah 0-15V
 float      voltageRegInMax          = MIN; //vystup z panelu, rozsah 0-20V
 float      voltageRegOutMax         = MIN; //vystup z regulatoru, rozsah 0-15V
+float      voltageRegOut            = 0; 
 float      voltageSupply            = MIN;
   
 uint32_t  lastReadADC               = 0;              //interval mezi ctenim sensoru
@@ -234,8 +236,8 @@ void setup() {
   digitalWrite(LED2PIN, HIGH);
   pinMode(RELAY1PIN, OUTPUT);
   pinMode(RELAY2PIN, OUTPUT);
-  digitalWrite(RELAY1PIN, LOW);
-  digitalWrite(RELAY2PIN, LOW);
+  digitalWrite(RELAY1PIN, relayStatus);
+  digitalWrite(RELAY2PIN, relayStatus);
   pinMode(PIRPIN, INPUT);
   //attachInterrupt(digitalPinToInterrupt(PIRPIN), PIREvent, CHANGE);
 
@@ -408,24 +410,23 @@ void loop() {
 //---------------------------------------------R E L A Y ------------------------------------------------
 void relay() {
   if (manualRelay==2) {
-    //readINA();
     //-----------------------------------zmena 0-1--------------------------------------------
-    if (relayStatus == RELAY_OFF && (voltageRegOutMin > relayONVoltageBig || currentRegIn > CURRENT4ONBIG || (currentRegIn > CURRENT4ONSMALL) && voltageRegOutMin >= relayONVoltageSmall )) {
+    if (relayStatus == RELAY_OFF && (voltageRegOut > relayONVoltageBig || currentRegIn > CURRENT4ONBIG || (currentRegIn > CURRENT4ONSMALL) && voltageRegOut >= relayONVoltageSmall )) {
     //if (relayStatus == RELAY_OFF && (voltageRegOutMin > 13.5 || currentRegIn > CURRENT4ONBIG || (currentRegIn > CURRENT4ONSMALL) && voltageRegOutMin >= 12.5 )) {
       relayStatus = RELAY_ON;
       changeRelay(relayStatus);
       sendRelayHA(1);
     //-----------------------------------zmena 1-0--------------------------------------------
-    } else if (relayStatus == RELAY_ON && voltageRegOutMax <= relayOFFVoltage) { 
+    } else if (relayStatus == RELAY_ON && voltageRegOut <= relayOFFVoltage) { 
     //} else if (relayStatus == RELAY_ON && voltageRegOutMax <= 11.0) { 
       relayStatus = RELAY_OFF;
       changeRelay(relayStatus);
       sendRelayHA(0);
     }
-  } else if (manualRelay==1) {
+  } else if (relayStatus == RELAY_OFF && manualRelay==1) {
       relayStatus = RELAY_ON;
       changeRelay(relayStatus);
-  } else if (manualRelay==0) {
+  } else if (relayStatus == RELAY_ON && manualRelay==0) {
       relayStatus = RELAY_OFF;
       changeRelay(relayStatus);
   }
@@ -456,38 +457,45 @@ void displayClear() {
 }
 
 bool readADC(void *) {
-  //readINA();
 
   int32_t dilkuSupply            = ads1.readADC_SingleEnded(CHANNEL_VOLTAGE_SUPPLY);
   int32_t dilkuInputCurrent      = ads1.readADC_SingleEnded(CHANNEL_REG_IN_CURRENT);
   int32_t dilkuOutputCurrent     = ads1.readADC_SingleEnded(CHANNEL_REG_OUT_CURRENT);
-  DEBUG_PRINT("dilkuSupply:");
-  DEBUG_PRINT(dilkuSupply);
-  DEBUG_PRINT(", dilkuInputCurrent:");
-  DEBUG_PRINT(dilkuInputCurrent);
-  DEBUG_PRINT(", dilkuOutputCurrent:");
-  DEBUG_PRINTLN(dilkuOutputCurrent);
+  // DEBUG_PRINT("dilkuSupply:");
+  // DEBUG_PRINT(dilkuSupply);
+  // DEBUG_PRINT(", dilkuInputCurrent:");
+  // DEBUG_PRINT(dilkuInputCurrent);
+  // DEBUG_PRINT(", dilkuOutputCurrent:");
+  // DEBUG_PRINTLN(dilkuOutputCurrent);
   
   voltageSupply    = ((float)dilkuSupply * MVOLTDILEKADC1); //in mV  example 26149 * 0.1875 = 4902,938mV
-  DEBUG_PRINT("voltageSupply:");
-  DEBUG_PRINTLN(voltageSupply);
+  // DEBUG_PRINT("voltageSupply:");
+  // DEBUG_PRINTLN(voltageSupply);
 
   int32_t dilkuInputVoltage      = ads2.readADC_Differential_0_1();  //solar panel
   int32_t dilkuOutputVoltage     = ads2.readADC_Differential_2_3();  //output
-  DEBUG_PRINT("dilkuInputVoltage:");
-  DEBUG_PRINT(dilkuInputVoltage);
-  DEBUG_PRINT(", dilkuOutputVoltage:");
-  DEBUG_PRINT(dilkuOutputVoltage);
+  // DEBUG_PRINT("dilkuInputVoltage:");
+  // DEBUG_PRINT(dilkuInputVoltage);
+  // DEBUG_PRINT(", dilkuOutputVoltage:");
+  // DEBUG_PRINT(dilkuOutputVoltage);
   
   float loadvoltage = (dilkuOutputVoltage * MVOLTDILEKADC2 * KOEF_OUTPUT_VOLTAGE) / V2MV; // 13.0f;
   
-  voltageRegOutMin   = min(loadvoltage, voltageRegOutMin);
-  voltageRegOutMax   = max(loadvoltage, voltageRegOutMax);
+  if (loadvoltage > MIN && loadvoltage < MAX) {
+    voltageRegOut = loadvoltage;
+    voltageRegOutMin   = min(loadvoltage, voltageRegOutMin);
+    voltageRegOutMax   = max(loadvoltage, voltageRegOutMax);
+    // DEBUG_PRINTLN(voltageRegOutMin);
+    // DEBUG_PRINTLN(voltageRegOutMax);
+  }
 
   loadvoltage = dilkuOutputVoltage * MVOLTDILEKADC2 * KOEF_INPUT_VOLTAGE; // 13.0f;
-  voltageRegInMin    = 12.f; //min(loadvoltage, voltageRegIMin);
-  voltageRegInMax    = 12.f; //max(loadvoltage, voltageRegInMax);
-
+  if (loadvoltage > MIN && loadvoltage < MAX) {
+    voltageRegIn = 12.f; //loadvoltage;
+    voltageRegInMin    = 12.f; //min(loadvoltage, voltageRegIMin);
+    voltageRegInMax    = 12.f; //max(loadvoltage, voltageRegInMax);
+  }
+  
   if (lastReadADC==0) {
     lastReadADC = millis();
   }
@@ -496,21 +504,17 @@ bool readADC(void *) {
   
   currentRegIn  = ((float)(dilkuInputCurrent * 2 - dilkuSupply) * MVOLTDILEKADC1) / MVAMPERIN / 2; //in Amp example ((15170 * 2 - 25852) * 0.1875) / 40 = ((30340 - 25852) * 0.1875) / 40 = 4488 * 0.1875 / 40
   currentRegInSum += currentRegIn * diff;
-  DEBUG_PRINT("currentRegIn:");
-  DEBUG_PRINTLN(currentRegIn);
+  // DEBUG_PRINT("currentRegIn:");
+  // DEBUG_PRINTLN(currentRegIn);
   
   currentRegOut = ((float)(dilkuOutputCurrent * 2 - dilkuSupply)   * MVOLTDILEKADC1) / MVAMPEROUT / 2;
   currentRegOutSum += currentRegOut * diff;
-  DEBUG_PRINT("currentRegOut:");
-  DEBUG_PRINTLN(currentRegOut);
+  // DEBUG_PRINT("currentRegOut:");
+  // DEBUG_PRINTLN(currentRegOut);
   
   intervalMSec += diff;
  
   lastReadADC = millis();
-
- 
-  lcdShow();
-
   return true;
 }
 
@@ -522,19 +526,19 @@ bool sendDataHA(void *) {
   sender.add("relayStatus",       relayStatus);
   sender.add("manualRelay",       manualRelay);
   
-  if (voltageRegInMin<MAX) {
+  //if (voltageRegInMin<MAX) {
     sender.add("voltageRegInMin",   voltageRegInMin);
-  }
-  if (voltageRegInMax>MIN) {
+  //}
+  //if (voltageRegInMax>MIN) {
     sender.add("voltageRegInMax",   voltageRegInMax);
     sender.add("powerIn",           (currentRegInSum  / (float)intervalMSec) * voltageRegInMax);
-  }
-  if (voltageRegOutMin<MAX) {
+  //}
+  //if (voltageRegOutMin<MAX) {
     sender.add("voltageRegOutMin",  voltageRegOutMin);
-  }
-  if (voltageRegOutMax>MIN) {
+  //}
+  //if (voltageRegOutMax>MIN) {
     sender.add("voltageRegOutMax",  voltageRegOutMax);
-  }
+  //}
   sender.add("currentRegIn",      currentRegInSum   / (float)intervalMSec);
   if (relayStatus==HIGH) {
     sender.add("currentRegOut",   currentRegOutSum  / (float)intervalMSec);
@@ -612,10 +616,10 @@ void lcdShow() {
     lcd.setCursor(0,0);
     lcd.print("P");
     //displayValue(POZREGIN_POWERX,POZREGIN_POWERXY, voltageRegInMax*currentRegIn, false);
-    displayValue(POZREGIN_POWERX,POZREGIN_POWERXY, voltageRegInMax*currentRegIn, 3, 0);
+    displayValue(POZREGIN_POWERX,POZREGIN_POWERXY, voltageRegIn*currentRegIn, 3, 0);
     lcd.print(POWER_UNIT);
     //displayValue(POZREGOUT_POWERX,POZREGOUT_POWERXY, voltageRegOutMax*currentRegOut, false);
-    displayValue(POZREGOUT_POWERX,POZREGOUT_POWERXY, voltageRegOutMax*currentRegOut, 3, 0);
+    displayValue(POZREGOUT_POWERX,POZREGOUT_POWERXY, voltageRegOut*currentRegOut, 3, 0);
     lcd.print(POWER_UNIT);
     lcd.setCursor(0,1);
     lcd.print("I");
@@ -626,13 +630,13 @@ void lcdShow() {
     lcd.print(CURRENT_UNIT);
     lcd.setCursor(0,2);
     lcd.print("U");
-    displayValue(POZREGIN_VOLTAGEX,POZREGIN_VOLTAGEY, voltageRegInMax, 2, 1);
+    displayValue(POZREGIN_VOLTAGEX,POZREGIN_VOLTAGEY, voltageRegIn, 2, 1);
     lcd.print(VOLTAGE_UNIT);
     //displayValue(POZREGOUT_VOLTAGEX,POZREGOUT_VOLTAGEY, voltageRegOutMax, true);
-    displayValue(POZREGOUT_VOLTAGEX,POZREGOUT_VOLTAGEY, voltageRegOutMax, 2, 1);
+    displayValue(POZREGOUT_VOLTAGEX,POZREGOUT_VOLTAGEY, voltageRegOut, 2, 1);
     lcd.print(VOLTAGE_UNIT);
 
-    lcd.setCursor(KOEFX, KOEFY);
+    lcd.setCursor(SYSTEM_VOLTAGEX, SYSTEM_VOLTAGEY);
     lcd.print(voltageSupply/V2MV, 1);
     lcd.print(VOLTAGE_UNIT);
 
@@ -715,8 +719,14 @@ void dispRelayStatus() {
 
 
 void changeRelay(byte status) {
+  // DEBUG_PRINT("changeRelay:");
+  // DEBUG_PRINT(status);
+  // DEBUG_PRINT(" voltageRegOutMax:");
+  // DEBUG_PRINT(voltageRegOutMax);
+  // DEBUG_PRINT(" relayOFFVoltage:");
+  // DEBUG_PRINTLN(relayOFFVoltage);
   digitalWrite(RELAY2PIN, status);
-  if (status==HIGH) {
+  if (status==RELAY_ON) {
     delay(1000);
   }
   digitalWrite(RELAY1PIN, status);
@@ -816,6 +826,7 @@ bool displayTime(void *) {
   }
   lcd.print(buffer);
   showDoubleDot = !showDoubleDot;
+  lcdShow();
   return true;
 }
 #endif

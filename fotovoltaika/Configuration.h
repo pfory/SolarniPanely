@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                          "0.83"
+#define     VERSION                          "0.84"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define timers
@@ -87,10 +87,10 @@ static const char* const      mqtt_topic_relayOFFVoltage     = "relayOFFVoltage"
 #define POZREGIN_POWERXY                    0
 #define POZREGOUT_POWERX                    8
 #define POZREGOUT_POWERXY                   0
-#define RELAY_STATUSX                       17
+#define RELAY_STATUSX                      17
 #define RELAY_STATUSY                       3
-#define KOEFX                               6
-#define KOEFY                               3
+#define SYSTEM_VOLTAGEX                    16
+#define SYSTEM_VOLTAGEY                     0
 #define TEMPERATURE_X                      11
 #define TEMPERATURE_Y                       3
 #define RUNMINTODAY_X                      15 
