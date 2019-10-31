@@ -411,11 +411,13 @@ void relay() {
     //readINA();
     //-----------------------------------zmena 0-1--------------------------------------------
     if (relayStatus == RELAY_OFF && (voltageRegOutMin > relayONVoltageBig || currentRegIn > CURRENT4ONBIG || (currentRegIn > CURRENT4ONSMALL) && voltageRegOutMin >= relayONVoltageSmall )) {
+    //if (relayStatus == RELAY_OFF && (voltageRegOutMin > 13.5 || currentRegIn > CURRENT4ONBIG || (currentRegIn > CURRENT4ONSMALL) && voltageRegOutMin >= 12.5 )) {
       relayStatus = RELAY_ON;
       changeRelay(relayStatus);
       sendRelayHA(1);
     //-----------------------------------zmena 1-0--------------------------------------------
     } else if (relayStatus == RELAY_ON && voltageRegOutMax <= relayOFFVoltage) { 
+    //} else if (relayStatus == RELAY_ON && voltageRegOutMax <= 11.0) { 
       relayStatus = RELAY_OFF;
       changeRelay(relayStatus);
       sendRelayHA(0);
