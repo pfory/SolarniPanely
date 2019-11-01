@@ -98,11 +98,11 @@ uint32_t heartBeat                          = 0;
 
 //mereni napeti   
 float      voltageRegInMin          = MAX; //vystup z panelu, rozsah 0-20V
-float      voltageRegIn             = 0; 
+float      voltageRegIn             = 12.f; 
 float      voltageRegOutMin         = MAX; //vystup z regulatoru, rozsah 0-15V
 float      voltageRegInMax          = MIN; //vystup z panelu, rozsah 0-20V
 float      voltageRegOutMax         = MIN; //vystup z regulatoru, rozsah 0-15V
-float      voltageRegOut            = 0; 
+float      voltageRegOut            = 12.f; 
 float      voltageSupply            = MIN;
   
 uint32_t  lastReadADC               = 0;              //interval mezi ctenim sensoru
@@ -526,19 +526,19 @@ bool sendDataHA(void *) {
   sender.add("relayStatus",       relayStatus);
   sender.add("manualRelay",       manualRelay);
   
-  //if (voltageRegInMin<MAX) {
+  if (voltageRegInMin<MAX) {
     sender.add("voltageRegInMin",   voltageRegInMin);
-  //}
-  //if (voltageRegInMax>MIN) {
+  }
+  if (voltageRegInMax>MIN) {
     sender.add("voltageRegInMax",   voltageRegInMax);
     sender.add("powerIn",           (currentRegInSum  / (float)intervalMSec) * voltageRegInMax);
-  //}
-  //if (voltageRegOutMin<MAX) {
+  }
+  if (voltageRegOutMin<MAX) {
     sender.add("voltageRegOutMin",  voltageRegOutMin);
-  //}
-  //if (voltageRegOutMax>MIN) {
+  }
+  if (voltageRegOutMax>MIN) {
     sender.add("voltageRegOutMax",  voltageRegOutMax);
-  //}
+  }
   sender.add("currentRegIn",      currentRegInSum   / (float)intervalMSec);
   if (relayStatus==HIGH) {
     sender.add("currentRegOut",   currentRegOutSum  / (float)intervalMSec);
