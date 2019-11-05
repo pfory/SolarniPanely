@@ -122,6 +122,8 @@ float     AhOutToday                = 0;
 bool      todayClear                = false;
 bool      dispClear                 = false;
 
+float     lastRelayOff              = 0;
+
 
 //Adafruit_INA219 ina219_2; //intput
 //Adafruit_INA219 ina219_1(0x41); //output
@@ -410,18 +412,21 @@ void loop() {
 //---------------------------------------------R E L A Y ------------------------------------------------
 void relay() {
   if (manualRelay==2) {
-    //-----------------------------------zmena 0-1--------------------------------------------
-    if (relayStatus == RELAY_OFF && (voltageRegOut > relayONVoltageBig || currentRegIn > CURRENT4ONBIG || (currentRegIn > CURRENT4ONSMALL) && voltageRegOut >= relayONVoltageSmall )) {
-    //if (relayStatus == RELAY_OFF && (voltageRegOutMin > 13.5 || currentRegIn > CURRENT4ONBIG || (currentRegIn > CURRENT4ONSMALL) && voltageRegOutMin >= 12.5 )) {
-      relayStatus = RELAY_ON;
-      changeRelay(relayStatus);
-      sendRelayHA(1);
-    //-----------------------------------zmena 1-0--------------------------------------------
-    } else if (relayStatus == RELAY_ON && voltageRegOut <= relayOFFVoltage) { 
-    //} else if (relayStatus == RELAY_ON && voltageRegOutMax <= 11.0) { 
-      relayStatus = RELAY_OFF;
-      changeRelay(relayStatus);
-      sendRelayHA(0);
+    if (millis() - lastRelayOff > RELAYDELAYOFFON) {
+      //-----------------------------------zmena 0-1--------------------------------------------
+      if (relayStatus == RELAY_OFF && (voltageRegOut > relayONVoltageBig || currentRegIn > CURRENT4ONBIG || (currentRegIn > CURRENT4ONSMALL) && voltageRegOut >= relayONVoltageSmall )) {
+      //if (relayStatus == RELAY_OFF && (voltageRegOutMin > 13.5 || currentRegIn > CURRENT4ONBIG || (currentRegIn > CURRENT4ONSMALL) && voltageRegOutMin >= 12.5 )) {
+        relayStatus = RELAY_ON;
+        changeRelay(relayStatus);
+        sendRelayHA(1);
+      //-----------------------------------zmena 1-0--------------------------------------------
+      } else if (relayStatus == RELAY_ON && voltageRegOut <= relayOFFVoltage) { 
+      //} else if (relayStatus == RELAY_ON && voltageRegOutMax <= 11.0) { 
+        relayStatus = RELAY_OFF;
+        changeRelay(relayStatus);
+        sendRelayHA(0);
+        lastRelayOff = millis();
+      }
     }
   } else if (relayStatus == RELAY_OFF && manualRelay==1) {
       relayStatus = RELAY_ON;
