@@ -89,7 +89,7 @@ float   relayOFFVoltage                      = 11.f;
 
 
 byte relayStatus                             = RELAY_OFF;
-byte manualRelay                             = 0;
+byte manualRelay                             = 2;
 
 
 //ADC_MODE(ADC_VCC);
