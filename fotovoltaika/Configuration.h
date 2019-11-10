@@ -105,6 +105,8 @@ static const char* const      mqtt_topic_relayOFFVoltage     = "relayOFFVoltage"
 #define RELAY_ON                             HIGH
 #define RELAY_OFF                            LOW
 
+#define RELAYDELAYOFFON                      60000 //in ms = 1 min
+
 #define CURRENT4ONBIG                        3.f //3A
 #define CURRENT4ONSMALL                      2.f //2A
 

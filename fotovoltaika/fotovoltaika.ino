@@ -98,11 +98,11 @@ uint32_t heartBeat                          = 0;
 
 //mereni napeti   
 float      voltageRegInMin          = MAX; //vystup z panelu, rozsah 0-20V
-float      voltageRegIn             = 0; 
+float      voltageRegIn             = 12.f; 
 float      voltageRegOutMin         = MAX; //vystup z regulatoru, rozsah 0-15V
 float      voltageRegInMax          = MIN; //vystup z panelu, rozsah 0-20V
 float      voltageRegOutMax         = MIN; //vystup z regulatoru, rozsah 0-15V
-float      voltageRegOut            = 0; 
+float      voltageRegOut            = 12.f; 
 float      voltageSupply            = MIN;
   
 uint32_t  lastReadADC               = 0;              //interval mezi ctenim sensoru
@@ -121,6 +121,8 @@ float     AhOutToday                = 0;
 
 bool      todayClear                = false;
 bool      dispClear                 = false;
+
+float     lastRelayOff              = 0;
 
 
 //Adafruit_INA219 ina219_2; //intput
@@ -410,18 +412,21 @@ void loop() {
 //---------------------------------------------R E L A Y ------------------------------------------------
 void relay() {
   if (manualRelay==2) {
-    //-----------------------------------zmena 0-1--------------------------------------------
-    if (relayStatus == RELAY_OFF && (voltageRegOut > relayONVoltageBig || currentRegIn > CURRENT4ONBIG || (currentRegIn > CURRENT4ONSMALL) && voltageRegOut >= relayONVoltageSmall )) {
-    //if (relayStatus == RELAY_OFF && (voltageRegOutMin > 13.5 || currentRegIn > CURRENT4ONBIG || (currentRegIn > CURRENT4ONSMALL) && voltageRegOutMin >= 12.5 )) {
-      relayStatus = RELAY_ON;
-      changeRelay(relayStatus);
-      sendRelayHA(1);
-    //-----------------------------------zmena 1-0--------------------------------------------
-    } else if (relayStatus == RELAY_ON && voltageRegOut <= relayOFFVoltage) { 
-    //} else if (relayStatus == RELAY_ON && voltageRegOutMax <= 11.0) { 
-      relayStatus = RELAY_OFF;
-      changeRelay(relayStatus);
-      sendRelayHA(0);
+    if (millis() - lastRelayOff > RELAYDELAYOFFON) {
+      //-----------------------------------zmena 0-1--------------------------------------------
+      if (relayStatus == RELAY_OFF && (voltageRegOut > relayONVoltageBig || currentRegIn > CURRENT4ONBIG || (currentRegIn > CURRENT4ONSMALL) && voltageRegOut >= relayONVoltageSmall )) {
+      //if (relayStatus == RELAY_OFF && (voltageRegOutMin > 13.5 || currentRegIn > CURRENT4ONBIG || (currentRegIn > CURRENT4ONSMALL) && voltageRegOutMin >= 12.5 )) {
+        relayStatus = RELAY_ON;
+        changeRelay(relayStatus);
+        sendRelayHA(1);
+      //-----------------------------------zmena 1-0--------------------------------------------
+      } else if (relayStatus == RELAY_ON && voltageRegOut <= relayOFFVoltage) { 
+      //} else if (relayStatus == RELAY_ON && voltageRegOutMax <= 11.0) { 
+        relayStatus = RELAY_OFF;
+        changeRelay(relayStatus);
+        sendRelayHA(0);
+        lastRelayOff = millis();
+      }
     }
   } else if (relayStatus == RELAY_OFF && manualRelay==1) {
       relayStatus = RELAY_ON;
@@ -526,19 +531,19 @@ bool sendDataHA(void *) {
   sender.add("relayStatus",       relayStatus);
   sender.add("manualRelay",       manualRelay);
   
-  //if (voltageRegInMin<MAX) {
+  if (voltageRegInMin<MAX) {
     sender.add("voltageRegInMin",   voltageRegInMin);
-  //}
-  //if (voltageRegInMax>MIN) {
+  }
+  if (voltageRegInMax>MIN) {
     sender.add("voltageRegInMax",   voltageRegInMax);
     sender.add("powerIn",           (currentRegInSum  / (float)intervalMSec) * voltageRegInMax);
-  //}
-  //if (voltageRegOutMin<MAX) {
+  }
+  if (voltageRegOutMin<MAX) {
     sender.add("voltageRegOutMin",  voltageRegOutMin);
-  //}
-  //if (voltageRegOutMax>MIN) {
+  }
+  if (voltageRegOutMax>MIN) {
     sender.add("voltageRegOutMax",  voltageRegOutMax);
-  //}
+  }
   sender.add("currentRegIn",      currentRegInSum   / (float)intervalMSec);
   if (relayStatus==HIGH) {
     sender.add("currentRegOut",   currentRegOutSum  / (float)intervalMSec);
