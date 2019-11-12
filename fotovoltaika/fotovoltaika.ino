@@ -193,12 +193,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_relayONVoltageBig)).c_str())==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("set ON big voltage to ");
-    relayOFFVoltage = val.toFloat();
+    relayONVoltageBig = val.toFloat();
     saveConfig();
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_relayONVoltageSmall)).c_str())==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("set ON small voltage to ");
-    relayOFFVoltage = val.toFloat();
+    relayONVoltageSmall = val.toFloat();
     saveConfig();
   }
 }
