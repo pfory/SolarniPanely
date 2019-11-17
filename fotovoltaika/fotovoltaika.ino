@@ -89,7 +89,7 @@ float   relayOFFVoltage                      = 11.f;
 
 
 byte relayStatus                             = RELAY_OFF;
-byte manualRelay                             = 2;
+byte manualRelaySet                             = 2;
 
 
 //ADC_MODE(ADC_VCC);
@@ -169,7 +169,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_relay)).c_str())==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("set manual control relay to ");
-    manualRelay = val.toInt();
+    manualRelaySet = val.toInt();
     if (val.toInt()==1) {
       DEBUG_PRINTLN(F("ON"));
     } else {
@@ -411,7 +411,7 @@ void loop() {
 
 //---------------------------------------------R E L A Y ------------------------------------------------
 void relay() {
-  if (manualRelay==2) {
+  if (manualRelaySet==2) {
     if (millis() - lastRelayOff > RELAYDELAYOFFON) {
       //-----------------------------------zmena 0-1--------------------------------------------
       if (relayStatus == RELAY_OFF && (voltageRegOut > relayONVoltageBig || currentRegIn > CURRENT4ONBIG || (currentRegIn > CURRENT4ONSMALL) && voltageRegOut >= relayONVoltageSmall )) {
@@ -428,10 +428,10 @@ void relay() {
         lastRelayOff = millis();
       }
     }
-  } else if (relayStatus == RELAY_OFF && manualRelay==1) {
+  } else if (relayStatus == RELAY_OFF && manualRelaySet==1) {
       relayStatus = RELAY_ON;
       changeRelay(relayStatus);
-  } else if (relayStatus == RELAY_ON && manualRelay==0) {
+  } else if (relayStatus == RELAY_ON && manualRelaySet==0) {
       relayStatus = RELAY_OFF;
       changeRelay(relayStatus);
   }
@@ -529,7 +529,7 @@ bool sendDataHA(void *) {
   SenderClass sender;
 
   sender.add("relayStatus",       relayStatus);
-  sender.add("manualRelay",       manualRelay);
+  sender.add("manualRelay",       manualRelaySet);
   
   if (voltageRegInMin<MAX) {
     sender.add("voltageRegInMin",   voltageRegInMin);
@@ -707,10 +707,10 @@ void reconnect() {
 
 void dispRelayStatus() {
   lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
-  if (manualRelay==RELAY_ON) {
+  if (manualRelaySet==RELAY_ON) {
     lcd.print("MON");
     digitalWrite(LED2PIN, LOW);
-  } else if (manualRelay==RELAY_OFF) {
+  } else if (manualRelaySet==RELAY_OFF) {
     lcd.print("MOF");
     digitalWrite(LED2PIN, HIGH);
   } else if (relayStatus==RELAY_ON) {

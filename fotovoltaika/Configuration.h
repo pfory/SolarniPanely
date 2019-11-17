@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                          "0.86"
+#define     VERSION                          "0.87"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define timers
@@ -55,7 +55,7 @@ static const char* const      static_ip                      = "192.168.1.116";
 static const char* const      static_gw                      = "192.168.1.1";
 static const char* const      static_sn                      = "255.255.255.0";
 static const char* const      mqtt_topic_weather             = "/home/Meteo/Temperature";
-static const char* const      mqtt_topic_relay               = "manualRelay";
+static const char* const      mqtt_topic_relay               = "manualRelaySet";
 static const char* const      mqtt_topic_restart             = "restart";
 static const char* const      mqtt_topic_relayONVoltageBig   = "relayONVoltageBig";
 static const char* const      mqtt_topic_relayONVoltageSmall = "relayONVoltageSmall";
