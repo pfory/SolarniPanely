@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                          "0.87"
+#define     VERSION                          "0.88"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define timers
@@ -60,6 +60,7 @@ static const char* const      mqtt_topic_restart             = "restart";
 static const char* const      mqtt_topic_relayONVoltageBig   = "relayONVoltageBig";
 static const char* const      mqtt_topic_relayONVoltageSmall = "relayONVoltageSmall";
 static const char* const      mqtt_topic_relayOFFVoltage     = "relayOFFVoltage";
+static const char* const      mqtt_topic_forecast            = "forecast";
 
 
 #define         CURRENT_UNIT     "A"
@@ -97,6 +98,8 @@ static const char* const      mqtt_topic_relayOFFVoltage     = "relayOFFVoltage"
 #define RUNMINTODAY_Y                       2
 #define AHPANELTODAY_X                     15 
 #define AHPANELTODAY_Y                      1
+#define FORECAST_X                         14 
+#define FORECAST_Y                          0
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
 #define SENDSTAT_DELAY                       60000  //poslani statistiky kazdou minutu

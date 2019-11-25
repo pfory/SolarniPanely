@@ -180,11 +180,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
     DEBUG_PRINT("RESTART");
     ESP.restart();
   } else if (strcmp(topic, mqtt_topic_weather)==0) {
-      DEBUG_PRINT("Temperature from Meteo: ");
-      DEBUG_PRINTLN(val.toFloat());
-      displayValue(TEMPERATURE_X,TEMPERATURE_Y, (int)round(val.toFloat()), 3, 0);
-      lcd.write(byte(0));
-      lcd.print("C");
+    DEBUG_PRINT("Temperature from Meteo: ");
+    DEBUG_PRINTLN(val.toFloat());
+    displayValue(TEMPERATURE_X,TEMPERATURE_Y, (int)round(val.toFloat()), 3, 0);
+    lcd.write(byte(0));
+    lcd.print("C");
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_relayOFFVoltage)).c_str())==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("set OFF voltage to ");
@@ -195,6 +195,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
     DEBUG_PRINT("set ON big voltage to ");
     relayONVoltageBig = val.toFloat();
     saveConfig();
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_forecast)).c_str())==0) {
+    DEBUG_PRINT("Forecast from solcast ");
+    lcd.setCursor(FORECAST_X-3,FORECAST_Y-3);
+    lcd.print("FT:");
+    displayValue(FORECAST_X,FORECAST_Y, val.toFloat(), 3, 2);
+    lcd.print("kWh");
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_relayONVoltageSmall)).c_str())==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("set ON small voltage to ");
@@ -694,6 +700,7 @@ void reconnect() {
       client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_relayONVoltageBig)).c_str());
       client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_relayONVoltageSmall)).c_str());
       client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_relayOFFVoltage)).c_str());
+      client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_forecast)).c_str());
       client.subscribe(mqtt_topic_weather);
     } else {
       DEBUG_PRINT("failed, rc=");
