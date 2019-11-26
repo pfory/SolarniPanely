@@ -182,9 +182,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
   } else if (strcmp(topic, mqtt_topic_weather)==0) {
     DEBUG_PRINT("Temperature from Meteo: ");
     DEBUG_PRINTLN(val.toFloat());
-    displayValue(TEMPERATURE_X,TEMPERATURE_Y, (int)round(val.toFloat()), 3, 0);
-    lcd.write(byte(0));
-    lcd.print("C");
+    //displayValue(TEMPERATURE_X,TEMPERATURE_Y, (int)round(val.toFloat()), 3, 0);
+    //lcd.write(byte(0));
+    //lcd.print("C");
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_relayOFFVoltage)).c_str())==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("set OFF voltage to ");
