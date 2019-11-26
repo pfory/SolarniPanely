@@ -198,8 +198,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_forecast)).c_str())==0) {
     DEBUG_PRINT("Forecast from solcast ");
     lcd.setCursor(FORECAST_X-3,FORECAST_Y);
-    lcd.print("FT:");
-    displayValue(FORECAST_X,FORECAST_Y, val.toFloat(), 3, 2);
+    lcd.print("FP:");
+    displayValue(FORECAST_X,FORECAST_Y, val.toFloat(), 2, 1);
     lcd.print("kWh");
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_relayONVoltageSmall)).c_str())==0) {
     printMessageToLCD(topic, val);
