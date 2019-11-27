@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                          "0.89"
+#define     VERSION                          "0.90"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define timers
@@ -98,8 +98,11 @@ static const char* const      mqtt_topic_forecast            = "forecast";
 #define RUNMINTODAY_Y                       2
 #define AHPANELTODAY_X                     15 
 #define AHPANELTODAY_Y                      1
-#define FORECAST_X                          8 
+#define FORECAST_X                          9 
 #define FORECAST_Y                          3
+
+// 0123456789
+// 15:25 FP: 0.5kWh
 
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
 #define SENDSTAT_DELAY                       60000  //poslani statistiky kazdou minutu
