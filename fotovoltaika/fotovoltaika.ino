@@ -439,9 +439,11 @@ void relay() {
   } else if (relayStatus == RELAY_OFF && manualRelaySet==1) {
       relayStatus = RELAY_ON;
       changeRelay(relayStatus);
+      sendRelayHA(1);
   } else if (relayStatus == RELAY_ON && manualRelaySet==0) {
       relayStatus = RELAY_OFF;
       changeRelay(relayStatus);
+      sendRelayHA(1);
   }
   dispRelayStatus();
 }
