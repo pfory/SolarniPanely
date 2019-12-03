@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                          "0.92"
+#define     VERSION                          "0.93"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define timers
@@ -112,7 +112,7 @@ static const char* const      mqtt_topic_forecast            = "forecast";
 
 #define CURRENT4ONBIG                        3.f //3A
 #define CURRENT4ONSMALL                      2.f //2A
-#define FORECASTED_LIMIT_OFF                 0.3
+#define FORECASTED_LIMIT_OFF                 0.06 //kWh = 5Ah
 
 #define MAX                                  32767
 #define MIN                                  -32767
