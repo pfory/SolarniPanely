@@ -172,8 +172,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
     manualRelaySet = val.toInt();
     if (val.toInt()==1) {
       DEBUG_PRINTLN(F("ON"));
-    } else {
+    } else if (val.toInt()==0) {
       DEBUG_PRINTLN(F("OFF"));
+    } else {
+      DEBUG_PRINTLN(F("AUTO"));
     }
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str())==0) {
     printMessageToLCD(topic, val);
@@ -240,7 +242,7 @@ void setup() {
   pinMode(BUILTIN_LED, OUTPUT);
   pinMode(STATUS_LED, OUTPUT);
   pinMode(LED2PIN, OUTPUT);
-  digitalWrite(STATUS_LED, HIGH); //nesviti
+s  digitalWrite(STATUS_LED, HIGH); //nesviti
   digitalWrite(LED2PIN, HIGH);
   pinMode(RELAY1PIN, OUTPUT);
   pinMode(RELAY2PIN, OUTPUT);
