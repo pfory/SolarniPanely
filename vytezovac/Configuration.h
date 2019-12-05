@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                          "0.01"
+#define     VERSION                          "0.02"
 #define     SW_NAME                          "Vytezovac"
 
 #define timers
@@ -51,7 +51,7 @@ static const char* const      mqtt_base                      = "/home/SolarMeren
 static const char* const      static_ip                      = "192.168.1.117";
 static const char* const      static_gw                      = "192.168.1.1";
 static const char* const      static_sn                      = "255.255.255.0";
-static const char* const      mqtt_topic_voltage             = "voltageRegOutMaxTest";
+static const char* const      mqtt_topic_voltage             = "voltageRegOutMax";
 static const char* const      mqtt_topic_restart             = "restart";
 static const char* const      mqtt_topic_relay               = "manualRelayVytezovac";
 

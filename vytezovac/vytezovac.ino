@@ -8,8 +8,8 @@
 //for LED status
 Ticker ticker;
 
-float solarOUTVoltage         = 0.f;
-int manualRelay               = 0;
+float solarOUTVoltage                       = 0.f;
+int manualRelay                             = 2;
 uint32_t heartBeat                          = 0;
 
 
