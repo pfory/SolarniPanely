@@ -104,7 +104,7 @@ float      voltageRegInMax          = MIN; //vystup z panelu, rozsah 0-20V
 float      voltageRegOutMax         = MIN; //vystup z regulatoru, rozsah 0-15V
 float      voltageRegOut            = 12.f; 
 float      voltageSupply            = MIN;
-  
+float      forecastedEnergyTomorrow = -1.f;  
 uint32_t  lastReadADC               = 0;              //interval mezi ctenim sensoru
 
 //mereni proudu
@@ -202,6 +202,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     lcd.setCursor(FORECAST_X-3,FORECAST_Y);
     lcd.print("FP:");
     displayValue(FORECAST_X,FORECAST_Y, val.toFloat(), 2, 1);
+    forecastedEnergyTomorrow = val.toFloat();
     lcd.print("kWh");
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_relayONVoltageSmall)).c_str())==0) {
     printMessageToLCD(topic, val);
@@ -428,7 +429,8 @@ void relay() {
         changeRelay(relayStatus);
         sendRelayHA(1);
       //-----------------------------------zmena 1-0--------------------------------------------
-      } else if (relayStatus == RELAY_ON && voltageRegOut <= relayOFFVoltage) { 
+      } else if (relayStatus == RELAY_ON && (voltageRegOut <= relayOFFVoltage || (forecastedEnergyTomorrow < FORECASTED_LIMIT_OFF && currentRegIn < CURRENT4ONSMALL && voltageRegOut < relayONVoltageSmall))) { 
+      //} else if (relayStatus == RELAY_ON && (voltageRegOut <= relayOFFVoltage)) { 
       //} else if (relayStatus == RELAY_ON && voltageRegOutMax <= 11.0) { 
         relayStatus = RELAY_OFF;
         changeRelay(relayStatus);
@@ -439,9 +441,11 @@ void relay() {
   } else if (relayStatus == RELAY_OFF && manualRelaySet==1) {
       relayStatus = RELAY_ON;
       changeRelay(relayStatus);
+      sendRelayHA(1);
   } else if (relayStatus == RELAY_ON && manualRelaySet==0) {
       relayStatus = RELAY_OFF;
       changeRelay(relayStatus);
+      sendRelayHA(1);
   }
   dispRelayStatus();
 }

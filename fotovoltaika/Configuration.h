@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                          "0.90"
+#define     VERSION                          "0.93"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define timers
@@ -101,9 +101,6 @@ static const char* const      mqtt_topic_forecast            = "forecast";
 #define FORECAST_X                          9 
 #define FORECAST_Y                          3
 
-// 0123456789
-// 15:25 FP: 0.5kWh
-
 #define SEND_DELAY                           10000  //prodleva mezi poslanim dat v ms
 #define SENDSTAT_DELAY                       60000  //poslani statistiky kazdou minutu
 #define READADC_DELAY                        2000   //cteni ADC
@@ -111,10 +108,11 @@ static const char* const      mqtt_topic_forecast            = "forecast";
 #define RELAY_ON                             HIGH
 #define RELAY_OFF                            LOW
 
-#define RELAYDELAYOFFON                      60000 //in ms = 1 min
+#define RELAYDELAYOFFON                      600000 //in ms = 10 min
 
 #define CURRENT4ONBIG                        3.f //3A
 #define CURRENT4ONSMALL                      2.f //2A
+#define FORECASTED_LIMIT_OFF                 0.06 //kWh = 5Ah
 
 #define MAX                                  32767
 #define MIN                                  -32767
