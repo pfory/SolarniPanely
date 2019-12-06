@@ -8,9 +8,11 @@
 //for LED status
 Ticker ticker;
 
-float solarOUTVoltage                       = 0.f;
-int manualRelay                             = 2;
-uint32_t heartBeat                          = 0;
+float solarOUTVoltage                        = 0.f;
+int manualRelay                              = 2;
+uint32_t heartBeat                           = 0;
+
+byte relayStatus                             = RELAY_OFF;
 
 
 bool isDebugEnabled()
@@ -59,7 +61,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   DEBUG_PRINTLN();
   
-  if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_relay)).c_str())==0) {
+  if (strcmp(topic, (String(mqtt_base_vytezovac) + "/" + String(mqtt_topic_relay)).c_str())==0) {
     DEBUG_PRINT("set manual control relay to ");
     manualRelay = val.toInt();
     if (val.toInt()==1) {
@@ -69,9 +71,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
     } else {
       DEBUG_PRINTLN(F("AUTO"));
     }
-  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_voltage)).c_str())==0) {
+  } else if (strcmp(topic, (String(mqtt_base_solar) + "/" + String(mqtt_topic_voltage)).c_str())==0) {
     solarOUTVoltage = val.toFloat();
-  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str())==0) {
+  } else if (strcmp(topic, (String(mqtt_base_vytezovac) + "/" + String(mqtt_topic_restart)).c_str())==0) {
     DEBUG_PRINT("RESTART");
     ESP.restart();
   }
@@ -178,8 +180,9 @@ void setup() {
   
   //setup timers
   //timer.every(SEND_DELAY, sendDataHA);
+  timer.every(SENDSTAT_DELAY, sendStatisticHA);
   void * a;
-//  sendStatisticHA(a);
+  sendStatisticHA(a);
 
   ticker.detach();
   //keep LED on
@@ -205,32 +208,73 @@ void loop() {
 
 void control() {
   if (manualRelay==2) {
-    if (solarOUTVoltage > VOLTAGEON) {
+    if (relayStatus == RELAY_OFF && solarOUTVoltage > VOLTAGEON) {
       digitalWrite(LOAD, 1);
-    } else {
+      relayStatus = RELAY_ON;
+      sendRelayHA(1);
+    }
+    if (relayStatus == RELAY_ON && solarOUTVoltage < VOLTAGEOFF) {
       digitalWrite(LOAD, 0);
+      relayStatus = RELAY_OFF;
+      sendRelayHA(0);
     }
   } else if (manualRelay==1) {
       digitalWrite(LOAD, 1);
+      relayStatus = RELAY_ON;
+      sendRelayHA(1);
   } else if (manualRelay==0) {
       digitalWrite(LOAD, 0);
+      relayStatus = RELAY_OFF;
+      sendRelayHA(0);
   }
 }
+
+void sendRelayHA(byte akce) {
+  digitalWrite(STATUS_LED, LOW);
+  digitalWrite(BUILTIN_LED, LOW);
+  SenderClass sender;
+  sender.add("relayChangeVytezovac", akce);
+ 
+  sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base_vytezovac);
+  digitalWrite(STATUS_LED, HIGH);
+  digitalWrite(BUILTIN_LED, HIGH);
+}
+
+
+bool sendStatisticHA(void *) {
+  digitalWrite(STATUS_LED, LOW);
+  digitalWrite(BUILTIN_LED, LOW);
+  //printSystemTime();
+  DEBUG_PRINTLN(F(" - I am sending statistic to HA"));
+
+  SenderClass sender;
+  sender.add("VersionSWVytezovac", VERSION);
+  sender.add("HeartBeat", heartBeat++);
+  sender.add("RSSI", WiFi.RSSI());
+  
+  DEBUG_PRINTLN(F("Calling MQTT"));
+  
+  sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base_vytezovac);
+  digitalWrite(STATUS_LED, HIGH);
+  digitalWrite(BUILTIN_LED, HIGH);
+  return true;
+}
+
 
 void reconnect() {
   // Loop until we're reconnected
   while (!client.connected()) {
     DEBUG_PRINT("Attempting MQTT connection...");
     // Attempt to connect
-    if (client.connect((String(mqtt_base) + "/Vytezovac").c_str(), mqtt_username, mqtt_key)) {
+    if (client.connect(mqtt_base_vytezovac, mqtt_username, mqtt_key)) {
       DEBUG_PRINTLN("connected");
       // Once connected, publish an announcement...
       //client.publish("outTopic","hello world");
       // ... and resubscribe
       //client.subscribe(mqtt_base + '/' + 'inTopic');
-       client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_relay)).c_str());
-       client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str());
-       client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_voltage)).c_str());
+       client.subscribe((String(mqtt_base_vytezovac) + "/" + String(mqtt_topic_relay)).c_str());
+       client.subscribe((String(mqtt_base_vytezovac) + "/" + String(mqtt_topic_restart)).c_str());
+       client.subscribe((String(mqtt_base_solar) + "/" + String(mqtt_topic_voltage)).c_str());
     } else {
       DEBUG_PRINT("failed, rc=");
       DEBUG_PRINT(client.state());

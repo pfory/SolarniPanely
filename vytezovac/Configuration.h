@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                          "0.02"
+#define     VERSION                          "0.03"
 #define     SW_NAME                          "Vytezovac"
 
 #define timers
@@ -34,6 +34,11 @@
   #define DEBUG_WRITE(x)
 #endif 
 
+#define RELAY_ON                             HIGH
+#define RELAY_OFF                            LOW
+
+#define SENDSTAT_DELAY                       60000  //poslani statistiky kazdou minutu
+
 
 //All of the IO pins have interrupt/pwm/I2C/one-wire support except D0.
 #define STATUS_LED                          BUILTIN_LED //status LED
@@ -47,7 +52,8 @@ static const char* const      mqtt_server                    = "192.168.1.56";
 static const uint16_t         mqtt_port                      = 1883;
 static const char* const      mqtt_username                  = "datel";
 static const char* const      mqtt_key                       = "hanka12";
-static const char* const      mqtt_base                      = "/home/SolarMereni";
+static const char* const      mqtt_base_solar                = "/home/SolarMereni";
+static const char* const      mqtt_base_vytezovac            = "/home/SolarMereni/Vytezovac";
 static const char* const      static_ip                      = "192.168.1.117";
 static const char* const      static_gw                      = "192.168.1.1";
 static const char* const      static_sn                      = "255.255.255.0";
@@ -56,5 +62,6 @@ static const char* const      mqtt_topic_restart             = "restart";
 static const char* const      mqtt_topic_relay               = "manualRelayVytezovac";
 
 #define VOLTAGEON               14.2
+#define VOLTAGEOFF              13.5
 
 #endif
