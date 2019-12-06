@@ -218,11 +218,11 @@ void control() {
       relayStatus = RELAY_OFF;
       sendRelayHA(0);
     }
-  } else if (manualRelay==1) {
+  } else if (relayStatus == RELAY_OFF && manualRelay==1) {
       digitalWrite(LOAD, 1);
       relayStatus = RELAY_ON;
       sendRelayHA(1);
-  } else if (manualRelay==0) {
+  } else if (relayStatus == RELAY_ON && manualRelay==0) {
       digitalWrite(LOAD, 0);
       relayStatus = RELAY_OFF;
       sendRelayHA(0);
