@@ -59,7 +59,7 @@ static const char* const      static_gw                      = "192.168.1.1";
 static const char* const      static_sn                      = "255.255.255.0";
 static const char* const      mqtt_topic_voltage             = "voltageRegOutMax";
 static const char* const      mqtt_topic_restart             = "restart";
-static const char* const      mqtt_topic_relay               = "manualRelayVytezovac";
+static const char* const      mqtt_topic_relay               = "manualRelay";
 
 #define VOLTAGEON               14.2
 #define VOLTAGEOFF              13.5
