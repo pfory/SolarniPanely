@@ -243,7 +243,7 @@ void setup() {
   pinMode(BUILTIN_LED, OUTPUT);
   pinMode(STATUS_LED, OUTPUT);
   pinMode(LED2PIN, OUTPUT);
-s  digitalWrite(STATUS_LED, HIGH); //nesviti
+  digitalWrite(STATUS_LED, HIGH); //nesviti
   digitalWrite(LED2PIN, HIGH);
   pinMode(RELAY1PIN, OUTPUT);
   pinMode(RELAY2PIN, OUTPUT);
@@ -423,13 +423,14 @@ void relay() {
   if (manualRelaySet==2) {
     if (millis() - lastRelayOff > RELAYDELAYOFFON) {
       //-----------------------------------zmena 0-1--------------------------------------------
-      if (relayStatus == RELAY_OFF && (voltageRegOut > relayONVoltageBig || currentRegIn > CURRENT4ONBIG || (currentRegIn > CURRENT4ONSMALL) && voltageRegOut >= relayONVoltageSmall )) {
-      //if (relayStatus == RELAY_OFF && (voltageRegOutMin > 13.5 || currentRegIn > CURRENT4ONBIG || (currentRegIn > CURRENT4ONSMALL) && voltageRegOutMin >= 12.5 )) {
+      if (relayStatus == RELAY_OFF && (voltageRegOut > relayONVoltageBig || currentRegIn > CURRENT4ONBIG || (currentRegIn > CURRENT4ONSMALL && voltageRegOut >= relayONVoltageSmall ))) {
+    //if (relayStatus == RELAY_OFF && (voltageRegOut > 13.5              || currentRegIn > 3             || (currentRegIn > 2)              && voltageRegOut >= 13                  )) {
         relayStatus = RELAY_ON;
         changeRelay(relayStatus);
         sendRelayHA(1);
       //-----------------------------------zmena 1-0--------------------------------------------
       } else if (relayStatus == RELAY_ON && (voltageRegOut <= relayOFFVoltage || (forecastedEnergyTomorrow < FORECASTED_LIMIT_OFF && currentRegIn < CURRENT4ONSMALL && voltageRegOut < relayONVoltageSmall))) { 
+    //} else if (relayStatus == RELAY_ON && (voltageRegOut <= 11              || (forecastedEnergyTomorrow < 0.06                 && currentRegIn < 2               && voltageRegOut < 13)                 )) { 
       //} else if (relayStatus == RELAY_ON && (voltageRegOut <= relayOFFVoltage)) { 
       //} else if (relayStatus == RELAY_ON && voltageRegOutMax <= 11.0) { 
         relayStatus = RELAY_OFF;
