@@ -568,10 +568,10 @@ bool sendDataHA(void *) {
   sender.add("intervalSec",       (float)intervalMSec/1000.f);
   
   sender.add("NapetiSbernice",    voltageSupply);
-  sender.add("ch0Dilky",          ads1.readADC_SingleEnded(0));
-  sender.add("ch1Dilky",          ads1.readADC_SingleEnded(1));
-  sender.add("ch2Dilky",          ads1.readADC_SingleEnded(2));
-  sender.add("ch3Dilky",          ads1.readADC_SingleEnded(3));
+  // sender.add("ch0Dilky",          ads1.readADC_SingleEnded(0));
+  // sender.add("ch1Dilky",          ads1.readADC_SingleEnded(1));
+  // sender.add("ch2Dilky",          ads1.readADC_SingleEnded(2));
+  // sender.add("ch3Dilky",          ads1.readADC_SingleEnded(3));
   
   voltageRegInMin   = MAX;
   voltageRegOutMin  = MAX;
@@ -594,18 +594,19 @@ bool sendStatisticHA(void *) {
   digitalWrite(BUILTIN_LED, LOW);
   //printSystemTime();
   DEBUG_PRINTLN(F(" - I am sending statistic to HA"));
+  DEBUG_PRINTLN(F("Calling MQTT"));
 
   SenderClass sender;
   sender.add("VersionSWFotovoltaika", VERSION);
   sender.add("HeartBeat", heartBeat++);
-  sender.add("RSSI", WiFi.RSSI());
+  if (heartBeat % 10 == 0) sender.add("RSSI", WiFi.RSSI());
+  
   sender.add("relayOFFVoltage", relayOFFVoltage);
   sender.add("relayONVoltageBig", relayONVoltageBig);
   sender.add("relayONVoltageSmall", relayONVoltageSmall);
-  
-  DEBUG_PRINTLN(F("Calling MQTT"));
-  
+
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
+
   digitalWrite(STATUS_LED, HIGH);
   digitalWrite(BUILTIN_LED, HIGH);
   return true;
