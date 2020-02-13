@@ -423,16 +423,15 @@ void relay() {
   if (manualRelaySet==2) {
     if (millis() - lastRelayOff > RELAYDELAYOFFON) {
       //-----------------------------------zmena 0-1--------------------------------------------
-    //if (relayStatus == RELAY_OFF && (voltageRegOut > 13.5              || currentRegIn > 3             || (currentRegIn > 2)              && voltageRegOut >= 13                  )) {
       if (relayStatus == RELAY_OFF) {
         bool zapni=false;
-        if (voltageRegOut > relayONVoltageBig) {
+        if (voltageRegOut > relayONVoltageBig) { //voltageRegOut > 13.5
           duvodZmenyStavuRele=1;
           zapni = true;
-        } else if (currentRegIn > CURRENT4ONBIG) {
+        } else if (currentRegIn > CURRENT4ONBIG) { //currentRegIn > 3
           duvodZmenyStavuRele=2;
           zapni = true;
-        } else if (currentRegIn > CURRENT4ONSMALL && voltageRegOut >= relayONVoltageSmall) {
+        } else if (currentRegIn > CURRENT4ONSMALL && voltageRegOut >= relayONVoltageSmall) { //currentRegIn > 2) && voltageRegOut >= 13
           duvodZmenyStavuRele=3;
           zapni = true;
         }
@@ -442,13 +441,12 @@ void relay() {
           sendRelayHA(1);
         }
       //-----------------------------------zmena 1-0--------------------------------------------
-    //} else if (relayStatus == RELAY_ON && (voltageRegOut <= 11              || (forecastedEnergyTomorrow < 0.06                 && currentRegIn < 2               && voltageRegOut < 13)                 )) { 
       } else if (relayStatus == RELAY_ON) {
         bool vypni=false;
-        if (voltageRegOut <= relayOFFVoltage) {
+        if (voltageRegOut <= relayOFFVoltage) { //voltageRegOut <= 11
           duvodZmenyStavuRele=4;
           vypni = true;
-        } else if (forecastedEnergyTomorrow < FORECASTED_LIMIT_OFF && currentRegIn < CURRENT4ONSMALL && voltageRegOut < relayONVoltageSmall) { 
+        } else if (forecastedEnergyTomorrow < FORECASTED_LIMIT_OFF && currentRegIn < CURRENT4ONSMALL && voltageRegOut < relayONVoltageSmall) { //forecastedEnergyTomorrow < 0.06 && currentRegIn < 2 && voltageRegOut < 13
           duvodZmenyStavuRele=5;
           vypni = true;
         }
