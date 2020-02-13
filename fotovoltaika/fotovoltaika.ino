@@ -89,9 +89,9 @@ float   relayOFFVoltage                      = 11.f;
 
 
 byte relayStatus                             = RELAY_OFF;
-byte manualRelaySet                             = 2;
-
-
+byte manualRelaySet                          = 2;
+  
+int duvodZmenyStavuRele                      = 0;
 //ADC_MODE(ADC_VCC);
 
 uint32_t heartBeat                          = 0;
@@ -423,29 +423,54 @@ void relay() {
   if (manualRelaySet==2) {
     if (millis() - lastRelayOff > RELAYDELAYOFFON) {
       //-----------------------------------zmena 0-1--------------------------------------------
-      if (relayStatus == RELAY_OFF && (voltageRegOut > relayONVoltageBig || currentRegIn > CURRENT4ONBIG || (currentRegIn > CURRENT4ONSMALL && voltageRegOut >= relayONVoltageSmall ))) {
     //if (relayStatus == RELAY_OFF && (voltageRegOut > 13.5              || currentRegIn > 3             || (currentRegIn > 2)              && voltageRegOut >= 13                  )) {
-        relayStatus = RELAY_ON;
-        changeRelay(relayStatus);
-        sendRelayHA(1);
+      if (relayStatus == RELAY_OFF) {
+        bool zapni=false;
+        if (voltageRegOut > relayONVoltageBig) {
+          duvodZmenyStavuRele=1;
+          zapni = true;
+        } else if (currentRegIn > CURRENT4ONBIG) {
+          duvodZmenyStavuRele=2;
+          zapni = true;
+        } else if (currentRegIn > CURRENT4ONSMALL && voltageRegOut >= relayONVoltageSmall) {
+          duvodZmenyStavuRele=3;
+          zapni = true;
+        }
+        if (zapni) {
+          relayStatus = RELAY_ON;
+          changeRelay(relayStatus);
+          sendRelayHA(1);
+        }
       //-----------------------------------zmena 1-0--------------------------------------------
-      } else if (relayStatus == RELAY_ON && (voltageRegOut <= relayOFFVoltage || (forecastedEnergyTomorrow < FORECASTED_LIMIT_OFF && currentRegIn < CURRENT4ONSMALL && voltageRegOut < relayONVoltageSmall))) { 
     //} else if (relayStatus == RELAY_ON && (voltageRegOut <= 11              || (forecastedEnergyTomorrow < 0.06                 && currentRegIn < 2               && voltageRegOut < 13)                 )) { 
-      //} else if (relayStatus == RELAY_ON && (voltageRegOut <= relayOFFVoltage)) { 
-      //} else if (relayStatus == RELAY_ON && voltageRegOutMax <= 11.0) { 
-        relayStatus = RELAY_OFF;
-        changeRelay(relayStatus);
-        sendRelayHA(0);
-        lastRelayOff = millis();
+      } else if (relayStatus == RELAY_ON) {
+        bool vypni=false;
+        if (voltageRegOut <= relayOFFVoltage) {
+          duvodZmenyStavuRele=4;
+          vypni = true;
+        } else if (forecastedEnergyTomorrow < FORECASTED_LIMIT_OFF && currentRegIn < CURRENT4ONSMALL && voltageRegOut < relayONVoltageSmall) { 
+          duvodZmenyStavuRele=5;
+          vypni = true;
+        }
+        if (vypni) {
+          relayStatus = RELAY_OFF;
+          changeRelay(relayStatus);
+          sendRelayHA(0);
+          lastRelayOff = millis();
+        }
       }
+    } else {
+      duvodZmenyStavuRele=-1;
     }
   } else if (relayStatus == RELAY_OFF && manualRelaySet==1) {
       relayStatus = RELAY_ON;
       changeRelay(relayStatus);
+      duvodZmenyStavuRele=6;
       sendRelayHA(1);
   } else if (relayStatus == RELAY_ON && manualRelaySet==0) {
       relayStatus = RELAY_OFF;
       changeRelay(relayStatus);
+      duvodZmenyStavuRele=7;
       sendRelayHA(1);
   }
   dispRelayStatus();
@@ -604,6 +629,7 @@ bool sendStatisticHA(void *) {
   sender.add("relayOFFVoltage", relayOFFVoltage);
   sender.add("relayONVoltageBig", relayONVoltageBig);
   sender.add("relayONVoltageSmall", relayONVoltageSmall);
+  sender.add("duvodZmenyStavuRele", duvodZmenyStavuRele);
 
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
 
@@ -618,6 +644,7 @@ void sendRelayHA(byte akce) {
   digitalWrite(BUILTIN_LED, LOW);
   SenderClass sender;
   sender.add("relayChange", akce);
+  sender.add("duvodZmenyStavuRele", duvodZmenyStavuRele);
  
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
   digitalWrite(STATUS_LED, HIGH);
