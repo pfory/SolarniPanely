@@ -457,7 +457,7 @@ void relay() {
           lastRelayOff = millis();
         }
       } else {
-          // duvodZmenyStavuRele=0;
+        duvodZmenyStavuRele=0;
       }
     } else {
       duvodZmenyStavuRele=-1;
