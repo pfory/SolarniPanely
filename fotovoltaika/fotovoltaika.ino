@@ -439,8 +439,6 @@ void relay() {
           relayStatus = RELAY_ON;
           changeRelay(relayStatus);
           sendRelayHA(1);
-        } else {
-          // duvodZmenyStavuRele=0;
         }
       //-----------------------------------zmena 1-0--------------------------------------------
       } else if (relayStatus == RELAY_ON) {
@@ -457,9 +455,9 @@ void relay() {
           changeRelay(relayStatus);
           sendRelayHA(0);
           lastRelayOff = millis();
-        } else {
-          // duvodZmenyStavuRele=0;
         }
+      } else {
+          // duvodZmenyStavuRele=0;
       }
     } else {
       duvodZmenyStavuRele=-1;
