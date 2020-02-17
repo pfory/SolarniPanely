@@ -456,7 +456,8 @@ void relay() {
           sendRelayHA(0);
           lastRelayOff = millis();
         }
-      } else {
+      }
+      if (duvodZmenyStavuRele==-1) {
         duvodZmenyStavuRele=0;
       }
     } else {
