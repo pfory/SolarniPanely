@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                          "0.95"
+#define     VERSION                          "0.96"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define timers
@@ -108,7 +108,7 @@ static const char* const      mqtt_topic_forecast            = "forecast";
 #define RELAY_ON                             HIGH
 #define RELAY_OFF                            LOW
 
-#define RELAYDELAYOFFON                      600000 //in ms = 10 min
+#define RELAYDELAYOFFON                      120000 //in ms = 2 min
 
 #define CURRENT4ONBIG                        3.f //3A
 #define CURRENT4ONSMALL                      2.f //2A

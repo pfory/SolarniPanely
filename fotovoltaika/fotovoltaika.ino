@@ -443,7 +443,7 @@ void relay() {
       //-----------------------------------zmena 1-0--------------------------------------------
       } else if (relayStatus == RELAY_ON) {
         bool vypni=false;
-        if (voltageRegOut <= relayOFFVoltage) { //voltageRegOut <= 11
+        if (voltageRegOut <= relayOFFVoltage) { //voltageRegOut <= 11.8
           duvodZmenyStavuRele=4;
           vypni = true;
         } else if (forecastedEnergyTomorrow < FORECASTED_LIMIT_OFF && currentRegIn < CURRENT4ONSMALL && voltageRegOut < relayONVoltageSmall) { //forecastedEnergyTomorrow < 0.06 && currentRegIn < 2 && voltageRegOut < 13
