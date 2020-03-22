@@ -90,6 +90,7 @@ void setup() {
   DEBUG_PRINTLN(F(VERSION));
 
   pinMode(LOAD, OUTPUT);
+  digitalWrite(LOAD, 0);
 
   rst_info *_reset_info = ESP.getResetInfoPtr();
   uint8_t _reset_reason = _reset_info->reason;
@@ -207,22 +208,28 @@ void loop() {
 
 
 void control() {
+  DEBUG_PRINT(manualRelay);
+  DEBUG_PRINTLN(relayStatus);
   if (manualRelay==2) {
-    if (relayStatus == RELAY_OFF && solarOUTVoltage > VOLTAGEON) {
-      digitalWrite(LOAD, 1);
-      relayStatus = RELAY_ON;
-      sendRelayHA(1);
-    }
-    if (relayStatus == RELAY_ON && solarOUTVoltage < VOLTAGEOFF) {
-      digitalWrite(LOAD, 0);
-      relayStatus = RELAY_OFF;
-      sendRelayHA(0);
-    }
+    // if (relayStatus == RELAY_OFF && solarOUTVoltage > VOLTAGEON) {
+      // DEBUG_PRINTLN("Relay ON");
+      // digitalWrite(LOAD, 1);
+      // relayStatus = RELAY_ON;
+      // sendRelayHA(1);
+    // }
+    // if (relayStatus == RELAY_ON && solarOUTVoltage < VOLTAGEOFF) {
+      // DEBUG_PRINTLN("Relay OFF");
+      // digitalWrite(LOAD, 0);
+      // relayStatus = RELAY_OFF;
+      // sendRelayHA(0);
+    // }
   } else if (relayStatus == RELAY_OFF && manualRelay==1) {
+      DEBUG_PRINTLN("Relay ON");
       digitalWrite(LOAD, 1);
       relayStatus = RELAY_ON;
       sendRelayHA(1);
   } else if (relayStatus == RELAY_ON && manualRelay==0) {
+      DEBUG_PRINTLN("Relay OFF");
       digitalWrite(LOAD, 0);
       relayStatus = RELAY_OFF;
       sendRelayHA(0);
