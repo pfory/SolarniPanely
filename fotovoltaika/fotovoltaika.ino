@@ -83,18 +83,18 @@ bool isDebugEnabled()
 }
 
 
-float   relayONVoltageBig                    = 13.5;
-float   relayONVoltageSmall                  = 12.5;
-float   relayOFFVoltage                      = 11.f;
+float   relayONVoltageBig           = 13.5;
+float   relayONVoltageSmall         = 12.5;
+float   relayOFFVoltage             = 11.f;
 
 
-byte relayStatus                             = RELAY_OFF;
-byte manualRelaySet                          = 2;
+byte relayStatus                    = RELAY_OFF;
+byte relayMode                      = RELAY_MODE_AUTO;
   
-int duvodZmenyStavuRele                      = 0;
+int duvodZmenyStavuRele             = 0;
 //ADC_MODE(ADC_VCC);
 
-uint32_t heartBeat                          = 0;
+uint32_t heartBeat                  = 0;
 
 //mereni napeti   
 float      voltageRegInMin          = MAX; //vystup z panelu, rozsah 0-20V
@@ -166,10 +166,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   DEBUG_PRINTLN();
   
-  if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_relay)).c_str())==0) {
+  if (strcmp(topic, (String(mqtt_base) + "/cmnd/" + String(mqtt_topic_relay)).c_str())==0) {
     printMessageToLCD(topic, val);
     DEBUG_PRINT("set manual control relay to ");
-    manualRelaySet = val.toInt();
+    relayMode = val.toInt();
     if (val.toInt()==1) {
       DEBUG_PRINTLN(F("ON"));
     } else if (val.toInt()==0) {
@@ -420,7 +420,7 @@ void loop() {
 
 //---------------------------------------------R E L A Y ------------------------------------------------
 void relay() {
-  if (manualRelaySet==2) {
+  if (relayMode==RELAY_MODE_AUTO) {
     if (millis() - lastRelayOff > RELAYDELAYOFFON) {
       //-----------------------------------zmena 0-1--------------------------------------------
       if (relayStatus == RELAY_OFF) {
@@ -463,12 +463,12 @@ void relay() {
     } else {
       duvodZmenyStavuRele=-1;
     }
-  } else if (relayStatus == RELAY_OFF && manualRelaySet==1) {
+  } else if (relayStatus == RELAY_OFF && relayMode==RELAY_MODE_ON) {
       relayStatus = RELAY_ON;
       changeRelay(relayStatus);
       duvodZmenyStavuRele=6;
       sendRelayHA(1);
-  } else if (relayStatus == RELAY_ON && manualRelaySet==0) {
+  } else if (relayStatus == RELAY_ON && relayMode==RELAY_MODE_OFF) {
       relayStatus = RELAY_OFF;
       changeRelay(relayStatus);
       duvodZmenyStavuRele=7;
@@ -567,8 +567,7 @@ bool sendDataHA(void *) {
   digitalWrite(BUILTIN_LED, LOW);
   SenderClass sender;
 
-  sender.add("relayStatus",       relayStatus);
-  sender.add("manualRelay",       manualRelaySet);
+  sender.add("status/" + String(mqtt_topic_relay), relayStatus); //ON, OFF
   
   if (voltageRegInMin<MAX) {
     sender.add("voltageRegInMin",   voltageRegInMin);
@@ -584,7 +583,7 @@ bool sendDataHA(void *) {
     sender.add("voltageRegOutMax",  voltageRegOutMax);
   }
   sender.add("currentRegIn",      currentRegInSum   / (float)intervalMSec);
-  if (relayStatus==HIGH) {
+  if (relayStatus==RELAY_ON) {
     sender.add("currentRegOut",   currentRegOutSum  / (float)intervalMSec);
     sender.add("powerOut",        (currentRegOutSum / (float)intervalMSec) * voltageRegOutMax);
   } else {
@@ -594,11 +593,7 @@ bool sendDataHA(void *) {
   sender.add("intervalSec",       (float)intervalMSec/1000.f);
   
   sender.add("NapetiSbernice",    voltageSupply);
-  // sender.add("ch0Dilky",          ads1.readADC_SingleEnded(0));
-  // sender.add("ch1Dilky",          ads1.readADC_SingleEnded(1));
-  // sender.add("ch2Dilky",          ads1.readADC_SingleEnded(2));
-  // sender.add("ch3Dilky",          ads1.readADC_SingleEnded(3));
-  
+
   voltageRegInMin   = MAX;
   voltageRegOutMin  = MAX;
   voltageRegInMax   = MIN; 
@@ -646,6 +641,8 @@ void sendRelayHA(byte akce) {
   SenderClass sender;
   sender.add("relayChange", akce);
   sender.add("duvodZmenyStavuRele", duvodZmenyStavuRele);
+  sender.add("status/" + String(mqtt_topic_relay), relayStatus); //ON, OFF
+  
  
   sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
   digitalWrite(STATUS_LED, HIGH);
@@ -731,7 +728,7 @@ void reconnect() {
       //client.publish("outTopic","hello world");
       // ... and resubscribe
       //client.subscribe(mqtt_base + '/' + 'inTopic');
-      client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_relay)).c_str());
+      client.subscribe((String(mqtt_base) + "/cmnd/" + String(mqtt_topic_relay)).c_str());
       client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str());
       client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_relayONVoltageBig)).c_str());
       client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_relayONVoltageSmall)).c_str());
@@ -750,10 +747,10 @@ void reconnect() {
 
 void dispRelayStatus() {
   lcd.setCursor(RELAY_STATUSX,RELAY_STATUSY);
-  if (manualRelaySet==RELAY_ON) {
+  if (relayMode==RELAY_ON) {
     lcd.print("MON");
     digitalWrite(LED2PIN, LOW);
-  } else if (manualRelaySet==RELAY_OFF) {
+  } else if (relayMode==RELAY_OFF) {
     lcd.print("MOF");
     digitalWrite(LED2PIN, HIGH);
   } else if (relayStatus==RELAY_ON) {
