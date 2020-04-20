@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                          "0.97"
+#define     VERSION                          "0.98"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define timers
@@ -114,7 +114,7 @@ static const char* const      mqtt_topic_forecast            = "forecast";
 
 #define RELAYDELAYOFFON                      120000 //in ms = 2 min
 
-#define CURRENT4ONBIG                        3.f //3A
+#define CURRENT4ONBIG                        6.f //6A
 #define CURRENT4ONSMALL                      2.f //2A
 #define FORECASTED_LIMIT_OFF                 0.06 //kWh = 5Ah
 

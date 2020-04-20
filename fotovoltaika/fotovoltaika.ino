@@ -428,7 +428,7 @@ void relay() {
         if (voltageRegOut > relayONVoltageBig) { //voltageRegOut > 13.5
           duvodZmenyStavuRele=1;
           zapni = true;
-        } else if (currentRegIn > CURRENT4ONBIG) { //currentRegIn > 3
+        } else if (currentRegIn > CURRENT4ONBIG) { //currentRegIn > 6
           duvodZmenyStavuRele=2;
           zapni = true;
         } else if (currentRegIn > CURRENT4ONSMALL && voltageRegOut >= relayONVoltageSmall) { //currentRegIn > 2) && voltageRegOut >= 13
