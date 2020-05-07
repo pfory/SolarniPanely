@@ -115,7 +115,7 @@ static const char* const      mqtt_topic_forecast            = "forecast";
 #define RELAYDELAYOFFON                      120000 //in ms = 2 min
 
 #define CURRENT4ONBIG                        6.f //6A
-#define CURRENT4ONSMALL                      2.f //2A
+#define CURRENT4ONSMALL                      4.f //4A
 #define FORECASTED_LIMIT_OFF                 0.06 //kWh = 5Ah
 
 #define MAX                                  32767
