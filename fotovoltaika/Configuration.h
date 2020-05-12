@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 //SW name & version
-#define     VERSION                          "0.98"
+#define     VERSION                          "0.99"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define timers

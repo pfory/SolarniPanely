@@ -431,7 +431,7 @@ void relay() {
         } else if (currentRegIn > CURRENT4ONBIG) { //currentRegIn > 6
           duvodZmenyStavuRele=2;
           zapni = true;
-        } else if (currentRegIn > CURRENT4ONSMALL && voltageRegOut >= relayONVoltageSmall) { //currentRegIn > 2) && voltageRegOut >= 13
+        } else if (currentRegIn > CURRENT4ONSMALL && voltageRegOut >= relayONVoltageSmall) { //currentRegIn > 4) && voltageRegOut >= 12.5
           duvodZmenyStavuRele=3;
           zapni = true;
         }
@@ -446,8 +446,11 @@ void relay() {
         if (voltageRegOut <= relayOFFVoltage) { //voltageRegOut <= 11.8
           duvodZmenyStavuRele=4;
           vypni = true;
-        } else if (forecastedEnergyTomorrow < FORECASTED_LIMIT_OFF && currentRegIn < CURRENT4ONSMALL && voltageRegOut < relayONVoltageSmall) { //forecastedEnergyTomorrow < 0.06 && currentRegIn < 2 && voltageRegOut < 13
+        } else if (forecastedEnergyTomorrow < FORECASTED_LIMIT_OFF && currentRegIn < CURRENT4ONSMALL && voltageRegOut < relayONVoltageSmall) { //forecastedEnergyTomorrow < 0.06 && currentRegIn < 2 && voltageRegOut < 12.5
           duvodZmenyStavuRele=5;
+          vypni = true;
+        } else if (currentRegIn < currentRegOut && voltageRegOut < relayONVoltageSmall) { //currentRegIn < currentRegOut && voltageRegOut < 12.5
+          duvodZmenyStavuRele=6;
           vypni = true;
         }
         if (vypni) {
