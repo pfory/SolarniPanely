@@ -469,12 +469,12 @@ void relay() {
   } else if (relayStatus == RELAY_OFF && relayMode==RELAY_MODE_ON) {
       relayStatus = RELAY_ON;
       changeRelay(relayStatus);
-      duvodZmenyStavuRele=6;
+      duvodZmenyStavuRele=7;
       sendRelayHA(1);
   } else if (relayStatus == RELAY_ON && relayMode==RELAY_MODE_OFF) {
       relayStatus = RELAY_OFF;
       changeRelay(relayStatus);
-      duvodZmenyStavuRele=7;
+      duvodZmenyStavuRele=8;
       sendRelayHA(1);
   }
   dispRelayStatus();
