@@ -1,8 +1,17 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
+#include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
+#include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
+#include <Ticker.h>
+#include "Sender.h"
+#include <Wire.h>
+#include <Adafruit_ADS1015.h>
+//#include <Adafruit_INA219.h>
+#include <FS.h>          //this needs to be first
+
 //SW name & version
-#define     VERSION                          "1.00"
+#define     VERSION                          "1.01"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define timers
