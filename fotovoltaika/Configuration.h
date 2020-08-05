@@ -9,9 +9,10 @@
 #include <Adafruit_ADS1015.h>
 //#include <Adafruit_INA219.h>
 #include <FS.h>          //this needs to be first
+#include <DoubleResetDetector.h>      //https://github.com/khoih-prog/ESP_DoubleResetDetector
 
 //SW name & version
-#define     VERSION                          "1.01"
+#define     VERSION                          "1.02"
 #define     SW_NAME                          "Fotovoltaika"
 
 #define timers

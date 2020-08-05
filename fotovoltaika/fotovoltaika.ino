@@ -115,6 +115,17 @@ bool      dispClear                 = false;
 float     lastRelayOff              = 0;
 
 
+// Number of seconds after reset during which a
+// subseqent reset will be considered a double reset.
+#define DRD_TIMEOUT 10
+
+// RTC Memory Address for the DoubleResetDetector to use
+#define DRD_ADDRESS 0
+
+//DoubleResetDetector drd(DRD_TIMEOUT, DRD_ADDRESS);
+DoubleResetDetector* drd;//////
+
+
 //Adafruit_INA219 ina219_2; //intput
 //Adafruit_INA219 ina219_1(0x41); //output
 
@@ -221,6 +232,20 @@ void setup() {
   DEBUG_PRINT(F(" "));
   DEBUG_PRINTLN(F(VERSION));
 
+  drd = new DoubleResetDetector(DRD_TIMEOUT, DRD_ADDRESS);
+
+  WiFiManager wifiManager;
+
+  if (drd->detectDoubleReset()) {
+    if (!wifiManager.startConfigPortal("OnDemandAP")) {
+      DEBUG_PRINTLN("failed to connect and hit timeout");
+      delay(3000);
+      //reset and try again, or maybe put it to deep sleep
+      ESP.reset();
+      delay(5000);
+    }
+  }
+
   lcd.init();               // initialize the lcd 
   lcd.backlight();
   //lcd.begin();               // initialize the lcd 
@@ -269,7 +294,6 @@ void setup() {
     DEBUG_PRINTLN(F("ERROR config corrupted"));
   }
   
-  WiFiManager wifiManager;
   //reset settings - for testing
   //wifiManager.resetSettings();
   
