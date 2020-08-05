@@ -449,9 +449,9 @@ void relay() {
         } else if (forecastedEnergyTomorrow < FORECASTED_LIMIT_OFF && currentRegIn < CURRENT4ONSMALL && voltageRegOut < relayONVoltageSmall) { //forecastedEnergyTomorrow < 0.06 && currentRegIn < 2 && voltageRegOut < 12.5
           duvodZmenyStavuRele=5;
           vypni = true;
-        } else if (currentRegIn < currentRegOut && voltageRegOut < relayONVoltageSmall) { //currentRegIn < currentRegOut && voltageRegOut < 12.5
-          duvodZmenyStavuRele=6;
-          vypni = true;
+        //} else if (currentRegIn < currentRegOut && voltageRegOut < relayONVoltageSmall) { //currentRegIn < currentRegOut && voltageRegOut < 12.5
+        //  duvodZmenyStavuRele=6;
+        //  vypni = true;
         }
         if (vypni) {
           relayStatus = RELAY_OFF;
