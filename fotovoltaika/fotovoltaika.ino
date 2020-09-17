@@ -117,13 +117,12 @@ float     lastRelayOff              = 0;
 
 // Number of seconds after reset during which a
 // subseqent reset will be considered a double reset.
-#define DRD_TIMEOUT 10
+#define DRD_TIMEOUT 2
 
 // RTC Memory Address for the DoubleResetDetector to use
 #define DRD_ADDRESS 0
 
-//DoubleResetDetector drd(DRD_TIMEOUT, DRD_ADDRESS);
-DoubleResetDetector* drd;//////
+DoubleResetDetector drd(DRD_TIMEOUT, DRD_ADDRESS);
 
 
 //Adafruit_INA219 ina219_2; //intput
@@ -232,11 +231,10 @@ void setup() {
   DEBUG_PRINT(F(" "));
   DEBUG_PRINTLN(F(VERSION));
 
-  drd = new DoubleResetDetector(DRD_TIMEOUT, DRD_ADDRESS);
-
   WiFiManager wifiManager;
 
-  if (drd->detectDoubleReset()) {
+  if (drd.detectDoubleReset()) {
+    DEBUG_PRINTLN("Double reset detected, starting config portal...");
     if (!wifiManager.startConfigPortal("OnDemandAP")) {
       DEBUG_PRINTLN("failed to connect and hit timeout");
       delay(3000);
@@ -409,6 +407,7 @@ void setup() {
 }
 
 void loop() {
+  drd.loop();
   timer.tick(); // tick the timer
 #ifdef ota
   ArduinoOTA.handle();
