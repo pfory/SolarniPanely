@@ -235,7 +235,7 @@ void setup() {
 
   if (drd.detectDoubleReset()) {
     DEBUG_PRINTLN("Double reset detected, starting config portal...");
-    if (!wifiManager.startConfigPortal("OnDemandAP")) {
+    if (!wifiManager.startConfigPortal(HOSTNAMEOTA)) {
       DEBUG_PRINTLN("failed to connect and hit timeout");
       delay(3000);
       //reset and try again, or maybe put it to deep sleep
@@ -243,6 +243,7 @@ void setup() {
       delay(5000);
     }
   }
+  drd.stop();
 
   lcd.init();               // initialize the lcd 
   lcd.backlight();
@@ -306,7 +307,8 @@ void setup() {
   DEBUG_PRINTLN(_gw);
   DEBUG_PRINTLN(_sn);
 
-  //wifiManager.setConfigPortalTimeout(60); 
+  wifiManager.setTimeout(180); //jak dlouho zustane v rezimu AP nez se cip resetuje
+  //wifiManager.setConfigPortalTimeout(60);
   //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
   wifiManager.setAPCallback(configModeCallback);
 
