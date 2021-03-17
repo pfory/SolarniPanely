@@ -103,19 +103,23 @@ void callback(char* topic, byte* payload, unsigned int length) {
     lcd.print(zaokrouhli(val.toFloat(), 3.f),3);
     lcd.print("kWh");
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/pvEstimateToday").c_str())==0) {
-    lcd.setCursor(10,1);
+    lcd.setCursor(13,1);
     lcd.print(zaokrouhli(val.toFloat(), 2.f),2);
     lcd.print("kWh");
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/pvEstimateTomorow").c_str())==0) {
-    lcd.setCursor(10,2);
+    lcd.setCursor(13,2);
     lcd.print(zaokrouhli(val.toFloat(), 2.f),2);
     lcd.print("kWh");
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/utiPower").c_str())==0) {
     lcd.setCursor(0,3);
     lcd.print(zaokrouhli(val.toFloat(), 0.f),0);
     lcd.print("W");
+  } else if (strcmp(topic, (String(mqtt_pip2424) + "/utiToday").c_str())==0) {
+    lcd.setCursor(6,3);
+    lcd.print(zaokrouhli(val.toFloat(), 1.f),1);
+    lcd.print("kWh");
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/battcappa").c_str())==0) {
-    lcd.setCursor(10,3);
+    lcd.setCursor(16,3);
     lcd.print(zaokrouhli(val.toFloat(), 0.f),0);
     lcd.print("%");
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/pvchargew").c_str())==0) {
