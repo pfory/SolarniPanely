@@ -115,13 +115,6 @@ bool      dispClear                 = false;
 float     lastRelayOff              = 0;
 
 
-// Number of seconds after reset during which a
-// subseqent reset will be considered a double reset.
-#define DRD_TIMEOUT 2
-
-// RTC Memory Address for the DoubleResetDetector to use
-#define DRD_ADDRESS 0
-
 DoubleResetDetector drd(DRD_TIMEOUT, DRD_ADDRESS);
 
 
@@ -136,6 +129,7 @@ void configModeCallback (WiFiManager *myWiFiManager) {
   DEBUG_PRINTLN(myWiFiManager->getConfigPortalSSID());
   //entered config mode, make led toggle faster
   ticker.attach(0.2, tick);
+  drd.stop();
 }
 
 #include <timer.h>
@@ -243,7 +237,6 @@ void setup() {
       delay(5000);
     }
   }
-  drd.stop();
 
   lcd.init();               // initialize the lcd 
   lcd.backlight();
@@ -307,8 +300,8 @@ void setup() {
   DEBUG_PRINTLN(_gw);
   DEBUG_PRINTLN(_sn);
 
-  wifiManager.setTimeout(180); //jak dlouho zustane v rezimu AP nez se cip resetuje
-  //wifiManager.setConfigPortalTimeout(60);
+  wifiManager.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
+  wifiManager.setConnectTimeout(CONNECT_TIMEOUT);
   //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
   wifiManager.setAPCallback(configModeCallback);
 
@@ -430,6 +423,8 @@ void loop() {
  
   nulStat();
   displayClear();
+
+  drd.stop();
  
 }
 

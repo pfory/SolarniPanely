@@ -27,6 +27,16 @@
 #define HOSTNAMEOTA   "fotovoltaika"
 #endif
 
+
+// Number of seconds after reset during which a
+// subseqent reset will be considered a double reset.
+#define DRD_TIMEOUT 2
+// RTC Memory Address for the DoubleResetDetector to use
+#define DRD_ADDRESS 0
+
+#define CONFIG_PORTAL_TIMEOUT 60 //jak dlouho zustane v rezimu AP nez se cip resetuje
+#define CONNECT_TIMEOUT 120 //jak dlouho se ceka na spojeni nez se aktivuje config portal
+
 #ifdef verbose
   #define DEBUG_PRINT(x)                     Serial.print (x)
   #define DEBUG_PRINTDEC(x)                  Serial.print (x, DEC)
