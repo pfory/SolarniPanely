@@ -100,16 +100,24 @@ void callback(char* topic, byte* payload, unsigned int length) {
     sendNetInfoMQTT();
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/powerFVToday").c_str())==0) {
     lcd.setCursor(0,2);
-    lcd.print(val);
+    lcd.print(zaokrouhli(val.toFloat(), 3.f),3);
+    lcd.print("kWh");
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/pvEstimateToday").c_str())==0) {
     lcd.setCursor(10,1);
-    lcd.print(val);
+    lcd.print(zaokrouhli(val.toFloat(), 3.f),3);
+    lcd.print("kWh");
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/pvEstimateTomorow").c_str())==0) {
     lcd.setCursor(10,2);
-    lcd.print(val);
+    lcd.print(zaokrouhli(val.toFloat(), 3.f),3);
+    lcd.print("kWh");
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/pvchargew").c_str())==0) {
     lcd.setCursor(0,1);
+    val.replace("0"," ");
+    if (val=="     ") {
+      val="    0";
+    }
     lcd.print(val);
+    lcd.print("W");
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/masterstatus").c_str())==0) {
     lcd.setCursor(0,0);
     if (val=="Line") {
@@ -138,6 +146,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
       lcd.print("UTI");
     }
   }
+}
+
+
+float zaokrouhli(float cislo, float desetiny) {
+  return round(cislo * pow(10.f, desetiny)) / pow(10.0, desetiny);
 }
 
 bool isDebugEnabled() {
