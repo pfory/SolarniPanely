@@ -13,7 +13,7 @@
 
 
 //SW name & version
-#define     VERSION                      "0.03"
+#define     VERSION                      "0.04"
 #define     SW_NAME                      "Powermeter"
 
 #define timers
@@ -34,7 +34,7 @@
 #define HOSTNAMEOTA   SW_NAME VERSION
 #endif
 
-//#define PIR
+#define PIR
 
 /*
 --------------------------------------------------------------------------------------------------------------------------
@@ -103,8 +103,8 @@ uint32_t              lastConnectAttempt          = 0;
 #define                                     D5 //SCK                        GPIO14
 #define                                     D7 //MOSI                       GPIO13
 #define                                     D3 //relay 10k Pull-up          GPIO0
-#define                                     D8 //                           GPIO15
-#define PIRPIN                              D0 //10k Pull-down, SS          GPIO16
+#define PIRPIN                              D8 //                           GPIO15
+#define                                     D0 //10k Pull-down, SS          GPIO16
 //SDA                                       D2 //                           GPIO4
 //SCL                                       D1 //                           GPIO5
 //BUILTIN_LED                               D4 //10k Pull-up, BUILTIN_LED   GPIO2
