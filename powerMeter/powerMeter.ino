@@ -20,6 +20,7 @@ time_t getNtpTime();
 
 uint32_t              heartBeat                   = 0;
 bool                  dispClear                   = false;
+bool                  vytezovac                   = false;
 
 
 LiquidCrystal_I2C lcd(LCDADDRESS,LCDCOLS,LCDROWS);  // set the LCD
@@ -173,6 +174,24 @@ void callback(char* topic, byte* payload, unsigned int length) {
     snprintf (temp,4,"%3d",val.toInt());
     lcd.print(temp);
     lcd.print("%");
+  } else if (strcmp(topic, (String(mqtt_pip2424) + "/battv").c_str())==0) {
+    lcd.setCursor(15,2);
+    char temp[5];
+    snprintf (temp,5,"%3.1f",val.toFloat());
+    lcd.print(temp);
+    lcd.print("V");
+  } else if (strcmp(topic, (String(mqtt_pip2424) + "/load").c_str())==0) {
+    lcd.setCursor(16,1);
+    char temp[4];
+    snprintf (temp,4,"%3d",val.toInt());
+    lcd.print(temp);
+    lcd.print("%");
+  } else if (strcmp(topic, (String(mqtt_vytezovac) + "/POWER").c_str())==0) {
+    if (val=="ON") {
+      vytezovac = true;
+    } else {
+      vytezovac = false;
+    }
   }
 }
 
@@ -211,6 +230,7 @@ void setup(void) {
   DEBUG_PRINTLN(F(VERSION));
 
   pinMode(BUILTIN_LED, OUTPUT);
+  pinMode(VYTEZOVAC_LED, OUTPUT);
   ticker.attach(1, tick);
 
   WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
@@ -518,6 +538,20 @@ bool displayTime(void *) {
   }
   lcd.print(buffer);
   showDoubleDot = !showDoubleDot;
+  
+  lcd.setCursor(13,0);
+  if (vytezovac==true) {
+    digitalWrite(VYTEZOVAC_LED, LOW);
+    if (showDoubleDot) {
+      lcd.print("V");
+    } else {
+      lcd.print(" ");
+    }
+  } else {
+    digitalWrite(VYTEZOVAC_LED, HIGH);
+    lcd.print(" ");
+  }
+  
   return true;
 }
 #endif
@@ -533,6 +567,7 @@ void reconnect() {
         // Once connected, publish an announcement...
         client.subscribe((String(mqtt_base) + "/#").c_str());
         client.subscribe((String(mqtt_pip2424) + "/#").c_str());
+        client.subscribe((String(mqtt_vytezovac) + "/#").c_str());
       } else {
         lastConnectAttempt = millis();
         DEBUG_PRINT("failed, rc=");

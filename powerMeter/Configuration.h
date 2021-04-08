@@ -13,7 +13,7 @@
 
 
 //SW name & version
-#define     VERSION                      "0.04"
+#define     VERSION                      "0.06"
 #define     SW_NAME                      "Powermeter"
 
 #define timers
@@ -80,6 +80,7 @@ static const char* const      mqtt_username                  = "datel";
 static const char* const      mqtt_key                       = "hanka12";
 static const char* const      mqtt_base                      = "/home/powermeter";
 static const char* const      mqtt_pip2424                   = "/home/PIP2424/pip";
+static const char* const      mqtt_vytezovac                 = "/home/Switch";
 static const char* const      mqtt_topic_restart             = "restart";
 static const char* const      mqtt_topic_netinfo             = "netinfo";
 
@@ -102,7 +103,7 @@ uint32_t              lastConnectAttempt          = 0;
 #define                                     D6 //MISO                       GPIO12
 #define                                     D5 //SCK                        GPIO14
 #define                                     D7 //MOSI                       GPIO13
-#define                                     D3 //relay 10k Pull-up          GPIO0
+#define VYTEZOVAC_LED                       D3 //vytezovac LED              GPIO0
 #define PIRPIN                              D8 //                           GPIO15
 #define                                     D0 //10k Pull-down, SS          GPIO16
 //SDA                                       D2 //                           GPIO4
