@@ -365,11 +365,13 @@ void loop(void) {
 
  
 #ifdef PIR
-  if (digitalRead(PIRPIN)==1) {
-    lcd.backlight();
-  } else {
-    lcd.noBacklight();
-  }  
+  if (hour()>=22 && hour() <= 6) {
+    if (digitalRead(PIRPIN)==1) {
+      lcd.backlight();
+    } else {
+      lcd.noBacklight();
+    } 
+  }
 #endif
 
 #ifdef time
