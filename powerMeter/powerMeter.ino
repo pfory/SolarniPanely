@@ -397,7 +397,7 @@ bool sendStatisticMQTT(void *) {
   DEBUG_PRINTLN(F("Statistic"));
 
   SenderClass sender;
-  sender.add("VersionWattMeter",              VERSION);
+  sender.add("VersionPowerMeter",              VERSION);
   sender.add("Napeti",  ESP.getVcc());
   sender.add("HeartBeat",                     heartBeat++);
   if (heartBeat % 10 == 0) sender.add("RSSI", WiFi.RSSI());

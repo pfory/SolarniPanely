@@ -13,7 +13,7 @@
 
 
 //SW name & version
-#define     VERSION                      "0.09"
+#define     VERSION                      "0.10"
 #define     SW_NAME                      "Powermeter"
 
 #define timers
