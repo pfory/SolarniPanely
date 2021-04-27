@@ -371,6 +371,8 @@ void loop(void) {
     } else {
       lcd.noBacklight();
     } 
+  } else {
+    lcd.backlight();
   }
 #endif
 
