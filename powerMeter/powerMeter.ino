@@ -327,7 +327,7 @@ void setup(void) {
   lcd.clear();
   
   //setup timers
-  timer.every(CONNECT_DELAY, reconnect);
+  timer.every(CONNECT_DELAY,  reconnect);
   timer.every(SENDSTAT_DELAY, sendStatisticMQTT);
 #ifdef time  
   timer.every(500,            displayTime);
@@ -354,7 +354,7 @@ void loop(void) {
   ArduinoOTA.handle();
 #endif
   client.loop();
-  display();
+  wifiManager.process();  
  
 #ifdef PIR
   if (hour()>=22 || hour() <= 6) {
@@ -376,7 +376,9 @@ void loop(void) {
 
 void startConfigPortal(void) {
   DEBUG_PRINTLN("Config portal");
+  wifiManager.setConfigPortalBlocking(false);
   wifiManager.startConfigPortal(HOSTNAMEOTA);
+  //ESP.restart();
 }
 
 void displayClear() {
@@ -417,6 +419,7 @@ void sendNetInfoMQTT() {
   SenderClass sender;
   sender.add("IP",              WiFi.localIP().toString().c_str());
   sender.add("MAC",             WiFi.macAddress());
+  sender.add("AP name",         WiFi.SSID());
   
   DEBUG_PRINTLN(F("Calling MQTT"));
   
@@ -424,25 +427,6 @@ void sendNetInfoMQTT() {
   digitalWrite(BUILTIN_LED, HIGH);
   return;
 }
-
-
-
-//---------------------------------------------D I S P L A Y ------------------------------------------------
-/*
-  01234567890123456789
-  --------------------
-0|56/66 CER      40/45
-1|                    
-2|                    
-3|19:20 15°C     1440m
-  --------------------
-  01234567890123456789  
-  
-  
-*/
-void display() {
-}
-
 
 #ifdef time
 /*-------- NTP code ----------*/
@@ -534,7 +518,6 @@ bool displayTime(void *) {
   if (showDoubleDot) {
     sprintf(buffer, "%02d:%02d", hour(), minute());
   } else {
-    Wire.write(byte(0));
     sprintf(buffer, "%02d %02d", hour(), minute());
   }
   lcd.print(buffer);
