@@ -13,7 +13,7 @@
 
 
 //SW name & version
-#define     VERSION                      "0.10"
+#define     VERSION                      "0.20"
 #define     SW_NAME                      "Powermeter"
 
 #define timers
@@ -72,7 +72,7 @@ I2C display
 #define DRD_ADDRESS 0
 
 #define CONFIG_PORTAL_TIMEOUT 60 //jak dlouho zustane v rezimu AP nez se cip resetuje
-#define CONNECT_TIMEOUT 120 //jak dlouho se ceka na spojeni nez se aktivuje config portal
+#define CONNECT_TIMEOUT 5 //jak dlouho se ceka na spojeni nez se aktivuje config portal
 
 static const char* const      mqtt_server                    = "192.168.1.56";
 static const uint16_t         mqtt_port                      = 1883;
@@ -83,9 +83,8 @@ static const char* const      mqtt_pip2424                   = "/home/PIP2424/pi
 static const char* const      mqtt_vytezovac                 = "/home/Switch";
 static const char* const      mqtt_topic_restart             = "restart";
 static const char* const      mqtt_topic_netinfo             = "netinfo";
+static const char* const      mqtt_config_portal             = "config";
 
-uint32_t              connectDelay                = 30000; //30s
-uint32_t              lastConnectAttempt          = 0;  
 
 #define MIN_UNIT                            "m"
 
@@ -111,6 +110,7 @@ uint32_t              lastConnectAttempt          = 0;
 //BUILTIN_LED                               D4 //10k Pull-up, BUILTIN_LED   GPIO2
 
 #define SENDSTAT_DELAY                       60000 //poslani statistiky kazdou minutu
+#define CONNECT_DELAY                        5000 //ms
 
 #ifdef time
 #define TIMEX                               15
