@@ -13,27 +13,13 @@
 
 
 //SW name & version
-#define     VERSION                      "0.22"
+#define     VERSION                      "0.30"
 #define     SW_NAME                      "Powermeter"
 
 #define timers
 #define ota
 #define verbose
 #define time
-#ifdef time
-#include <TimeLib.h>
-#include <Timezone.h>
-#endif
-
-#define AUTOCONNECTNAME   HOSTNAMEOTA
-#define AUTOCONNECTPWD    "password"
-
-#define ota
-#ifdef ota
-#include <ArduinoOTA.h>
-#define HOSTNAMEOTA   SW_NAME VERSION
-#endif
-
 #define PIR
 
 /*
@@ -46,30 +32,6 @@ HW
 ESP8266 Wemos D1
 I2C display
 */
-
-
-#define verbose
-#ifdef verbose
-  #define DEBUG_PRINT(x)         Serial.print (x)
-  #define DEBUG_PRINTDEC(x)      Serial.print (x, DEC)
-  #define DEBUG_PRINTLN(x)       Serial.println (x)
-  #define DEBUG_PRINTF(x, y)     Serial.printf (x, y)
-  #define DEBUG_PRINTHEX(x)      Serial.print (x, HEX)
-  #define PORTSPEED 115200
-  #define SERIAL_BEGIN           Serial.begin(PORTSPEED);
-#else
-  #define DEBUG_PRINT(x)
-  #define DEBUG_PRINTDEC(x)
-  #define DEBUG_PRINTLN(x)
-  #define DEBUG_PRINTF(x, y)
-#endif 
-
-
-// Number of seconds after reset during which a
-// subseqent reset will be considered a double reset.
-#define DRD_TIMEOUT 2
-// RTC Memory Address for the DoubleResetDetector to use
-#define DRD_ADDRESS 0
 
 #define CONFIG_PORTAL_TIMEOUT 60 //jak dlouho zustane v rezimu AP nez se cip resetuje
 #define CONNECT_TIMEOUT 5 //jak dlouho se ceka na spojeni nez se aktivuje config portal
@@ -116,5 +78,7 @@ static const char* const      mqtt_config_portal             = "config";
 #define TIMEX                               15
 #define TIMEY                               0
 #endif
+
+#include <fce.h>
 
 #endif

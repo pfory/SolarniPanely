@@ -7,21 +7,8 @@ GIT - https://github.com/pfory/
 
 #include "Configuration.h"
 
-
-#ifdef time
-WiFiUDP EthernetUdp;
-static const char     ntpServerName[]       = "tik.cesnet.cz";
-TimeChangeRule        CEST                  = {"CEST", Last, Sun, Mar, 2, 120};     //Central European Summer Time
-TimeChangeRule        CET                   = {"CET", Last, Sun, Oct, 3, 60};       //Central European Standard Time
-Timezone CE(CEST, CET);
-unsigned int          localPort             = 8888;  // local port to listen for UDP packets
-time_t getNtpTime();
-#endif
-
-uint32_t              heartBeat                   = 0;
 bool                  dispClear                   = false;
 bool                  vytezovac                   = false;
-
 
 LiquidCrystal_I2C lcd(LCDADDRESS,LCDCOLS,LCDROWS);  // set the LCD
 #define PRINT_SPACE  lcd.print(" ");
@@ -40,7 +27,6 @@ byte customChar[] = {
   B00000
 };
 
-DoubleResetDetector drd(DRD_TIMEOUT, DRD_ADDRESS);
 
 ADC_MODE(ADC_VCC); //vcc read
 
@@ -54,27 +40,6 @@ char keys[ROWS][COLS]                 = {
 };
 byte rowPins[ROWS]                    = {7,6,5,4}; //connect to the row pinouts of the keypad
 byte colPins[COLS]                    = {3,2,1,0}; //connect to the column pinouts of the keypad
-
-//for LED status
-Ticker ticker;
-
-auto timer = timer_create_default(); // create a timer with default settings
-Timer<> default_timer; // save as above
-
-
-void tick() {
-  //toggle state
-  int state = digitalRead(BUILTIN_LED);  // get the current state of GPIO1 pin
-  digitalWrite(BUILTIN_LED, !state);     // set pin to the opposite state
-}
-
-//gets called when WiFiManager enters configuration mode
-void configModeCallback (WiFiManager *myWiFiManager) {
-  DEBUG_PRINTLN("Entered config mode");
-  DEBUG_PRINTLN(WiFi.softAPIP());
-  //if you used auto generated SSID, print it
-  DEBUG_PRINTLN(myWiFiManager->getConfigPortalSSID());
-}
 
 //MQTT callback
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -217,31 +182,10 @@ void printMessageToLCD(char* t, String v) {
 }
 
 
-WiFiClient espClient;
-PubSubClient client(espClient);
-
-WiFiManager wifiManager;
-
 /////////////////////////////////////////////   S  E  T  U  P   ////////////////////////////////////
 void setup(void) {
-  SERIAL_BEGIN;
-  DEBUG_PRINT(F(SW_NAME));
-  DEBUG_PRINT(F(" "));
-  DEBUG_PRINTLN(F(VERSION));
-
-  pinMode(BUILTIN_LED, OUTPUT);
-  pinMode(VYTEZOVAC_LED, OUTPUT);
-  ticker.attach(1, tick);
-
-  WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
-
-  //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
-  wifiManager.setAPCallback(configModeCallback);
-  wifiManager.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
-  wifiManager.setConnectTimeout(CONNECT_TIMEOUT);
-  wifiManager.setBreakAfterConfig(true);
-  wifiManager.setWiFiAutoReconnect(true);
-
+  preSetup();
+  
   lcd.init();               // initialize the lcd 
   lcd.backlight();
   lcd.home();
@@ -249,80 +193,6 @@ void setup(void) {
   PRINT_SPACE
   lcd.print(VERSION);
   lcd.createChar(0, customChar);
-
-
-  if (drd.detectDoubleReset()) {
-    DEBUG_PRINTLN("Double reset detected, starting config portal...");
-    ticker.attach(0.2, tick);
-    if (!wifiManager.startConfigPortal(HOSTNAMEOTA)) {
-      DEBUG_PRINTLN("Failed to connect. Use ESP without WiFi.");
-    }
-  }
-
-  rst_info *_reset_info = ESP.getResetInfoPtr();
-  uint8_t _reset_reason = _reset_info->reason;
-  DEBUG_PRINT("Boot-Mode: ");
-  DEBUG_PRINTLN(_reset_reason);
-  heartBeat = _reset_reason;
-  
-  /*
- REASON_DEFAULT_RST             = 0      normal startup by power on 
- REASON_WDT_RST                 = 1      hardware watch dog reset 
- REASON_EXCEPTION_RST           = 2      exception reset, GPIO status won't change 
- REASON_SOFT_WDT_RST            = 3      software watch dog reset, GPIO status won't change 
- REASON_SOFT_RESTART            = 4      software restart ,system_restart , GPIO status won't change 
- REASON_DEEP_SLEEP_AWAKE        = 5      wake up from deep-sleep 
- REASON_EXT_SYS_RST             = 6      external system reset 
-  */
-  client.setServer(mqtt_server, mqtt_port);
-  client.setCallback(callback);
-
-  if (!wifiManager.autoConnect(AUTOCONNECTNAME, AUTOCONNECTPWD)) { 
-    DEBUG_PRINTLN("Autoconnect failed connect to WiFi. Use ESP without WiFi.");
-  }   
-
-  WiFi.printDiag(Serial);
-  
-  sendNetInfoMQTT();
-
-#ifdef time
-  DEBUG_PRINTLN("Setup TIME");
-  lcd.setCursor(0,1);
-  lcd.print("Setup time...");
-  EthernetUdp.begin(localPort);
-  DEBUG_PRINT("Local port: ");
-  DEBUG_PRINTLN(EthernetUdp.localPort());
-  DEBUG_PRINTLN("waiting for sync");
-  setSyncProvider(getNtpTime);
-  setSyncInterval(300);
-  
-  printSystemTime();
-#endif
-
-#ifdef ota
-  ArduinoOTA.setHostname(HOSTNAMEOTA);
-
-  ArduinoOTA.onStart([]() {
-    DEBUG_PRINTLN("Start updating ");
-  });
-  ArduinoOTA.onEnd([]() {
-   DEBUG_PRINTLN("\nEnd");
-  });
-  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    DEBUG_PRINTF("Progress: %u%%\r", (progress / (total / 100)));
-  });
-  ArduinoOTA.onError([](ota_error_t error) {
-    DEBUG_PRINTF("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-    else if (error == OTA_END_ERROR) Serial.println("End Failed");
-  });
-  ArduinoOTA.begin();
-#endif
-
-
 
   lcd.clear();
   
@@ -333,9 +203,9 @@ void setup(void) {
   timer.every(500,            displayTime);
 #endif
   void * a;
-  sendStatisticMQTT(a);
   reconnect(a);
-  
+  sendStatisticMQTT(a);
+  sendNetInfoMQTT();
 
   ticker.detach();
   //keep LED on
@@ -374,13 +244,6 @@ void loop(void) {
   
 }
 
-void startConfigPortal(void) {
-  DEBUG_PRINTLN("Config portal");
-  wifiManager.setConfigPortalBlocking(false);
-  wifiManager.startConfigPortal(HOSTNAMEOTA);
-  //ESP.restart();
-}
-
 void displayClear() {
   if (minute()==0 && second()==0) {
     if (!dispClear) { 
@@ -392,125 +255,7 @@ void displayClear() {
   }
 }
 
-bool sendStatisticMQTT(void *) {
-  digitalWrite(BUILTIN_LED, LOW);
-  //printSystemTime();
-  DEBUG_PRINTLN(F("Statistic"));
-
-  SenderClass sender;
-  sender.add("VersionPowerMeter",              VERSION);
-  sender.add("Napeti",  ESP.getVcc());
-  sender.add("HeartBeat",                     heartBeat++);
-  if (heartBeat % 10 == 0) sender.add("RSSI", WiFi.RSSI());
-  
-  DEBUG_PRINTLN(F("Calling MQTT"));
-  
-  sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
-  digitalWrite(BUILTIN_LED, HIGH);
-  return true;
-}
-
-
-void sendNetInfoMQTT() {
-  digitalWrite(BUILTIN_LED, LOW);
-  //printSystemTime();
-  DEBUG_PRINTLN(F("Net info"));
-
-  SenderClass sender;
-  sender.add("IP",              WiFi.localIP().toString().c_str());
-  sender.add("MAC",             WiFi.macAddress());
-  sender.add("AP name",         WiFi.SSID());
-  
-  DEBUG_PRINTLN(F("Calling MQTT"));
-  
-  sender.sendMQTT(mqtt_server, mqtt_port, mqtt_username, mqtt_key, mqtt_base);
-  digitalWrite(BUILTIN_LED, HIGH);
-  return;
-}
-
 #ifdef time
-/*-------- NTP code ----------*/
-const int NTP_PACKET_SIZE = 48; // NTP time is in the first 48 bytes of message
-byte packetBuffer[NTP_PACKET_SIZE]; //buffer to hold incoming & outgoing packets
-
-time_t getNtpTime()
-{
-  //IPAddress ntpServerIP; // NTP server's ip address
-  IPAddress ntpServerIP = IPAddress(195, 113, 144, 201);
-
-  while (EthernetUdp.parsePacket() > 0) ; // discard any previously received packets
-  DEBUG_PRINTLN("Transmit NTP Request");
-  // get a random server from the pool
-  //WiFi.hostByName(ntpServerName, ntpServerIP);
-  DEBUG_PRINT(ntpServerName);
-  DEBUG_PRINT(": ");
-  DEBUG_PRINTLN(ntpServerIP);
-  sendNTPpacket(ntpServerIP);
-  uint32_t beginWait = millis();
-  while (millis() - beginWait < 1500) {
-    int size = EthernetUdp.parsePacket();
-    if (size >= NTP_PACKET_SIZE) {
-      DEBUG_PRINTLN("Receive NTP Response");
-      EthernetUdp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
-      unsigned long highWord = word(packetBuffer[40], packetBuffer[41]);
-      unsigned long lowWord = word(packetBuffer[42], packetBuffer[43]);
-      // combine the four bytes (two words) into a long integer
-      // this is NTP time (seconds since Jan 1 1900):
-      unsigned long secsSince1900 = highWord << 16 | lowWord;
-      DEBUG_PRINT("Seconds since Jan 1 1900 = " );
-      DEBUG_PRINTLN(secsSince1900);
-
-      // now convert NTP time into everyday time:
-      DEBUG_PRINT("Unix time = ");
-      // Unix time starts on Jan 1 1970. In seconds, that's 2208988800:
-      const unsigned long seventyYears = 2208988800UL;
-      // subtract seventy years:
-      unsigned long epoch = secsSince1900 - seventyYears;
-      // print Unix time:
-      DEBUG_PRINTLN(epoch);
-	  
-      TimeChangeRule *tcr;
-      time_t utc;
-      utc = epoch;
-      
-      return CE.toLocal(utc, &tcr);
-      //return secsSince1900 - 2208988800UL + timeZone * SECS_PER_HOUR;
-    }
-  }
-  DEBUG_PRINTLN("No NTP Response :-(");
-  return 0; // return 0 if unable to get the time
-}
-
-void printSystemTime(){
-  char buffer[20];
-  sprintf(buffer, "%02d.%02d.%4d %02d:%02d:%02d", day(), month(), year(), hour(), minute(), second());
-  DEBUG_PRINT(buffer);
-}
-
-
-// send an NTP request to the time server at the given address
-void sendNTPpacket(IPAddress &address)
-{
-  // set all bytes in the buffer to 0
-  memset(packetBuffer, 0, NTP_PACKET_SIZE);
-  // Initialize values needed to form NTP request
-  // (see URL above for details on the packets)
-  packetBuffer[0] = 0b11100011;   // LI, Version, Mode
-  packetBuffer[1] = 0;     // Stratum, or type of clock
-  packetBuffer[2] = 6;     // Polling Interval
-  packetBuffer[3] = 0xEC;  // Peer Clock Precision
-  // 8 bytes of zero for Root Delay & Root Dispersion
-  packetBuffer[12] = 49;
-  packetBuffer[13] = 0x4E;
-  packetBuffer[14] = 49;
-  packetBuffer[15] = 52;
-  // all NTP fields have been given values, now
-  // you can send a packet requesting a timestamp:
-  EthernetUdp.beginPacket(address, 123); //NTP requests are to port 123
-  EthernetUdp.write(packetBuffer, NTP_PACKET_SIZE);
-  EthernetUdp.endPacket();
-}
-
 
 bool displayTime(void *) {
   lcd.setCursor(TIMEX, TIMEY); //col,row
@@ -544,10 +289,11 @@ bool reconnect(void *) {
   if (!client.connected()) {
     DEBUG_PRINT("Attempting MQTT connection...");
     // Attempt to connect
-    if (client.connect(mqtt_base, mqtt_username, mqtt_key)) {
+    if (client.connect(mqtt_base, mqtt_username, mqtt_key, (String(mqtt_base) + "/LWT").c_str(), 2, true, "Dead", false)) {
       client.subscribe((String(mqtt_base) + "/#").c_str());
       client.subscribe((String(mqtt_pip2424) + "/#").c_str());
       client.subscribe((String(mqtt_vytezovac) + "/#").c_str());
+      client.publish((String(mqtt_base) + "/connected").c_str(), "");
       DEBUG_PRINTLN("connected");
     } else {
       DEBUG_PRINT("failed, rc=");
