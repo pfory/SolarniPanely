@@ -56,11 +56,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
   DEBUG_PRINTLN();
   
   if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str())==0) {
-    printMessageToLCD(topic, val);
     DEBUG_PRINT("RESTART");
     ESP.restart();
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_topic_netinfo)).c_str())==0) {
-    printMessageToLCD(topic, val);
     sendNetInfoMQTT();
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/masterstatus").c_str())==0) {
     lcd.setCursor(0,0);
@@ -157,30 +155,15 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
   } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_config_portal)).c_str())==0) {
     startConfigPortal();
+  } else if (strcmp(topic, (String(mqtt_base) + "/" + String(mqtt_config_portal_stop)).c_str())==0) {
+    stopConfigPortal();
   }
 }
 
 
-float zaokrouhli(float cislo, float desetiny) {
-  return round(cislo * pow(10.f, desetiny)) / pow(10.0, desetiny);
-}
-
-bool isDebugEnabled() {
-#ifdef verbose
-  return true;
-#endif // verbose
-  return false;
-}
-
-void printMessageToLCD(char* t, String v) {
-  lcd.clear();
-  lcd.print(t);
-  lcd.print(": ");
-  lcd.print(v);
-  //delay(2000);
-  lcd.clear();
-}
-
+// float zaokrouhli(float cislo, float desetiny) {
+  // return round(cislo * pow(10.f, desetiny)) / pow(10.0, desetiny);
+// }
 
 /////////////////////////////////////////////   S  E  T  U  P   ////////////////////////////////////
 void setup(void) {
@@ -289,11 +272,16 @@ bool reconnect(void *) {
   if (!client.connected()) {
     DEBUG_PRINT("Attempting MQTT connection...");
     // Attempt to connect
-    if (client.connect(mqtt_base, mqtt_username, mqtt_key, (String(mqtt_base) + "/LWT").c_str(), 2, true, "Dead", false)) {
-      client.subscribe((String(mqtt_base) + "/#").c_str());
+      if (client.connect(mqtt_base, mqtt_username, mqtt_key, (String(mqtt_base) + "/LWT").c_str(), 2, true, "offline", true)) {
+     //client.subscribe((String(mqtt_base) + "/#").c_str());
+      
+      client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_restart)).c_str());
+      client.subscribe((String(mqtt_base) + "/" + String(mqtt_topic_netinfo)).c_str());
+      client.subscribe((String(mqtt_base) + "/" + String(mqtt_config_portal_stop)).c_str());
+      client.subscribe((String(mqtt_base) + "/" + String(mqtt_config_portal)).c_str());
       client.subscribe((String(mqtt_pip2424) + "/#").c_str());
       client.subscribe((String(mqtt_vytezovac) + "/#").c_str());
-      client.publish((String(mqtt_base) + "/connected").c_str(), "");
+      client.publish((String(mqtt_base) + "/LWT").c_str(), "online", true);
       DEBUG_PRINTLN("connected");
     } else {
       DEBUG_PRINT("failed, rc=");

@@ -1,19 +1,12 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
-#include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
-#include "Sender.h"
-//#include <Wire.h>
-#include <OneWire.h>
-#include <DoubleResetDetector.h>      //https://github.com/khoih-prog/ESP_DoubleResetDetector
 #include <LiquidCrystal_I2C.h>
-#include <Ticker.h>
-#include <timer.h>
-
+#include <OneWire.h>
+#include <ArduinoJson.h>
 
 //SW name & version
-#define     VERSION                      "0.30"
+#define     VERSION                      "0.32"
 #define     SW_NAME                      "Powermeter"
 
 #define timers
@@ -46,7 +39,7 @@ static const char* const      mqtt_vytezovac                 = "/home/Switch";
 static const char* const      mqtt_topic_restart             = "restart";
 static const char* const      mqtt_topic_netinfo             = "netinfo";
 static const char* const      mqtt_config_portal             = "config";
-
+static const char* const      mqtt_config_portal_stop        = "disconfig";
 
 #define MIN_UNIT                            "m"
 
@@ -60,7 +53,7 @@ static const char* const      mqtt_config_portal             = "config";
 
 
 //All of the IO pins have interrupt/pwm/I2C/one-wire support except D0.
-#define STATUS_LED                          BUILTIN_LED //status LED
+//#define STATUS_LED                          BUILTIN_LED //status LED
 #define                                     D6 //MISO                       GPIO12
 #define                                     D5 //SCK                        GPIO14
 #define                                     D7 //MOSI                       GPIO13
@@ -71,7 +64,7 @@ static const char* const      mqtt_config_portal             = "config";
 //SCL                                       D1 //                           GPIO5
 //BUILTIN_LED                               D4 //10k Pull-up, BUILTIN_LED   GPIO2
 
-#define SENDSTAT_DELAY                       60000 //poslani statistiky kazdou minutu
+#define SENDSTAT_DELAY                      60000 //poslani statistiky kazdou minutu
 #define CONNECT_DELAY                        5000 //ms
 
 #ifdef time
