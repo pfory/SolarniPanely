@@ -9,6 +9,7 @@ GIT - https://github.com/pfory/
 
 bool                  dispClear                   = false;
 bool                  vytezovac                   = false;
+uint8_t               teplotaBojler               = 0;
 
 LiquidCrystal_I2C lcd(LCDADDRESS,LCDCOLS,LCDROWS);  // set the LCD
 #define PRINT_SPACE  lcd.print(" ");
@@ -63,12 +64,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/masterstatus").c_str())==0) {
     lcd.setCursor(0,0);
     if (val=="Line") {
-      lcd.print("LINE");
+      lcd.print("LIN");
     } else if (val=="Battery") {
-      lcd.print("BATT");
+      lcd.print("BAT");
     }
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/charge").c_str())==0) {
-    lcd.setCursor(5,0);
+    lcd.setCursor(4,0);
     if (val=="0") {
       lcd.print("CUT");
     } else if (val=="1") {
@@ -79,7 +80,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
       lcd.print("OSO");
     }
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/status").c_str())==0) {
-    lcd.setCursor(9,0);
+    lcd.setCursor(8,0);
     if (val=="bat") {
       lcd.print("SBU");
     } else if (val=="sol") {
@@ -89,28 +90,26 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/pvEstimateToday").c_str())==0) {
     lcd.setCursor(0,1);
-    char temp[6];
-    snprintf (temp,6,"%1.2f",val.toFloat());
+    char temp[5];
+    snprintf (temp,5,"%1.2f",val.toFloat());
     lcd.print(temp);
     lcd.print("/");
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/pvEstimateTomorow").c_str())==0) {
-    lcd.setCursor(6,1);
-    char temp[6];
-    snprintf (temp,6,"%1.2f",val.toFloat());
+    lcd.setCursor(5,1);
+    char temp[5];
+    snprintf (temp,5,"%1.2f",val.toFloat());
     lcd.print(temp);
-    lcd.print("kWh");
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/powerFVToday").c_str())==0) {
     lcd.setCursor(0,2);
-    char temp[6];
-    snprintf (temp,6,"%1.2f",val.toFloat());
+    char temp[5];
+    snprintf (temp,5,"%1.2f",val.toFloat());
     lcd.print(temp);
     lcd.print("/");
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/utiToday").c_str())==0) {
-    lcd.setCursor(6,2);
+    lcd.setCursor(5,2);
     char temp[5];
     snprintf (temp,5,"%2.2f",val.toFloat());
     lcd.print(temp);
-    lcd.print("kWh");
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/pvchargew").c_str())==0) {
     lcd.setCursor(0,3);
     char temp[5];
@@ -142,11 +141,25 @@ void callback(char* topic, byte* payload, unsigned int length) {
     lcd.print(temp);
     lcd.print("V");
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/load").c_str())==0) {
-    lcd.setCursor(16,1);
+    lcd.setCursor(10,2);
     char temp[4];
     snprintf (temp,4,"%3d",val.toInt());
     lcd.print(temp);
     lcd.print("%");
+  } else if (strcmp(topic, (String(mqtt_bojler) + "/tBojler").c_str())==0) {
+    teplotaBojler = val.toInt();
+  } else if (strcmp(topic, (String(mqtt_solarEnergyMeter) + "/pulseLength1").c_str())==0) {
+    lcd.setCursor(10,1);
+    char temp[5];
+    snprintf (temp,5,"%4d", 3600/(val.toInt()/1000));
+    lcd.print(temp);
+    lcd.print("/");
+  } else if (strcmp(topic, (String(mqtt_solarEnergyMeter) + "/pulseLength2").c_str())==0) {
+    lcd.setCursor(15,1);
+    char temp[5];
+    snprintf (temp,5,"%4d", 3600/(val.toInt()/1000));
+    lcd.print(temp);
+    lcd.print("W");
   } else if (strcmp(topic, (String(mqtt_vytezovac) + "/POWER").c_str())==0) {
     if (val=="ON") {
       vytezovac = true;
@@ -251,17 +264,23 @@ bool displayTime(void *) {
   lcd.print(buffer);
   showDoubleDot = !showDoubleDot;
   
-  lcd.setCursor(13,0);
   if (vytezovac==true) {
     digitalWrite(VYTEZOVAC_LED, LOW);
     if (showDoubleDot) {
-      lcd.print("V");
+      lcd.setCursor(13,0);
+      lcd.print(" V");
     } else {
-      lcd.print(" ");
+      lcd.setCursor(12,0);
+      char temp[3];
+      snprintf (temp,3,"%2d", teplotaBojler);
+      lcd.print(temp);
     }
   } else {
     digitalWrite(VYTEZOVAC_LED, HIGH);
-    lcd.print(" ");
+    lcd.setCursor(12,0);
+    char temp[3];
+    snprintf (temp,3,"%2d", teplotaBojler);
+    lcd.print(temp);
   }
   
   return true;
@@ -278,6 +297,9 @@ bool reconnect(void *) {
       client.subscribe((String(mqtt_base) + "/" + String(mqtt_config_portal)).c_str());
       client.subscribe((String(mqtt_pip2424) + "/#").c_str());
       client.subscribe((String(mqtt_vytezovac) + "/#").c_str());
+      client.subscribe((String(mqtt_bojler) + "/tBojler").c_str());
+      client.subscribe((String(mqtt_solarEnergyMeter) + "/pulseLength1").c_str());
+      client.subscribe((String(mqtt_solarEnergyMeter) + "/pulseLength2").c_str());
       client.publish((String(mqtt_base) + "/LWT").c_str(), "online", true);
       DEBUG_PRINTLN("connected");
     } else {
