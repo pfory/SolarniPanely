@@ -270,7 +270,7 @@ bool displayTime(void *) {
     digitalWrite(VYTEZOVAC_LED, LOW);
     if (showDoubleDot) {
       lcd.setCursor(12,0);
-      lcd.print(" ");
+      lcd.print("  ");
     } else {
       lcd.setCursor(12,0);
       char temp[3];
@@ -287,7 +287,7 @@ bool displayTime(void *) {
   
   if (millis() - lastPulse1 > 250000) {
     lcd.setCursor(10,1);
-    lcd.print("  0");
+    lcd.print("   0");
 
   }
   
