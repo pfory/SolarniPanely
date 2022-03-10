@@ -184,6 +184,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
 void setup(void) {
   preSetup();
   
+  pinMode(VYTEZOVAC_LED, OUTPUT);
+  
   lcd.init();               // initialize the lcd 
   lcd.backlight();
   lcd.home();
