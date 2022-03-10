@@ -10,6 +10,7 @@ GIT - https://github.com/pfory/
 bool                  dispClear                   = false;
 bool                  vytezovac                   = false;
 uint8_t               teplotaBojler               = 0;
+uint32_t              lastPulse1                  = 0;
 
 LiquidCrystal_I2C lcd(LCDADDRESS,LCDCOLS,LCDROWS);  // set the LCD
 #define PRINT_SPACE  lcd.print(" ");
@@ -149,13 +150,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
   } else if (strcmp(topic, (String(mqtt_bojler) + "/tBojler").c_str())==0) {
     teplotaBojler = val.toInt();
   } else if (strcmp(topic, (String(mqtt_solarEnergyMeter) + "/pulseLength1").c_str())==0) {
+    lastPulse1 = millis();
     lcd.setCursor(10,1);
     char temp[5];
     snprintf (temp,5,"%4d", 3600/(val.toInt()/1000));
     lcd.print(temp);
-    lcd.print("/");
   } else if (strcmp(topic, (String(mqtt_solarEnergyMeter) + "/pulseLength2").c_str())==0) {
-    lcd.setCursor(15,1);
+    lcd.setCursor(14,1);
+    lcd.print("/");
     char temp[5];
     snprintf (temp,5,"%4d", 3600/(val.toInt()/1000));
     lcd.print(temp);
@@ -267,8 +269,8 @@ bool displayTime(void *) {
   if (vytezovac==true) {
     digitalWrite(VYTEZOVAC_LED, LOW);
     if (showDoubleDot) {
-      lcd.setCursor(13,0);
-      lcd.print(" V");
+      lcd.setCursor(12,0);
+      lcd.print(" ");
     } else {
       lcd.setCursor(12,0);
       char temp[3];
@@ -281,6 +283,12 @@ bool displayTime(void *) {
     char temp[3];
     snprintf (temp,3,"%2d", teplotaBojler);
     lcd.print(temp);
+  }
+  
+  if (millis() - lastPulse1 > 250000) {
+    lcd.setCursor(10,1);
+    lcd.print("  0");
+
   }
   
   return true;

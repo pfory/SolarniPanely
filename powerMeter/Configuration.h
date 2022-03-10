@@ -6,7 +6,7 @@
 #include <ArduinoJson.h>
 
 //SW name & version
-#define     VERSION                      "0.33"
+#define     VERSION                      "0.34"
 #define     SW_NAME                      "Powermeter"
 
 #define timers
