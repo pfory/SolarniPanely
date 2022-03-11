@@ -153,13 +153,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
     lastPulse1 = millis();
     lcd.setCursor(10,1);
     char temp[5];
-    snprintf (temp,5,"%4d", 3600/(val.toInt()/1000));
+    snprintf (temp,5,"%4d", (int)(3600.f/((float)val.toInt()/1000.f)));
     lcd.print(temp);
   } else if (strcmp(topic, (String(mqtt_solarEnergyMeter) + "/pulseLength2").c_str())==0) {
     lcd.setCursor(14,1);
     lcd.print("/");
     char temp[5];
-    snprintf (temp,5,"%4d", 3600/(val.toInt()/1000));
+    snprintf (temp,5,"%4d", (int)(3600.f/((float)val.toInt()/1000.f)));
     lcd.print(temp);
     lcd.print("W");
   } else if (strcmp(topic, (String(mqtt_vytezovac) + "/POWER").c_str())==0) {
@@ -174,11 +174,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
     stopConfigPortal();
   }
 }
-
-
-// float zaokrouhli(float cislo, float desetiny) {
-  // return round(cislo * pow(10.f, desetiny)) / pow(10.0, desetiny);
-// }
 
 /////////////////////////////////////////////   S  E  T  U  P   ////////////////////////////////////
 void setup(void) {
