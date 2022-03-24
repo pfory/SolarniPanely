@@ -162,7 +162,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     snprintf (temp,5,"%4d", (int)(3600.f/((float)val.toInt()/1000.f)));
     lcd.print(temp);
     lcd.print("W");
-  } else if (strcmp(topic, (String(mqtt_vytezovac) + "/POWER").c_str())==0) {
+  } else if (strcmp(topic, (String(mqtt_vytezovac) + "/POWER1").c_str())==0) {
     if (val=="ON") {
       vytezovac = true;
     } else {
