@@ -147,7 +147,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     snprintf (temp,4,"%3d",val.toInt());
     lcd.print(temp);
     lcd.print("%");
-  } else if (strcmp(topic, (String(mqtt_bojler) + "/tBojler").c_str())==0) {
+  } else if (strcmp(topic, (String(mqtt_bojler) + "/tBojler2").c_str())==0) {
     teplotaBojler = val.toInt();
   } else if (strcmp(topic, (String(mqtt_solarEnergyMeter) + "/pulseLength1").c_str())==0) {
     lastPulse1 = millis();
@@ -302,7 +302,7 @@ bool reconnect(void *) {
       client.subscribe((String(mqtt_base) + "/" + String(mqtt_config_portal)).c_str());
       client.subscribe((String(mqtt_pip2424) + "/#").c_str());
       client.subscribe((String(mqtt_vytezovac) + "/#").c_str());
-      client.subscribe((String(mqtt_bojler) + "/tBojler").c_str());
+      client.subscribe((String(mqtt_bojler) + "/tBojler2").c_str());
       client.subscribe((String(mqtt_solarEnergyMeter) + "/pulseLength1").c_str());
       client.subscribe((String(mqtt_solarEnergyMeter) + "/pulseLength2").c_str());
       client.publish((String(mqtt_base) + "/LWT").c_str(), "online", true);
