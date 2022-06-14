@@ -6,7 +6,7 @@
 #include <ArduinoJson.h>
 
 //SW name & version
-#define     VERSION                      "0.38"
+#define     VERSION                      "0.40"
 #define     SW_NAME                      "Powermeter"
 
 #define timers
@@ -38,7 +38,7 @@ static const char* const      mqtt_base                      = "/home/powermeter
 static const char* const      mqtt_pip2424                   = "/home/PIP2424/pip";
 static const char* const      mqtt_bojler                    = "/home/Corridor/esp07";
 static const char* const      mqtt_solarEnergyMeter          = "/home/solarEnergyMeter";
-static const char* const      mqtt_vytezovac                 = "/home/Switch/Bojler";
+static const char* const      mqtt_vytezovac                 = "/home/Bojler";
 static const char* const      mqtt_topic_restart             = "restart";
 static const char* const      mqtt_topic_netinfo             = "netinfo";
 static const char* const      mqtt_config_portal             = "config";
