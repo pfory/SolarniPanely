@@ -51,7 +51,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   DEBUG_PRINT("Message arrived [");
   DEBUG_PRINT(topic);
   DEBUG_PRINT("] ");
-  for (int i=0;i<length;i++) {
+  for (unsigned int i=0;i<length;i++) {
     DEBUG_PRINT((char)payload[i]);
     val += (char)payload[i];
   }
@@ -114,25 +114,25 @@ void callback(char* topic, byte* payload, unsigned int length) {
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/pvchargew").c_str())==0) {
     lcd.setCursor(0,3);
     char temp[5];
-    snprintf (temp,5,"%4d",val.toInt());
+    snprintf (temp,5,"%4d",(int)val.toInt());
     lcd.print(temp);
     lcd.print("/");
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/acoutw").c_str())==0) {
     lcd.setCursor(5,3);
     char temp[5];
-    snprintf (temp,5,"%4d",val.toInt());
+    snprintf (temp,5,"%4d",(int)val.toInt());
     lcd.print(temp);
     lcd.print("/");
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/utiPower").c_str())==0) {
     lcd.setCursor(10,3);
     char temp[5];
-    snprintf (temp,5,"%4d",val.toInt());
+    snprintf (temp,5,"%4d",(int)val.toInt());
     lcd.print(temp);
     lcd.print("W");
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/battcappa").c_str())==0) {
     lcd.setCursor(16,3);
     char temp[4];
-    snprintf (temp,4,"%3d",val.toInt());
+    snprintf (temp,4,"%3d",(int)val.toInt());
     lcd.print(temp);
     lcd.print("%");
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/battv").c_str())==0) {
@@ -144,11 +144,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
   } else if (strcmp(topic, (String(mqtt_pip2424) + "/load").c_str())==0) {
     lcd.setCursor(10,2);
     char temp[4];
-    snprintf (temp,4,"%3d",val.toInt());
+    snprintf (temp,4,"%3d",(int)val.toInt());
     lcd.print(temp);
     lcd.print("%");
   } else if (strcmp(topic, (String(mqtt_bojler) + "/tBojler2").c_str())==0) {
-    teplotaBojler = val.toInt();
+    teplotaBojler = (int)val.toInt();
   } else if (strcmp(topic, (String(mqtt_solarEnergyMeter) + "/pulseLength1").c_str())==0) {
     lastPulse1 = millis();
     lcd.setCursor(10,1);
@@ -204,7 +204,7 @@ void setup(void) {
 
   ticker.detach();
   //keep LED on
-  digitalWrite(BUILTIN_LED, HIGH);
+  digitalWrite(LED_BUILTIN, HIGH);
 
   drd.stop();
 
@@ -271,14 +271,14 @@ bool displayTime(void *) {
     } else {
       lcd.setCursor(12,0);
       char temp[3];
-      snprintf (temp,3,"%2d", teplotaBojler);
+      snprintf (temp,4,"%2d", teplotaBojler);
       lcd.print(temp);
     }
   } else {
     digitalWrite(VYTEZOVAC_LED, HIGH);
     lcd.setCursor(12,0);
     char temp[3];
-    snprintf (temp,3,"%2d", teplotaBojler);
+    snprintf (temp,4,"%2d", teplotaBojler);
     lcd.print(temp);
   }
   

@@ -6,7 +6,7 @@
 #include <ArduinoJson.h>
 
 //SW name & version
-#define     VERSION                      "0.40"
+#define     VERSION                      "0.42"
 #define     SW_NAME                      "Powermeter"
 
 #define timers
@@ -27,8 +27,8 @@ ESP8266 Wemos D1
 I2C display
 */
 
-#define CONFIG_PORTAL_TIMEOUT 60 //jak dlouho zustane v rezimu AP nez se cip resetuje
-#define CONNECT_TIMEOUT 5 //jak dlouho se ceka na spojeni nez se aktivuje config portal
+//#define CONFIG_PORTAL_TIMEOUT 60 //jak dlouho zustane v rezimu AP nez se cip resetuje
+//#define CONNECT_TIMEOUT 5 //jak dlouho se ceka na spojeni nez se aktivuje config portal
 
 static const char* const      mqtt_server                    = "192.168.1.56";
 static const uint16_t         mqtt_port                      = 1883;
@@ -38,7 +38,7 @@ static const char* const      mqtt_base                      = "/home/powermeter
 static const char* const      mqtt_pip2424                   = "/home/PIP2424/pip";
 static const char* const      mqtt_bojler                    = "/home/Corridor/esp07";
 static const char* const      mqtt_solarEnergyMeter          = "/home/solarEnergyMeter";
-static const char* const      mqtt_vytezovac                 = "/home/Bojler";
+static const char* const      mqtt_vytezovac                 = "/home/stat/Bojler";
 static const char* const      mqtt_topic_restart             = "restart";
 static const char* const      mqtt_topic_netinfo             = "netinfo";
 static const char* const      mqtt_config_portal             = "config";
