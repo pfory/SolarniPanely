@@ -6,13 +6,13 @@
 #include <ArduinoJson.h>
 
 //SW name & version
-#define     VERSION                      "0.42"
+#define     VERSION                      "0.43"
 #define     SW_NAME                      "Powermeter"
 
 #define timers
 #define ota
 #define verbose
-#define time
+#define cas
 #define PIR
 #define wifidebug
 
@@ -70,7 +70,7 @@ static const char* const      mqtt_config_portal_stop        = "disconfig";
 #define SENDSTAT_DELAY                      60000 //poslani statistiky kazdou minutu
 #define CONNECT_DELAY                        5000 //ms
 
-#ifdef time
+#ifdef cas
 #define TIMEX                               15
 #define TIMEY                               0
 #endif

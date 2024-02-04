@@ -193,8 +193,8 @@ void setup(void) {
   
   //setup timers
   timer.every(CONNECT_DELAY,  reconnect);
-  timer.every(SENDSTAT_DELAY, sendStatisticMQTT);
-#ifdef time  
+  //timer.every(SENDSTAT_DELAY, sendStatisticMQTT);
+#ifdef cas  
   timer.every(500,            displayTime);
 #endif
   void * a;
@@ -233,7 +233,7 @@ void loop(void) {
   }
 #endif
 
-#ifdef time
+#ifdef cas
   displayClear();
 #endif
   
@@ -250,7 +250,7 @@ void displayClear() {
   }
 }
 
-#ifdef time
+#ifdef cas
 
 bool displayTime(void *) {
   lcd.setCursor(TIMEX, TIMEY); //col,row
