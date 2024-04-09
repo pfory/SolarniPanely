@@ -193,7 +193,6 @@ void setup(void) {
   
   //setup timers
   timer.every(CONNECT_DELAY,  reconnect);
-  //timer.every(SENDSTAT_DELAY, sendStatisticMQTT);
 #ifdef cas  
   timer.every(500,            displayTime);
 #endif
@@ -203,7 +202,7 @@ void setup(void) {
   sendNetInfoMQTT();
 
   ticker.detach();
-  //keep LED on
+
   digitalWrite(LED_BUILTIN, HIGH);
 
   drd->stop();
