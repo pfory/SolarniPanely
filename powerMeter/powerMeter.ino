@@ -196,18 +196,9 @@ void setup(void) {
 #ifdef cas  
   timer.every(500,            displayTime);
 #endif
-  void * a;
+  void * a=0;
   reconnect(a);
-  sendStatisticMQTT(a);
-  sendNetInfoMQTT();
-
-  ticker.detach();
-
-  digitalWrite(LED_BUILTIN, HIGH);
-
-  drd->stop();
-
-  DEBUG_PRINTLN(F("SETUP END......................."));
+  postSetup();
 }
 
 /////////////////////////////////////////////   L  O  O  P   ///////////////////////////////////////
